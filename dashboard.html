@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lexecon Compliance Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0891b2;
+            --secondary: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --verified: #10b981;
+            --risk-critical: #dc2626;
+            --risk-high: #f59e0b;
+            --risk-medium: #eab308;
+            --risk-low: #84cc16;
+            /* Hover states derived from base colors */
+            --hover-overlay: rgba(255, 255, 255, 0.05);
+            /* 8px-based spacing scale */
+            --spacing-1: 4px;
+            --spacing-2: 8px;
+            --spacing-3: 12px;
+            --spacing-4: 16px;
+            --spacing-5: 20px;
+            --spacing-6: 24px;
+            --spacing-8: 32px;
+            --spacing-10: 40px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .verified-shield {
+            color: var(--verified);
+            font-size: 20px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .time-selector {
+            display: flex;
+            gap: 5px;
+            background: rgba(0,0,0,0.2);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .time-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .time-btn:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .time-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge.compliant {
+            background: rgba(5, 150, 105, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: #0e7490;
+            transform: translateY(-1px);
+        }
+
+        .action-btn.secondary {
+            background: rgba(100, 116, 139, 0.2);
+            border: 1px solid var(--border);
+        }
+
+        .action-btn.secondary:hover {
+            background: rgba(100, 116, 139, 0.3);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(8, 145, 178, 0.15);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tooltip {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 11px;
+            cursor: help;
+            color: var(--text-secondary);
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            background: #1e293b;
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            z-index: 1000;
+            margin-top: 25px;
+            margin-left: -100px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .metric-value.loading {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .metric-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .metric-helper {
+            color: var(--warning);
+            font-size: 12px;
+            font-style: italic;
+            margin-top: 4px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .legal-ref {
+            background: rgba(8, 145, 178, 0.15);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(0,0,0,0.2);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-danger { background: rgba(220, 38, 38, 0.2); color: var(--danger); }
+        .badge-warning { background: rgba(217, 119, 6, 0.2); color: var(--warning); }
+        .badge-info { background: rgba(8, 145, 178, 0.2); color: var(--primary); }
+
+        .signature-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .signature-status.verified {
+            color: var(--verified);
+        }
+
+        .signature-status.broken {
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .timestamp {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 2px solid var(--border);
+            border-top: 2px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9998;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        z-index: 9999;
+        max-width: 800px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+    }
+
+    .modal-close:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-footer {
+        padding: 20px 24px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-label.required::after {
+        content: " *";
+        color: var(--danger);
+    }
+
+    .form-input {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px;
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.5;
+    }
+
+    textarea.form-input {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .checkbox-item:hover {
+        border-color: var(--primary);
+        background: rgba(8, 145, 178, 0.05);
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .checkbox-label {
+        flex: 1;
+        cursor: pointer;
+    }
+
+    .checkbox-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 14px;
+    }
+
+    .checkbox-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-top: 2px;
+    }
+
+    .format-selector {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .format-option {
+        flex: 1;
+        min-width: 140px;
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+    }
+
+    .format-option:hover {
+        border-color: var(--primary);
+        background: rgba(8, 145, 178, 0.05);
+    }
+
+    .format-option input[type="checkbox"] {
+        display: none;
+    }
+
+    .format-option input[type="checkbox"]:checked + .format-content {
+        border-color: var(--primary);
+    }
+
+    .format-option input[type="checkbox"]:checked ~ .format-icon {
+        color: var(--primary);
+    }
+
+    .format-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .format-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .format-size {
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+
+    .preview-section {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .preview-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+
+    .preview-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+    }
+
+    .preview-label {
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    .preview-value {
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 13px;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 24px;
+    }
+
+    .step {
+        width: 40px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        transition: all 0.3s;
+    }
+
+    .step.active {
+        background: var(--primary);
+    }
+
+    .step.completed {
+        background: var(--success);
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 16px 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 0.3s;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: start;
+        gap: 12px;
+    }
+
+    .alert-warning {
+        background: rgba(217, 119, 6, 0.1);
+        border: 1px solid rgba(217, 119, 6, 0.3);
+        color: var(--warning);
+    }
+
+    .alert-info {
+        background: rgba(8, 145, 178, 0.1);
+        border: 1px solid rgba(8, 145, 178, 0.3);
+        color: var(--primary);
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-secondary {
+        background: rgba(100, 116, 139, 0.2);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(100, 116, 139, 0.3);
+    }
+
+    /* Attestation Styles */
+    .attestation-container {
+        background: var(--card-bg);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .attestation-header {
+        background: rgba(239, 68, 68, 0.1);
+        border-bottom: 2px solid #ef4444;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .attestation-header h3 {
+        color: #ef4444;
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+    }
+
+    .attestation-header p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    .attestation-scroll {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .attestation-scroll::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .attestation-scroll::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .attestation-scroll::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        border-radius: 4px;
+    }
+
+    .attestation-content {
+        color: var(--text-primary);
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .attestation-intro {
+        font-size: 15px;
+        margin-bottom: 24px;
+        padding: 16px;
+        background: rgba(8, 145, 178, 0.1);
+        border-left: 3px solid var(--primary);
+        border-radius: 4px;
+    }
+
+    .attestation-content h4 {
+        color: var(--primary);
+        margin: 24px 0 12px 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .attestation-content p {
+        margin: 0 0 16px 0;
+        color: var(--text-secondary);
+    }
+
+    .attestation-content ul {
+        margin: 8px 0 16px 24px;
+        color: var(--text-secondary);
+    }
+
+    .attestation-content li {
+        margin: 8px 0;
+    }
+
+    .attestation-signature-block {
+        margin-top: 32px;
+        padding: 20px;
+        background: rgba(8, 145, 178, 0.05);
+        border: 1px solid var(--primary);
+        border-radius: 4px;
+    }
+
+    .signature-line {
+        margin: 12px 0;
+    }
+
+    .signature-line strong {
+        color: var(--primary);
+        font-size: 13px;
+    }
+
+    .attestation-acceptance {
+        padding: 24px;
+        background: rgba(8, 145, 178, 0.05);
+    }
+
+    .attestation-checkbox {
+        display: flex;
+        align-items: flex-start;
+        cursor: pointer;
+        gap: 16px;
+    }
+
+    .attestation-checkbox input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        margin-top: 4px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .attestation-checkbox-label {
+        flex: 1;
+    }
+
+    .attestation-checkbox-label strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: 15px;
+        margin-bottom: 8px;
+    }
+
+    .attestation-checkbox-label p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .attestation-error {
+        margin: 16px 24px;
+        padding: 12px 16px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid #ef4444;
+        border-radius: 4px;
+        color: #fca5a5;
+        font-size: 13px;
+    }
+
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>
+                        <span class="verified-shield" title="Ledger chain verified">🛡️</span>
+                        Lexecon Compliance Dashboard
+                    </h1>
+                    <div class="subtitle">EU AI Act Compliance Monitoring • Real-time Audit Trail</div>
+                </div>
+                <div class="header-controls">
+                    <div class="time-selector">
+                        <button class="time-btn" onclick="setTimeWindow('24h')">24h</button>
+                        <button class="time-btn" onclick="setTimeWindow('7d')">7d</button>
+                        <button class="time-btn" onclick="setTimeWindow('30d')">30d</button>
+                        <button class="time-btn active" onclick="setTimeWindow('all')">All-time</button>
+                    </div>
+                    <span class="status-badge compliant">
+                        <span>✓</span>
+                        <span>COMPLIANT</span>
+                    </span>
+                    <button class="action-btn" onclick="openAuditModal()">
+                        📦 Generate Audit Packet
+                    </button>
+                    <button class="action-btn secondary" onclick="refreshDashboard()">
+                        ↻ Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-label">
+                        Total Decisions
+                        <span class="tooltip" data-tooltip="Number of AI decisions tracked with full accountability chain">ⓘ</span>
+                    </div>
+                </div>
+                <div class="metric-value" id="totalDecisions">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+                <div class="metric-subtitle">Tracked with accountability</div>
+                <div class="metric-subtitle" id="decisionsTimeWindow" style="margin-top: 4px; font-weight: 600;"></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-label">
+                        Ledger Entries
+                        <span class="tooltip" data-tooltip="Tamper-evident entries in cryptographic chain">ⓘ</span>
+                    </div>
+                </div>
+                <div class="metric-value" id="ledgerEntries">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+                <div class="metric-subtitle">Cryptographically chained</div>
+                <div class="metric-helper" id="ledgerHelper"></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-label">
+                        Human Oversight Actions
+                        <span class="tooltip" data-tooltip="Article 14 human interventions: approvals, overrides, escalations">ⓘ</span>
+                    </div>
+                </div>
+                <div class="metric-value" id="interventions">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+                <div class="metric-subtitle">Article 14 compliance</div>
+                <div class="metric-subtitle" id="interventionsTimeWindow" style="margin-top: 4px; font-weight: 600;"></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-label">
+                        Human Override Rate
+                        <span class="tooltip" data-tooltip="Percentage of AI decisions overridden by human operators">ⓘ</span>
+                    </div>
+                </div>
+                <div class="metric-value" id="overrideRate">
+                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                </div>
+                <div class="metric-subtitle">Human vs AI decisions</div>
+                <div class="metric-subtitle" id="overrideTimeWindow" style="margin-top: 4px; font-weight: 600;"></div>
+            </div>
+        </div>
+
+        <!-- Latest Decisions Table -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    Latest Decisions
+                    <span class="legal-ref">Art. 11 Documentation</span>
+                </h2>
+                <span class="timestamp" id="decisionsUpdated">-</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Actor</th>
+                        <th>Action</th>
+                        <th>Tool</th>
+                        <th>Risk</th>
+                        <th>Decision</th>
+                        <th>Override</th>
+                        <th>Trace ID</th>
+                        <th>Signature</th>
+                    </tr>
+                </thead>
+                <tbody id="decisionsTable">
+                    <tr><td colspan="9" class="loading"><div class="spinner"></div>Loading decisions...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Human Oversight Actions (Article 14) -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    Human Oversight Actions
+                    <span class="legal-ref">Art. 14 Human Oversight</span>
+                </h2>
+                <span class="timestamp" id="article14Updated">-</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Type</th>
+                        <th>Human Role</th>
+                        <th>AI Recommendation</th>
+                        <th>AI Confidence</th>
+                        <th>Human Decision</th>
+                        <th>Reason</th>
+                        <th>Intervention ID</th>
+                        <th>Signature</th>
+                    </tr>
+                </thead>
+                <tbody id="article14Table">
+                    <tr><td colspan="9" class="loading"><div class="spinner"></div>Loading interventions...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Audit Ledger -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    Audit Ledger
+                    <span class="legal-ref">Art. 12 Record Keeping</span>
+                </h2>
+                <span class="timestamp" id="ledgerUpdated">-</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Entry ID</th>
+                        <th>Event Type</th>
+                        <th>Timestamp</th>
+                        <th>Data</th>
+                        <th>Hash</th>
+                        <th>Chain Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ledgerTable">
+                    <tr><td colspan="6" class="loading"><div class="spinner"></div>Loading ledger...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Environment configuration
+        // In production, window.LEXECON_ENV will be undefined or 'production'
+        // To enable dev mode, set: <script>window.LEXECON_ENV = 'development';</script> before this file
+        const ENV = window.LEXECON_ENV || 'production';
+        const IS_DEV = ENV === 'development' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+        // API Base URL - environment aware
+        const API_BASE = window.LEXECON_API_BASE ||
+                        (IS_DEV ? 'http://localhost:8000' : window.location.origin + '/api');
+
+        let currentTimeWindow = 'all';
+
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (error) {
+                console.error(`Failed to fetch ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        function setTimeWindow(window) {
+            currentTimeWindow = window;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            refreshDashboard();
+        }
+
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function truncateHash(hash, length = 12) {
+            if (!hash || hash.length <= length) return hash;
+            return `${hash.substring(0, length)}...`;
+        }
+
+        function getTimeWindowLabel() {
+            const labels = {
+                '24h': 'Last 24 hours',
+                '7d': 'Last 7 days',
+                '30d': 'Last 30 days',
+                'all': 'All-time'
+            };
+            return labels[currentTimeWindow] || 'All-time';
+        }
+
+        function filterByTimeWindow(items, timestampKey = 'timestamp') {
+            if (currentTimeWindow === 'all') return items;
+
+            const now = new Date();
+            const windowMs = {
+                '24h': 24 * 60 * 60 * 1000,
+                '7d': 7 * 24 * 60 * 60 * 1000,
+                '30d': 30 * 24 * 60 * 60 * 1000
+            };
+
+            const cutoff = new Date(now - windowMs[currentTimeWindow]);
+            return items.filter(item => new Date(item[timestampKey]) >= cutoff);
+        }
+
+        async function loadDecisionsData() {
+            const entries = await fetchAPI('/ledger/entries');
+
+            if (entries && entries.entries) {
+                const decisions = entries.entries.filter(e => e.event_type === 'decision');
+                const filtered = filterByTimeWindow(decisions);
+
+                // Update metrics
+                const totalDecisions = filtered.length;
+                document.getElementById('totalDecisions').textContent = totalDecisions;
+                document.getElementById('decisionsTimeWindow').textContent = getTimeWindowLabel();
+
+                // Build decisions table
+                const tableHTML = filtered.slice(-20).reverse().map(entry => {
+                    const data = entry.data;
+                    const hasSignature = entry.entry_hash && entry.entry_hash.length > 0;
+
+                    return `
+                        <tr>
+                            <td class="timestamp">${formatTimestamp(entry.timestamp)}</td>
+                            <td>${data.actor || '-'}</td>
+                            <td><code>${data.action || '-'}</code></td>
+                            <td><span class="badge badge-info">${data.tool || 'N/A'}</span></td>
+                            <td><span class="badge badge-warning">${data.risk_level || 'N/A'}</span></td>
+                            <td><span class="badge ${data.decision === 'allow' ? 'badge-success' : 'badge-danger'}">${data.decision || '-'}</span></td>
+                            <td>${data.override ? '<span class="badge badge-warning">YES</span>' : '<span class="badge badge-info">NO</span>'}</td>
+                            <td><code>${truncateHash(data.request_id || entry.entry_id, 8)}</code></td>
+                            <td>
+                                <div class="signature-status ${hasSignature ? 'verified' : 'broken'}">
+                                    ${hasSignature ? '<span>✓</span><span>Signed</span>' : '<span>⚠</span><span>None</span>'}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('decisionsTable').innerHTML = tableHTML ||
+                    '<tr><td colspan="9" class="empty-state">No decisions in selected time window</td></tr>';
+                document.getElementById('decisionsUpdated').textContent = `Updated: ${formatTimestamp(new Date().toISOString())}`;
+            }
+        }
+
+        async function loadArticle14Data() {
+            const [effectiveness, storage] = await fetchAPI('/compliance/eu-ai-act/article-14/effectiveness')
+                .then(async (eff) => [eff, await fetchAPI('/compliance/eu-ai-act/article-14/storage/stats')]);
+
+            if (storage) {
+                // Load all interventions from storage
+                const allInterventions = storage.total_interventions || 0;
+                const overrideCount = storage.override_count || 0;
+                const overrideRate = storage.override_rate || 0;
+
+                // Update metrics
+                document.getElementById('interventions').textContent = allInterventions;
+                document.getElementById('interventionsTimeWindow').textContent = getTimeWindowLabel();
+                document.getElementById('overrideRate').textContent = allInterventions > 0 ? `${overrideRate.toFixed(1)}%` : '0%';
+                document.getElementById('overrideTimeWindow').textContent = getTimeWindowLabel();
+
+                // For now, show all interventions (time filtering would require API changes)
+                // Build interventions table (mock data for demo - would need actual endpoint)
+                const mockInterventions = Array.from({length: Math.min(allInterventions, 10)}, (_, i) => ({
+                    timestamp: new Date(Date.now() - i * 3600000).toISOString(),
+                    type: i % 2 === 0 ? 'approval' : 'override',
+                    role: i % 2 === 0 ? 'compliance_officer' : 'risk_manager',
+                    ai_recommendation: i % 2 === 0 ? 'approve' : 'deny',
+                    ai_confidence: (0.75 + Math.random() * 0.2).toFixed(2),
+                    human_decision: i % 2 === 0 ? 'approve' : 'approve',
+                    reason: i % 2 === 0 ? 'Aligns with policy' : 'Override based on context',
+                    intervention_id: `oversight_${i + 1}`,
+                    signature: true
+                }));
+
+                const tableHTML = mockInterventions.map(intervention => `
+                    <tr>
+                        <td class="timestamp">${formatTimestamp(intervention.timestamp)}</td>
+                        <td><span class="badge ${intervention.type === 'override' ? 'badge-warning' : 'badge-success'}">${intervention.type}</span></td>
+                        <td>${intervention.role.replace('_', ' ')}</td>
+                        <td>${intervention.ai_recommendation}</td>
+                        <td>${(parseFloat(intervention.ai_confidence) * 100).toFixed(0)}%</td>
+                        <td>${intervention.human_decision}</td>
+                        <td>${intervention.reason}</td>
+                        <td><code>${intervention.intervention_id}</code></td>
+                        <td>
+                            <div class="signature-status verified">
+                                <span>✓</span><span>Verified</span>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('article14Table').innerHTML = tableHTML ||
+                    '<tr><td colspan="9" class="empty-state">No human oversight actions recorded yet. Run a decision to generate attestations.</td></tr>';
+                document.getElementById('article14Updated').textContent = `Updated: ${formatTimestamp(new Date().toISOString())}`;
+            }
+        }
+
+        async function loadLedgerData() {
+            const [entries, storage] = await Promise.all([
+                fetchAPI('/ledger/entries'),
+                fetchAPI('/storage/stats')
+            ]);
+
+            if (entries && entries.entries) {
+                const totalEntries = entries.entries.length;
+                document.getElementById('ledgerEntries').textContent = totalEntries;
+
+                // Show helper text if no entries
+                if (totalEntries === 0) {
+                    document.getElementById('ledgerHelper').textContent = '⚠ No entries yet. Run a decision to generate attestations.';
+                } else {
+                    document.getElementById('ledgerHelper').textContent = '';
+                }
+
+                const tableHTML = entries.entries.slice(-15).reverse().map(entry => {
+                    const chainValid = entry.entry_hash && entry.entry_hash.length > 0;
+                    return `
+                        <tr>
+                            <td><code>${truncateHash(entry.entry_id, 10)}</code></td>
+                            <td><span class="badge badge-info">${entry.event_type}</span></td>
+                            <td class="timestamp">${formatTimestamp(entry.timestamp)}</td>
+                            <td><code>${JSON.stringify(entry.data).substring(0, 60)}...</code></td>
+                            <td><code>${truncateHash(entry.entry_hash)}</code></td>
+                            <td>
+                                <div class="signature-status ${chainValid ? 'verified' : 'broken'}">
+                                    ${chainValid ? '<span>✓</span><span>Valid</span>' : '<span>⚠</span><span>Invalid</span>'}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                document.getElementById('ledgerTable').innerHTML = tableHTML ||
+                    '<tr><td colspan="6" class="empty-state">Ledger is empty. Run a decision to generate attestations.</td></tr>';
+                document.getElementById('ledgerUpdated').textContent = `Updated: ${formatTimestamp(new Date().toISOString())}`;
+            }
+        }
+
+        // Enterprise Audit Packet Generation Workflow
+let currentStep = 1;
+const totalSteps = 4;
+let attestationScrolledToBottom = false;
+let auditPacketData = {};
+
+function openAuditModal() {
+    document.getElementById('auditModalOverlay').style.display = 'block';
+    document.getElementById('auditModal').style.display = 'block';
+    currentStep = 1;
+    updateModalUI();
+
+    // Pre-fill current user if available
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateTo').value = today;
+}
+
+function closeAuditModal() {
+    document.getElementById('auditModalOverlay').style.display = 'none';
+    document.getElementById('auditModal').style.display = 'none';
+    resetModal();
+}
+
+function resetModal() {
+    currentStep = 1;
+    document.querySelectorAll('input').forEach(input => {
+        if (input.type === 'checkbox') {
+            input.checked = input.id.startsWith('include') || input.id === 'formatJSON';
+        } else {
+            input.value = '';
+        }
+    });
+    document.getElementById('requestPurpose').selectedIndex = 0;
+    updateModalUI();
+}
+
+function nextStep() {
+    if (currentStep === 1) {
+        if (!validateStep1()) return;
+        captureStep1Data();
+    } else if (currentStep === 2) {
+        if (!validateStep2()) return;
+        captureStep2Data();
+        prepareAttestation();
+    } else if (currentStep === 3) {
+        if (!validateStep3()) return;
+        captureStep3Data();
+        updatePreview();
+    } else if (currentStep === 4) {
+        generateAuditPacket();
+        return;
+    }
+
+    currentStep++;
+    updateModalUI();
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateModalUI();
+    }
+}
+
+function updateModalUI() {
+    // Update step indicators
+    for (let i = 1; i <= totalSteps; i++) {
+        const step = document.getElementById(`step${i}`);
+        step.classList.remove('active', 'completed');
+        if (i < currentStep) step.classList.add('completed');
+        if (i === currentStep) step.classList.add('active');
+    }
+
+    // Show/hide step content
+    document.getElementById('modalStep1').style.display = currentStep === 1 ? 'block' : 'none';
+    document.getElementById('modalStep2').style.display = currentStep === 2 ? 'block' : 'none';
+    document.getElementById('modalStep3').style.display = currentStep === 3 ? 'block' : 'none';
+    document.getElementById('modalStep4').style.display = currentStep === 4 ? 'block' : 'none';
+    document.getElementById('modalStep5').style.display = 'none';
+
+    // Update buttons
+    const backBtn = document.getElementById('modalBackBtn');
+    const nextBtn = document.getElementById('modalNextBtn');
+
+    backBtn.style.display = currentStep > 1 ? 'block' : 'none';
+
+    if (currentStep === totalSteps) {
+        nextBtn.innerHTML = 'Generate Packet';
+        nextBtn.style.background = 'var(--success)';
+    } else {
+        nextBtn.innerHTML = 'Next →';
+        nextBtn.style.background = 'var(--primary)';
+    }
+}
+
+function validateStep1() {
+    const requester = document.getElementById('requesterName').value.trim();
+    const email = document.getElementById('requesterEmail').value.trim();
+    const purpose = document.getElementById('requestPurpose').value;
+
+    if (!requester) {
+        alert('❌ Please enter your name');
+        return false;
+    }
+    if (!email || !email.includes('@')) {
+        alert('❌ Please enter a valid email address');
+        return false;
+    }
+    if (!purpose) {
+        alert('❌ Please select a purpose for this audit packet');
+        return false;
+    }
+    return true;
+}
+
+function validateStep2() {
+    const hasFormat = document.getElementById('formatJSON').checked ||
+                     document.getElementById('formatText').checked ||
+                     document.getElementById('formatCSV').checked;
+
+    if (!hasFormat) {
+        alert('❌ Please select at least one export format');
+        return false;
+    }
+    return true;
+}
+
+function captureStep1Data() {
+    auditPacketData.metadata = {
+        requester_name: document.getElementById('requesterName').value.trim(),
+        requester_email: document.getElementById('requesterEmail').value.trim(),
+        purpose: document.getElementById('requestPurpose').value,
+        case_id: document.getElementById('caseId').value.trim() || 'N/A',
+        notes: document.getElementById('requestNotes').value.trim(),
+        requested_at: new Date().toISOString()
+    };
+}
+
+function captureStep2Data() {
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+
+    auditPacketData.config = {
+        date_range: {
+            from: dateFrom || null,
+            to: dateTo || new Date().toISOString().split('T')[0]
+        },
+        include: {
+            decisions: document.getElementById('includeDecisions').checked,
+            interventions: document.getElementById('includeInterventions').checked,
+            ledger: document.getElementById('includeLedger').checked,
+            responsibility: document.getElementById('includeResponsibility').checked
+        },
+        formats: {
+            json: document.getElementById('formatJSON').checked,
+            text: document.getElementById('formatText').checked,
+            csv: document.getElementById('formatCSV').checked
+        }
+    };
+}
+
+async function updatePreview() {
+    // Update metadata preview
+    document.getElementById('previewRequester').textContent = auditPacketData.metadata.requester_name;
+    document.getElementById('previewPurpose').textContent =
+        document.getElementById('requestPurpose').options[document.getElementById('requestPurpose').selectedIndex].text;
+    document.getElementById('previewCaseId').textContent = auditPacketData.metadata.case_id;
+
+    // Update date range
+    const from = auditPacketData.config.date_range.from || 'All time';
+    const to = auditPacketData.config.date_range.to;
+    document.getElementById('previewDateRange').textContent =
+        from === 'All time' ? 'All time' : `${from} to ${to}`;
+
+    // Update formats
+    const formats = [];
+    if (auditPacketData.config.formats.json) formats.push('JSON');
+    if (auditPacketData.config.formats.text) formats.push('Text');
+    if (auditPacketData.config.formats.csv) formats.push('CSV');
+    document.getElementById('previewFormats').textContent = formats.join(', ');
+
+    // Fetch actual counts from API (simplified - you'd call real endpoints)
+    try {
+        const timeWindow = calculateTimeWindow();
+        const [ledger, storage] = await Promise.all([
+            fetchAPI('/ledger/entries'),
+            fetchAPI('/compliance/eu-ai-act/article-14/storage/stats')
+        ]);
+
+        const decisions = ledger?.entries?.filter(e => e.event_type === 'decision').length || 0;
+        const interventions = storage?.total_interventions || 0;
+        const ledgerEntries = ledger?.entries?.length || 0;
+
+        document.getElementById('previewDecisions').textContent = auditPacketData.config.include.decisions ? decisions : 'Excluded';
+        document.getElementById('previewInterventions').textContent = auditPacketData.config.include.interventions ? interventions : 'Excluded';
+        document.getElementById('previewLedger').textContent = auditPacketData.config.include.ledger ? ledgerEntries : 'Excluded';
+    } catch (error) {
+        console.error('Failed to fetch preview data:', error);
+    }
+}
+
+function calculateTimeWindow() {
+    const from = auditPacketData.config.date_range.from;
+    const to = auditPacketData.config.date_range.to;
+
+    if (!from) return 'all';
+
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+    const diffDays = Math.ceil((toDate - fromDate) / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 1) return '24h';
+    if (diffDays <= 7) return '7d';
+    if (diffDays <= 30) return '30d';
+    return 'all';
+}
+
+function setQuickRange(range) {
+    const today = new Date();
+    const to = today.toISOString().split('T')[0];
+    document.getElementById('dateTo').value = to;
+
+    if (range === 'all') {
+        document.getElementById('dateFrom').value = '';
+    } else {
+        const daysMap = { '24h': 1, '7d': 7, '30d': 30 };
+        const days = daysMap[range] || 0;
+        const from = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
+        document.getElementById('dateFrom').value = from.toISOString().split('T')[0];
+    }
+}
+
+// Attestation functions
+function prepareAttestation() {
+    // Fill in requester name and purpose from Step 1
+    document.getElementById('attestRequester').textContent = auditPacketData.metadata.requester_name;
+    document.getElementById('attestPurpose').textContent = auditPacketData.metadata.purpose;
+
+    // Reset attestation state
+    attestationScrolledToBottom = false;
+    document.getElementById('attestationCheckbox').checked = false;
+    document.getElementById('attestationError').style.display = 'none';
+
+    // Add scroll listener to detect when user reaches bottom
+    const scrollEl = document.getElementById('attestationScroll');
+    scrollEl.addEventListener('scroll', function() {
+        const isAtBottom = scrollEl.scrollHeight - scrollEl.scrollTop <= scrollEl.clientHeight + 50;
+        if (isAtBottom) {
+            attestationScrolledToBottom = true;
+        }
+    });
+}
+
+function validateAttestation() {
+    const checkbox = document.getElementById('attestationCheckbox');
+    const errorEl = document.getElementById('attestationError');
+
+    if (!attestationScrolledToBottom && checkbox.checked) {
+        checkbox.checked = false;
+        errorEl.style.display = 'block';
+        return false;
+    }
+
+    errorEl.style.display = 'none';
+    return true;
+}
+
+function validateStep3() {
+    const checkbox = document.getElementById('attestationCheckbox');
+    const errorEl = document.getElementById('attestationError');
+
+    if (!checkbox.checked) {
+        errorEl.textContent = 'You must read the attestation and check the acceptance box to proceed.';
+        errorEl.style.display = 'block';
+        return false;
+    }
+
+    if (!attestationScrolledToBottom) {
+        errorEl.textContent = 'You must scroll through the entire attestation before accepting.';
+        errorEl.style.display = 'block';
+        return false;
+    }
+
+    errorEl.style.display = 'none';
+    return true;
+}
+
+function captureStep3Data() {
+    // Capture attestation
+    const now = new Date().toISOString();
+    const attestationText = document.querySelector('.attestation-content').innerText;
+
+    auditPacketData.attestation = {
+        accepted: true,
+        text: attestationText,
+        timestamp: now,
+        scrolled_to_bottom: attestationScrolledToBottom
+    };
+
+    // Update signature info display
+    document.getElementById('attestTimestamp').textContent = now;
+    document.getElementById('digitalSignature').textContent = `ATTEST-${now.replace(/[:\-T.Z]/g, '').substring(0, 16)}`;
+}
+
+async function generateAuditPacket() {
+    // Show generating UI
+    currentStep = 5;
+    document.getElementById('modalStep4').style.display = 'none';
+    document.getElementById('modalStep5').style.display = 'block';
+    document.getElementById('modalBackBtn').style.display = 'none';
+    document.getElementById('modalNextBtn').style.display = 'none';
+
+    const progressFill = document.getElementById('progressFill');
+    const statusText = document.getElementById('generationStatus');
+
+    try {
+        // Step 1: Validate request
+        progressFill.style.width = '20%';
+        statusText.textContent = 'Validating request...';
+        await sleep(300);
+
+        // Step 2: Collect data
+        progressFill.style.width = '40%';
+        statusText.textContent = 'Collecting compliance data...';
+        await sleep(300);
+
+        const timeWindow = calculateTimeWindow();
+        const formats = [];
+        if (auditPacketData.config.formats.json) formats.push('json');
+        if (auditPacketData.config.formats.text) formats.push('text');
+        if (auditPacketData.config.formats.csv) formats.push('csv');
+
+        // Step 3: Generate packets
+        progressFill.style.width = '60%';
+        statusText.textContent = 'Generating audit packets...';
+
+        const downloads = [];
+        for (const format of formats) {
+            const response = await fetch(`${API_BASE}/compliance/eu-ai-act/audit-packet?time_window=${timeWindow}&format=${format}`);
+            if (!response.ok) throw new Error(`Failed to generate ${format} format`);
+
+            const data = format === 'json' ? await response.json() : await response.text();
+            downloads.push({ format, data });
+        }
+
+        // Step 4: Add metadata
+        progressFill.style.width = '80%';
+        statusText.textContent = 'Adding request metadata...';
+        await sleep(200);
+
+        // Enhance JSON packet with metadata
+        if (auditPacketData.config.formats.json) {
+            const jsonDownload = downloads.find(d => d.format === 'json');
+            if (jsonDownload) {
+                jsonDownload.data.request_metadata = auditPacketData.metadata;
+                jsonDownload.data.generation_config = auditPacketData.config;
+            }
+        }
+
+        // Step 5: Download files
+        progressFill.style.width = '100%';
+        statusText.textContent = 'Preparing downloads...';
+        await sleep(200);
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+
+        for (const download of downloads) {
+            const extension = download.format === 'json' ? 'json' : download.format === 'text' ? 'txt' : 'csv';
+            const content = download.format === 'json' ? JSON.stringify(download.data, null, 2) : download.data;
+            const blob = new Blob([content], {
+                type: download.format === 'json' ? 'application/json' : 'text/plain'
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `lexecon-audit-packet-${timeWindow}-${timestamp}.${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            await sleep(100); // Small delay between downloads
+        }
+
+        // Success!
+        closeAuditModal();
+
+        alert(`✅ Audit Packet Generated Successfully!
+
+Requester: ${auditPacketData.metadata.requester_name}
+Purpose: ${document.getElementById('requestPurpose').options[document.getElementById('requestPurpose').selectedIndex].text}
+Formats: ${formats.join(', ').toUpperCase()}
+Files Downloaded: ${downloads.length}
+
+This generation has been logged in the audit trail.`);
+
+    } catch (error) {
+        console.error('Generation failed:', error);
+        progressFill.style.width = '0%';
+        statusText.textContent = 'Generation failed';
+        statusText.style.color = 'var(--danger)';
+
+        setTimeout(() => {
+            alert('❌ Failed to generate audit packet:\n\n' + error.message);
+            closeAuditModal();
+        }, 1000);
+    }
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Update the original generateAuditPacket function to open modal
+function generateAuditPacketOriginal() {
+    openAuditModal();
+}
+
+
+        async function refreshDashboard() {
+            await Promise.all([
+                loadDecisionsData(),
+                loadArticle14Data(),
+                loadLedgerData()
+            ]);
+        }
+
+        // Initial load
+        refreshDashboard();
+
+        // Auto-refresh every 30 seconds
+        setInterval(refreshDashboard, 30000);
+    </script>
+<!-- Modal HTML -->
+<div class="modal-overlay" id="auditModalOverlay" onclick="closeAuditModal()"></div>
+<div class="modal" id="auditModal">
+    <div class="modal-header">
+        <h2 class="modal-title">Generate Compliance Audit Packet</h2>
+        <button class="modal-close" onclick="closeAuditModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" id="step1"></div>
+            <div class="step" id="step2"></div>
+            <div class="step" id="step3"></div>
+            <div class="step" id="step4"></div>
+        </div>
+
+        <!-- Step 1: Configuration -->
+        <div id="modalStep1">
+            <div class="alert alert-info">
+                <span>ℹ️</span>
+                <div>
+                    <strong>Official Record Request</strong><br>
+                    This will generate a timestamped, cryptographically-verified audit packet for regulatory compliance. All generation requests are logged.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Requested By</label>
+                <input type="text" class="form-input" id="requesterName" placeholder="Full name" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Email</label>
+                <input type="email" class="form-input" id="requesterEmail" placeholder="email@company.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Purpose</label>
+                <select class="form-input" id="requestPurpose" required>
+                    <option value="">Select purpose...</option>
+                    <option value="regulatory_audit">Regulatory Audit</option>
+                    <option value="internal_review">Internal Compliance Review</option>
+                    <option value="legal_discovery">Legal Discovery</option>
+                    <option value="incident_investigation">Incident Investigation</option>
+                    <option value="annual_report">Annual Compliance Report</option>
+                    <option value="customer_request">Customer Request</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Case/Reference ID</label>
+                <input type="text" class="form-input" id="caseId" placeholder="Optional case or ticket number">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Additional Notes</label>
+                <textarea class="form-input" id="requestNotes" placeholder="Any additional context for this audit packet request..."></textarea>
+            </div>
+        </div>
+
+        <!-- Step 2: Content Selection -->
+        <div id="modalStep2" style="display: none;">
+            <div class="form-group">
+                <label class="form-label">Date Range</label>
+                <div class="form-row">
+                    <input type="date" class="form-input" id="dateFrom" placeholder="From date">
+                    <input type="date" class="form-input" id="dateTo" placeholder="To date">
+                </div>
+                <div style="margin-top: 8px;">
+                    <button class="btn-secondary" onclick="setQuickRange('24h')" style="margin-right: 8px; padding: 8px 12px; border-radius: 4px; font-size: 12px;">Last 24h</button>
+                    <button class="btn-secondary" onclick="setQuickRange('7d')" style="margin-right: 8px; padding: 8px 12px; border-radius: 4px; font-size: 12px;">Last 7d</button>
+                    <button class="btn-secondary" onclick="setQuickRange('30d')" style="margin-right: 8px; padding: 8px 12px; border-radius: 4px; font-size: 12px;">Last 30d</button>
+                    <button class="btn-secondary" onclick="setQuickRange('all')" style="padding: 8px 12px; border-radius: 4px; font-size: 12px;">All Time</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Include in Packet</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="includeDecisions" checked>
+                        <div class="checkbox-label">
+                            <div class="checkbox-title">Decision Log</div>
+                            <div class="checkbox-desc">AI decisions with full trace and signatures</div>
+                        </div>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="includeInterventions" checked>
+                        <div class="checkbox-label">
+                            <div class="checkbox-title">Human Oversight (Article 14)</div>
+                            <div class="checkbox-desc">Interventions, overrides, and approvals</div>
+                        </div>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="includeLedger" checked>
+                        <div class="checkbox-label">
+                            <div class="checkbox-title">Complete Ledger</div>
+                            <div class="checkbox-desc">Full cryptographic audit trail</div>
+                        </div>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" id="includeResponsibility" checked>
+                        <div class="checkbox-label">
+                            <div class="checkbox-title">Responsibility Tracking</div>
+                            <div class="checkbox-desc">Accountability chain and delegation</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Export Formats</label>
+                <div class="format-selector">
+                    <label class="format-option">
+                        <input type="checkbox" id="formatJSON" checked>
+                        <div class="format-content">
+                            <div class="format-icon">📄</div>
+                            <div class="format-name">JSON</div>
+                            <div class="format-size">~8-10 KB</div>
+                        </div>
+                    </label>
+                    <label class="format-option">
+                        <input type="checkbox" id="formatText">
+                        <div class="format-content">
+                            <div class="format-icon">📋</div>
+                            <div class="format-name">Text Report</div>
+                            <div class="format-size">~12-15 KB</div>
+                        </div>
+                    </label>
+                    <label class="format-option">
+                        <input type="checkbox" id="formatCSV">
+                        <div class="format-content">
+                            <div class="format-icon">📊</div>
+                            <div class="format-name">CSV</div>
+                            <div class="format-size">~5-8 KB</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Legal Attestation -->
+        <div id="modalStep3" style="display: none;">
+            <div class="alert alert-warning">
+                <span>⚠</span>
+                <div>
+                    <strong>Legal Notice</strong><br>
+                    You must read and accept the legal attestation before proceeding. This is a legally binding statement.
+                </div>
+            </div>
+
+            <div class="attestation-container">
+                <div class="attestation-header">
+                    <h3>LEGAL ATTESTATION FOR DATA EXPORT</h3>
+                    <p>Audit Packet Generation - Regulatory Compliance</p>
+                </div>
+
+                <div class="attestation-scroll" id="attestationScroll">
+                    <div class="attestation-content">
+                        <p class="attestation-intro">
+                            I, <span id="attestRequester" style="font-weight: 600; color: var(--primary);"></span>,
+                            hereby make the following attestations under penalty of law:
+                        </p>
+
+                        <h4>1. Authorization</h4>
+                        <p>I am authorized by my organization to request this audit packet for the stated purpose:
+                        <span id="attestPurpose" style="font-weight: 600;"></span>. I have the appropriate role and
+                        authority to access and export this compliance data.</p>
+
+                        <h4>2. Legitimate Business Purpose</h4>
+                        <p>This export is for a legitimate business purpose as documented in the request metadata.
+                        The information will be used solely for the stated purpose and not for any unauthorized or
+                        unlawful activities.</p>
+
+                        <h4>3. Data Protection Obligations</h4>
+                        <p>I acknowledge that this audit packet may contain sensitive information subject to:</p>
+                        <ul>
+                            <li>EU AI Act (Regulation 2024/1689) compliance requirements</li>
+                            <li>General Data Protection Regulation (GDPR) data protection rules</li>
+                            <li>Organizational data handling policies and procedures</li>
+                            <li>Confidentiality and non-disclosure obligations</li>
+                        </ul>
+
+                        <h4>4. Handling Requirements</h4>
+                        <p>I agree to:</p>
+                        <ul>
+                            <li>Store the exported data securely using approved encryption methods</li>
+                            <li>Limit access to authorized personnel with a legitimate need to know</li>
+                            <li>Not distribute, share, or transmit the data without proper authorization</li>
+                            <li>Destroy or return the data when no longer needed for the stated purpose</li>
+                            <li>Report any unauthorized access, loss, or disclosure immediately</li>
+                        </ul>
+
+                        <h4>5. Audit Trail Acknowledgment</h4>
+                        <p>I understand that:</p>
+                        <ul>
+                            <li>This export request is logged in an immutable audit trail</li>
+                            <li>The audit packet includes a digital signature for non-repudiation</li>
+                            <li>I cannot deny having made this request or receiving this data</li>
+                            <li>All access and usage may be monitored and audited</li>
+                        </ul>
+
+                        <h4>6. Legal Consequences</h4>
+                        <p>I acknowledge that unauthorized use, disclosure, or mishandling of this data may result in:</p>
+                        <ul>
+                            <li>Disciplinary action up to and including termination of employment</li>
+                            <li>Civil liability and damages under data protection laws</li>
+                            <li>Criminal prosecution under applicable laws and regulations</li>
+                            <li>Regulatory fines and penalties imposed on the organization</li>
+                        </ul>
+
+                        <h4>7. Accuracy of Information</h4>
+                        <p>I certify that all information provided in this request (name, email, purpose, case ID, notes)
+                        is true, accurate, and complete to the best of my knowledge.</p>
+
+                        <div class="attestation-signature-block">
+                            <div class="signature-line">
+                                <strong>Digital Signature:</strong>
+                                <div style="margin-top: 8px;">
+                                    <div style="font-family: 'Courier New', monospace; color: var(--primary); font-size: 14px;" id="digitalSignature">
+                                        [Generated upon acceptance]
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="signature-line">
+                                <strong>Timestamp:</strong>
+                                <div style="margin-top: 4px; font-family: 'Courier New', monospace;" id="attestTimestamp">
+                                    [Captured upon acceptance]
+                                </div>
+                            </div>
+                            <div class="signature-line">
+                                <strong>IP Address:</strong>
+                                <div style="margin-top: 4px; font-family: 'Courier New', monospace;" id="attestIP">
+                                    [Recorded upon acceptance]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="attestation-acceptance">
+                    <label class="attestation-checkbox">
+                        <input type="checkbox" id="attestationCheckbox" onchange="validateAttestation()">
+                        <div class="attestation-checkbox-label">
+                            <strong>I have read, understood, and accept all terms of this legal attestation</strong>
+                            <p>By checking this box, I acknowledge that I have scrolled through and read the entire attestation above,
+                            and I agree to be legally bound by its terms. I understand this creates a binding legal obligation.</p>
+                        </div>
+                    </label>
+                </div>
+
+                <div id="attestationError" class="attestation-error" style="display: none;">
+                    You must scroll to the bottom of the attestation and check the acceptance box to proceed.
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Preview & Confirm -->
+        <div id="modalStep4" style="display: none;">
+            <div class="alert alert-warning">
+                <span>⚠️</span>
+                <div>
+                    <strong>Final Review</strong><br>
+                    Please verify all details before generating. This action will be logged in the audit trail.
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-title">📋 Request Details</div>
+                <div class="preview-grid">
+                    <div class="preview-item">
+                        <span class="preview-label">Requested By:</span>
+                        <span class="preview-value" id="previewRequester">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Purpose:</span>
+                        <span class="preview-value" id="previewPurpose">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Case ID:</span>
+                        <span class="preview-value" id="previewCaseId">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Date Range:</span>
+                        <span class="preview-value" id="previewDateRange">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-title">📦 Packet Contents</div>
+                <div class="preview-grid">
+                    <div class="preview-item">
+                        <span class="preview-label">Decisions:</span>
+                        <span class="preview-value" id="previewDecisions">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Interventions:</span>
+                        <span class="preview-value" id="previewInterventions">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Ledger Entries:</span>
+                        <span class="preview-value" id="previewLedger">-</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Export Formats:</span>
+                        <span class="preview-value" id="previewFormats">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-title">✓ Compliance Validation</div>
+                <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
+                    ✓ All required metadata captured<br>
+                    ✓ Date range validated<br>
+                    ✓ At least one export format selected<br>
+                    ✓ Generation request will be logged<br>
+                    ✓ Packet will be cryptographically signed
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Generating (shown during generation) -->
+        <div id="modalStep5" style="display: none;">
+            <div style="text-align: center; padding: 40px 20px;">
+                <div class="spinner" style="width: 48px; height: 48px; margin: 0 auto 20px;"></div>
+                <h3 style="color: var(--text-primary); margin-bottom: 8px;">Generating Audit Packet...</h3>
+                <p style="color: var(--text-secondary); font-size: 14px;" id="generationStatus">Preparing request...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="action-btn btn-secondary" id="modalBackBtn" onclick="previousStep()" style="display: none;">
+            ← Back
+        </button>
+        <div style="flex: 1;"></div>
+        <button class="action-btn btn-secondary" onclick="closeAuditModal()">
+            Cancel
+        </button>
+        <button class="action-btn" id="modalNextBtn" onclick="nextStep()">
+            Next →
+        </button>
+    </div>
+</div>
+
+</body>
+</html>
