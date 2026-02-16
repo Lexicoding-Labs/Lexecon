@@ -891,7 +891,6 @@
             <div class="header-content">
                 <div class="header-left">
                     <h1>
-                        <span class="verified-shield" title="Ledger chain verified">🛡️</span>
                         Lexecon Compliance Dashboard
                     </h1>
                     <div class="subtitle">EU AI Act Compliance Monitoring • Real-time Audit Trail</div>
@@ -904,11 +903,11 @@
                         <button class="time-btn active" onclick="setTimeWindow('all')">All-time</button>
                     </div>
                     <span class="status-badge compliant">
-                        <span>✓</span>
+                        <span></span>
                         <span>COMPLIANT</span>
                     </span>
                     <button class="action-btn" onclick="openAuditModal()">
-                        📦 Generate Audit Packet
+                         Generate Audit Packet
                     </button>
                     <button class="action-btn secondary" onclick="refreshDashboard()">
                         ↻ Refresh
@@ -1161,7 +1160,7 @@
                             <td><code>${truncateHash(data.request_id || entry.entry_id, 8)}</code></td>
                             <td>
                                 <div class="signature-status ${hasSignature ? 'verified' : 'broken'}">
-                                    ${hasSignature ? '<span>✓</span><span>Signed</span>' : '<span>⚠</span><span>None</span>'}
+                                    ${hasSignature ? '<span></span><span>Signed</span>' : '<span></span><span>None</span>'}
                                 </div>
                             </td>
                         </tr>
@@ -1216,7 +1215,7 @@
                         <td><code>${intervention.intervention_id}</code></td>
                         <td>
                             <div class="signature-status verified">
-                                <span>✓</span><span>Verified</span>
+                                <span></span><span>Verified</span>
                             </div>
                         </td>
                     </tr>
@@ -1240,7 +1239,7 @@
 
                 // Show helper text if no entries
                 if (totalEntries === 0) {
-                    document.getElementById('ledgerHelper').textContent = '⚠ No entries yet. Run a decision to generate attestations.';
+                    document.getElementById('ledgerHelper').textContent = ' No entries yet. Run a decision to generate attestations.';
                 } else {
                     document.getElementById('ledgerHelper').textContent = '';
                 }
@@ -1256,7 +1255,7 @@
                             <td><code>${truncateHash(entry.entry_hash)}</code></td>
                             <td>
                                 <div class="signature-status ${chainValid ? 'verified' : 'broken'}">
-                                    ${chainValid ? '<span>✓</span><span>Valid</span>' : '<span>⚠</span><span>Invalid</span>'}
+                                    ${chainValid ? '<span></span><span>Valid</span>' : '<span></span><span>Invalid</span>'}
                                 </div>
                             </td>
                         </tr>
@@ -1370,15 +1369,15 @@ function validateStep1() {
     const purpose = document.getElementById('requestPurpose').value;
 
     if (!requester) {
-        alert('❌ Please enter your name');
+        alert(' Please enter your name');
         return false;
     }
     if (!email || !email.includes('@')) {
-        alert('❌ Please enter a valid email address');
+        alert(' Please enter a valid email address');
         return false;
     }
     if (!purpose) {
-        alert('❌ Please select a purpose for this audit packet');
+        alert(' Please select a purpose for this audit packet');
         return false;
     }
     return true;
@@ -1390,7 +1389,7 @@ function validateStep2() {
                      document.getElementById('formatCSV').checked;
 
     if (!hasFormat) {
-        alert('❌ Please select at least one export format');
+        alert(' Please select at least one export format');
         return false;
     }
     return true;
@@ -1657,7 +1656,7 @@ async function generateAuditPacket() {
         // Success!
         closeAuditModal();
 
-        alert(`✅ Audit Packet Generated Successfully!
+        alert(` Audit Packet Generated Successfully!
 
 Requester: ${auditPacketData.metadata.requester_name}
 Purpose: ${document.getElementById('requestPurpose').options[document.getElementById('requestPurpose').selectedIndex].text}
@@ -1673,7 +1672,7 @@ This generation has been logged in the audit trail.`);
         statusText.style.color = 'var(--danger)';
 
         setTimeout(() => {
-            alert('❌ Failed to generate audit packet:\n\n' + error.message);
+            alert(' Failed to generate audit packet:\n\n' + error.message);
             closeAuditModal();
         }, 1000);
     }
@@ -1723,7 +1722,7 @@ function generateAuditPacketOriginal() {
         <!-- Step 1: Configuration -->
         <div id="modalStep1">
             <div class="alert alert-info">
-                <span>ℹ️</span>
+                <span></span>
                 <div>
                     <strong>Official Record Request</strong><br>
                     This will generate a timestamped, cryptographically-verified audit packet for regulatory compliance. All generation requests are logged.
@@ -1829,7 +1828,7 @@ function generateAuditPacketOriginal() {
                     <label class="format-option">
                         <input type="checkbox" id="formatText">
                         <div class="format-content">
-                            <div class="format-icon">📋</div>
+                            <div class="format-icon"></div>
                             <div class="format-name">Text Report</div>
                             <div class="format-size">~12-15 KB</div>
                         </div>
@@ -1837,7 +1836,7 @@ function generateAuditPacketOriginal() {
                     <label class="format-option">
                         <input type="checkbox" id="formatCSV">
                         <div class="format-content">
-                            <div class="format-icon">📊</div>
+                            <div class="format-icon"></div>
                             <div class="format-name">CSV</div>
                             <div class="format-size">~5-8 KB</div>
                         </div>
@@ -1849,7 +1848,7 @@ function generateAuditPacketOriginal() {
         <!-- Step 3: Legal Attestation -->
         <div id="modalStep3" style="display: none;">
             <div class="alert alert-warning">
-                <span>⚠</span>
+                <span></span>
                 <div>
                     <strong>Legal Notice</strong><br>
                     You must read and accept the legal attestation before proceeding. This is a legally binding statement.
@@ -1965,7 +1964,7 @@ function generateAuditPacketOriginal() {
         <!-- Step 4: Preview & Confirm -->
         <div id="modalStep4" style="display: none;">
             <div class="alert alert-warning">
-                <span>⚠️</span>
+                <span></span>
                 <div>
                     <strong>Final Review</strong><br>
                     Please verify all details before generating. This action will be logged in the audit trail.
@@ -1973,7 +1972,7 @@ function generateAuditPacketOriginal() {
             </div>
 
             <div class="preview-section">
-                <div class="preview-title">📋 Request Details</div>
+                <div class="preview-title"> Request Details</div>
                 <div class="preview-grid">
                     <div class="preview-item">
                         <span class="preview-label">Requested By:</span>
@@ -1995,7 +1994,7 @@ function generateAuditPacketOriginal() {
             </div>
 
             <div class="preview-section">
-                <div class="preview-title">📦 Packet Contents</div>
+                <div class="preview-title"> Packet Contents</div>
                 <div class="preview-grid">
                     <div class="preview-item">
                         <span class="preview-label">Decisions:</span>
@@ -2017,13 +2016,13 @@ function generateAuditPacketOriginal() {
             </div>
 
             <div class="preview-section">
-                <div class="preview-title">✓ Compliance Validation</div>
+                <div class="preview-title"> Compliance Validation</div>
                 <div style="color: var(--text-secondary); font-size: 13px; line-height: 1.6;">
-                    ✓ All required metadata captured<br>
-                    ✓ Date range validated<br>
-                    ✓ At least one export format selected<br>
-                    ✓ Generation request will be logged<br>
-                    ✓ Packet will be cryptographically signed
+                     All required metadata captured<br>
+                     Date range validated<br>
+                     At least one export format selected<br>
+                     Generation request will be logged<br>
+                     Packet will be cryptographically signed
                 </div>
             </div>
         </div>

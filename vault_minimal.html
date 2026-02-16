@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 Personal Engineer Vault</title>
+    <title> Personal Engineer Vault</title>
     <style>
         * {
             margin: 0;
@@ -105,7 +105,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🔐 Personal Engineer Vault</h1>
+        <h1> Personal Engineer Vault</h1>
         <div class="subtitle">Your intellectual property, cryptographically protected</div>
     </div>
 
@@ -119,7 +119,7 @@
                     <span>➕</span> New Note
                 </div>
                 <div class="nav-item" onclick="exportVault()">
-                    <span>💾</span> Export All
+                    <span></span> Export All
                 </div>
             </div>
         </div>
@@ -129,17 +129,17 @@
                 <div style="margin-bottom: 15px;">
                     <input type="text" id="noteTitle" placeholder="Note title" style="width: 60%; padding: 10px; background: #0f172a; border: 1px solid #334155; color: #f1f5f9; border-radius: 6px; font-family: monospace; font-size: 14px; font-weight: bold;">
                     <div style="float: right;">
-                        <button class="btn primary" onclick="saveNote()">💾 Save</button>
+                        <button class="btn primary" onclick="saveNote()"> Save</button>
                     </div>
                 </div>
                 
                 <textarea class="editor-textarea" id="noteContent" placeholder="Start writing your notes, ideas, or code snippets here...
 
 Your work is automatically:
-🔒 Encrypted locally
-✓ Cryptographically signed
-📋 Audited in tamper-proof ledger
-💾 Backed up every hour
+ Encrypted locally
+ Cryptographically signed
+ Audited in tamper-proof ledger
+ Backed up every hour
 
 Markdown supported:
 - **bold** *italic*
@@ -183,7 +183,7 @@ Build your IP vault today!"></textarea>
             vault.notes.unshift(note);
             vault.currentNote = note;
             displayNote(note);
-            alert('✅ New note created and ready for your ideas!');
+            alert(' New note created and ready for your ideas!');
         }
 
         function displayNote(note) {
@@ -203,7 +203,7 @@ Build your IP vault today!"></textarea>
             vault.currentNote.version += 1;
 
             saveVault();
-            alert('💾 Note saved successfully!
+            alert(' Note saved successfully!
 
 Cryptographic signature applied.');
         }

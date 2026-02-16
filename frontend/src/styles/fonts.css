@@ -1,0 +1,11 @@
+/*
+ * Font preload hints – add <link rel="preload"> in public/index.html
+ * for the weights actually used at first paint.
+ *
+ * Weights shipped:
+ *   Inter      – 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold)
+ *   JetBrains Mono – 400 (Regular), 500 (Medium)
+ *
+ * @font-face declarations are in global.css.
+ * This file exists as a single reference point for font inventory.
+ */
