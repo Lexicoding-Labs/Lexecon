@@ -7,9 +7,10 @@ on:
       - develop
     paths:
       - 'src/**'
+      - 'frontend/**'
+      - 'migrations/**'
       - 'Dockerfile'
       - 'pyproject.toml'
-      - 'requirements.txt'
       - '.github/workflows/build.yml'
 
 jobs:
