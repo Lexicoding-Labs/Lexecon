@@ -441,4 +441,4 @@ GitHub Actions are pinned by SHA for security. To update:
 If you have questions about these settings:
 - Open an issue: https://github.com/Lexicoding-systems/Lexecon/issues
 - Start a discussion: https://github.com/Lexicoding-systems/Lexecon/discussions
-- Email: jacobporter@lexicoding.tech
+- Email: contact@lexicodinglabs.com

@@ -36,7 +36,7 @@ async def make_decision(
                     "metric": limit_info["metric"],
                     "limit": limit_info["limit"],
                     "current": limit_info["current"],
-                    "upgrade_url": "mailto:sales@lexecon.ai",
+                    "upgrade_url": "mailto:sales@lexicodinglabs.com",
                 },
             )
 
@@ -199,7 +199,7 @@ async def seed_demo_data(
                 "Override approved by compliance officer",
             ][i % 5],
             "actor": [
-                "system@lexecon.ai",
+                "system@lexicodinglabs.com",
                 "ai-agent-prod-01",
                 "ai-agent-prod-02",
                 "data-pipeline-service",

@@ -28,7 +28,7 @@ Customers using Lexecon for PHI must execute a Business Associate Agreement (BAA
 - AWS (infrastructure provider - BAA available)
 - Any other sub-processors handling PHI
 
-**BAA Template:** Contact security@lexecon.ai
+**BAA Template:** Contact security@lexicodinglabs.com
 
 ---
 
@@ -886,5 +886,5 @@ FEATURE_FLAG_AUDIT_LOG_RETENTION_DAYS=2190  # HIPAA (stricter)
 **Last Audit:** Not yet audited (controls documented)
 **Next Review:** January 2027
 
-**BAA Requests:** security@lexecon.ai
-**HIPAA Questions:** compliance@lexecon.ai
+**BAA Requests:** security@lexicodinglabs.com
+**HIPAA Questions:** compliance@lexicodinglabs.com

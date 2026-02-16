@@ -302,7 +302,7 @@ ruff check --fix src/
 
 4. **Join Community**
    - [GitHub Discussions](https://github.com/Lexicoding-systems/Lexecon/discussions)
-   - Email: jacobporter@lexicoding.tech
+   - Email: contact@lexicodinglabs.com
 
 ## Quick Reference
 
@@ -332,6 +332,6 @@ Example: feat(policy): add GDPR compliance template
 - Check [FAQ](../README.md#faq)
 - Search [Issues](https://github.com/Lexicoding-systems/Lexecon/issues)
 - Ask in [Discussions](https://github.com/Lexicoding-systems/Lexecon/discussions)
-- Email: jacobporter@lexicoding.tech
+- Email: contact@lexicodinglabs.com
 
 Happy coding! 🚀

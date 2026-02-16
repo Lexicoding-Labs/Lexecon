@@ -43,7 +43,7 @@ We provide security updates for the following versions:
 ### Reporting Process
 
 1. **Email Security Team**
-   - Email: security@lexicoding.systems
+   - Email: security@lexicodinglabs.com
    - PGP Key: [Available here](https://lexicoding.systems/pgp-key.txt)
    - Subject: "[SECURITY] Brief description"
 
@@ -465,7 +465,7 @@ We plan to launch a bug bounty program once we reach v1.0.0.
 
 Subscribe to security updates:
 - GitHub: Watch repository → Custom → Security alerts
-- Email: security-announce@lexicoding.systems
+- Email: security-announce@lexicodinglabs.com
 - RSS: https://lexicoding.systems/security.xml
 
 ### Applying Updates
@@ -511,7 +511,7 @@ We recognize security researchers who help make Lexecon more secure:
 
 ### Security Team
 
-- **Email**: security@lexicoding.systems
+- **Email**: security@lexicodinglabs.com
 - **PGP Key**: [https://lexicoding.systems/pgp-key.txt](https://lexicoding.systems/pgp-key.txt)
 - **Response Time**: < 48 hours
 

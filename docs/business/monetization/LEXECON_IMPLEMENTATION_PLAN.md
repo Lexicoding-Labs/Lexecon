@@ -519,7 +519,7 @@ EOF
 - Next steps: Security review → POC → Proposal
 
 **Slide 15: Q&A**
-- Contact: sales@lexecon.ai
+- Contact: sales@lexicodinglabs.com
 - Demo: demo.lexecon.ai
 - Docs: docs.lexecon.ai
 

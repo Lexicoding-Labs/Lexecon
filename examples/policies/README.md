@@ -283,6 +283,6 @@ pytest tests/integration/test_policy_gdpr.py -v
 ## Support
 
 For questions or custom policy development:
-- **Email**: jacobporter@lexicoding.tech
+- **Email**: contact@lexicodinglabs.com
 - **Issues**: https://github.com/Lexicoding-systems/Lexecon/issues
 - **Discussions**: https://github.com/Lexicoding-systems/Lexecon/discussions

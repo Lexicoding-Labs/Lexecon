@@ -101,7 +101,7 @@ GET  /api/v1/audit/exports/:id/download  # Download export file
   "id": "DEC-2847",
   "timestamp": "2026-01-10T14:32:15Z",
   "action": "Model inference request approved",
-  "actor": "system@lexecon.ai",
+  "actor": "system@lexicodinglabs.com",
   "riskLevel": "low",
   "outcome": "approved",
   "signature": "a4f3e8d2c9b1a7f5e3d1c9a7b5f3e1d9...",

@@ -605,7 +605,7 @@ const DecisionLedgerView = ({
       id: 'DEC-2847',
       timestamp: '2026-01-10 14:32:15 UTC',
       action: 'Model inference request approved',
-      actor: 'system@lexecon.ai',
+      actor: 'system@lexicodinglabs.com',
       riskLevel: 'low',
       outcome: 'approved',
       signature: 'a4f3e8d2c9b1a7f5e3d1c9a7b5f3e1d9c7a5b3f1e9d7c5a3b1f9e7d5c3a1b9f7',
@@ -638,7 +638,7 @@ const DecisionLedgerView = ({
       id: 'DEC-2844',
       timestamp: '2026-01-10 13:58:22 UTC',
       action: 'Model inference request approved',
-      actor: 'system@lexecon.ai',
+      actor: 'system@lexicodinglabs.com',
       riskLevel: 'minimal',
       outcome: 'approved',
       signature: 'd7i6h1g5f2e4d0c8b6a4f2e0d8c6a4b2f0e8d6c4a2b0f8e6d4c2a0b8f6e4d2c0',
@@ -1635,7 +1635,7 @@ const UsageBanner = ({ usage, onRefresh }) => {
           Contact sales to increase limits.
         </div>
         <a 
-          href="mailto:sales@lexecon.ai?subject=Upgrade%20Request"
+          href="mailto:sales@lexicodinglabs.com?subject=Upgrade%20Request"
           style={{
             padding: '8px 16px',
             backgroundColor: '#dc2626',

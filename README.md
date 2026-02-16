@@ -648,9 +648,9 @@ MIT License - See [LICENSE](LICENSE)
 
 ## Contact
 
-- **Technical:** contact@lexicoding.systems
-- **Security:** security@lexicoding.systems
-- **Compliance:** compliance@lexicoding.systems
+- **Technical:** contact@lexicodinglabs.com
+- **Security:** security@lexicodinglabs.com
+- **Compliance:** compliance@lexicodinglabs.com
 
 ---
 

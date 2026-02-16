@@ -289,7 +289,7 @@ MIT License - see [LICENSE](LICENSE) for details
 
 - **Issues**: [GitHub Issues](https://github.com/Lexicoding-systems/Lexecon/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Lexicoding-systems/Lexecon/discussions)
-- **Email**: contact@lexicoding.systems
+- **Email**: contact@lexicodinglabs.com
 
 ---
 
