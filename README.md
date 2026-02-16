@@ -2,17 +2,22 @@
 
 A cryptographic governance protocol with EU AI Act compliance automation.
 
+> **🚀 Quick Demo:** `./scripts/demo-setup.sh && ./scripts/demo-run.sh` → http://localhost:8000
+>
+> See [DEMO.md](DEMO.md) for the one-command demo guide.
+
 [![CI](https://github.com/Lexicoding-systems/Lexecon/actions/workflows/ci.yml/badge.svg)](https://github.com/Lexicoding-systems/Lexecon/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Lexicoding-systems/Lexecon/branch/main/graph/badge.svg)](https://codecov.io/gh/Lexicoding-systems/Lexecon)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ```bash
-# Install
-pip install -r requirements.txt
+# Install (development)
+pip install -e ".[dev]"
 
-# Run
-lexecon serve
+# Run demo
+./scripts/demo-setup.sh
+./scripts/demo-run.sh
 
 # Test
 pytest --cov=lexecon
