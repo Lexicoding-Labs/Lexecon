@@ -593,7 +593,7 @@ Profit: $4.9M
 ```bash
 # 1. Get proper email domain
 #    Instead of: lexcon123@gmail.com
-#    Use: jacob@lexecon.ai (looks professional)
+#    Use: jacob@lexicodinglabs.com (looks professional)
 
 # 2. Create enterprise landing page
 #    lexcon.ai/enterprise (not lexcon.ai/free-trial)

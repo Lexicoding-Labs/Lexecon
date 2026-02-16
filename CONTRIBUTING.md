@@ -21,7 +21,7 @@ Thank you for your interest in contributing to Lexecon! We welcome contributions
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to conduct@lexicoding.systems.
+This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to conduct@lexicodinglabs.com.
 
 ### Our Pledge
 
@@ -660,7 +660,7 @@ Provide working examples for new features in `examples/` directory.
 
 - **GitHub Issues**: Bug reports, feature requests
 - **GitHub Discussions**: General questions, ideas, showcase
-- **Email**: contact@lexicoding.systems for private matters
+- **Email**: contact@lexicodinglabs.com for private matters
 
 ### Getting Help
 
@@ -707,7 +707,7 @@ Active contributors may receive special badges on our Discord/Slack
 If you have questions about contributing:
 - Check our [FAQ](README.md#faq)
 - Ask in [GitHub Discussions](https://github.com/Lexicoding-systems/Lexecon/discussions)
-- Email us at contribute@lexicoding.systems
+- Email us at contribute@lexicodinglabs.com
 
 ---
 

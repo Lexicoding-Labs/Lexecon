@@ -1664,6 +1664,6 @@ Now that you've implemented Lexecon:
 **Questions or Issues?**
 - GitHub Issues: https://github.com/Lexicoding-systems/Lexecon/issues
 - GitHub Discussions: https://github.com/Lexicoding-systems/Lexecon/discussions
-- Email: support@lexicoding.systems
+- Email: support@lexicodinglabs.com
 
 **Happy Building!** 🚀

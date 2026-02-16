@@ -109,7 +109,7 @@ jobs:
 
       - name: Create git tag
         run: |
-          git config --global user.email "ci@lexecon.io"
+          git config --global user.email "ci@lexicodinglabs.com"
           git config --global user.name "Lexecon CI/CD"
           git tag -a "v${{ env.VERSION }}" -m "Production release v${{ env.VERSION }}"
           git push origin "v${{ env.VERSION }}"

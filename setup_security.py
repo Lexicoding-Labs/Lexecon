@@ -41,7 +41,7 @@ def main():
     try:
         admin = auth.create_user(
             username="admin",
-            email="admin@lexecon.local",
+            email="admin@lexicodinglabs.com",
             password="ChangeMe123!",  # MUST CHANGE IN PRODUCTION
             role=Role.ADMIN,
             full_name="System Administrator",
@@ -60,7 +60,7 @@ def main():
     try:
         auditor = auth.create_user(
             username="auditor",
-            email="auditor@lexecon.local",
+            email="auditor@lexicodinglabs.com",
             password="TestAuditor123!",
             role=Role.AUDITOR,
             full_name="Test Auditor",
@@ -79,7 +79,7 @@ def main():
     try:
         officer = auth.create_user(
             username="compliance",
-            email="compliance@lexecon.local",
+            email="compliance@lexicodinglabs.com",
             password="TestCompliance123!",
             role=Role.COMPLIANCE_OFFICER,
             full_name="Compliance Officer",

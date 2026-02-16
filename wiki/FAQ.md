@@ -497,7 +497,7 @@ Yes! [Open a feature request](https://github.com/Lexicoding-systems/Lexecon/issu
 - 📖 [Wiki](https://github.com/Lexicoding-systems/Lexecon/wiki) (you're here!)
 - 💬 [Discussions](https://github.com/Lexicoding-systems/Lexecon/discussions)
 - 🐛 [Issues](https://github.com/Lexicoding-systems/Lexecon/issues)
-- 📧 Email: support@lexicoding.systems
+- 📧 Email: support@lexicodinglabs.com
 
 ### Is there a community?
 
@@ -508,7 +508,7 @@ Join our community:
 
 ### Can I get commercial support?
 
-Enterprise support options coming soon. Contact: enterprise@lexicoding.systems
+Enterprise support options coming soon. Contact: enterprise@lexicodinglabs.com
 
 ---
 

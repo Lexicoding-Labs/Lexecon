@@ -604,7 +604,7 @@ Lexecon is the global standard for AI accountability
 Cryptographic Governance for AI Systems
 
 **Website:** github.com/Lexicoding-systems/Lexecon
-**Email:** [founder@lexecon.ai]
+**Email:** [founder@lexicodinglabs.com]
 **LinkedIn:** [Your LinkedIn]
 **Calendar:** [Calendly link for investor meetings]
 
