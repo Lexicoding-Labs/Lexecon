@@ -95,8 +95,8 @@ class TestHealthEndpoints:
         assert isinstance(data["ledger_entries"], int)
 
     def test_root_endpoint(self, client):
-        """Test root endpoint returns service info."""
-        response = client.get("/")
+        """Test route listing endpoint returns service info."""
+        response = client.get("/api/routes")
         assert response.status_code == 200
 
         data = response.json()

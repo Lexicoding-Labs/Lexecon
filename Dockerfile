@@ -1,50 +1,59 @@
 # Multi-stage Dockerfile for Lexecon
-# Optimized for security and size
+# Builds React frontend + Python backend into a single image
 
-# Stage 1: Builder
-FROM python:3.11-slim as builder
+# ── Stage 1: Frontend build ──
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /frontend
+
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --no-audit --no-fund
+
+COPY frontend/ .
+RUN npm run build
+
+# ── Stage 2: Python build ──
+FROM python:3.11-slim AS python-builder
 
 WORKDIR /build
 
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir --user -r requirements.txt
-
-# Copy source code
+# Install from pyproject.toml only
+COPY pyproject.toml README.md ./
 COPY src/ ./src/
-COPY pyproject.toml .
-COPY README.md .
 
-# Install package
 RUN pip install --no-cache-dir --user .
 
-# Stage 2: Runtime
+# ── Stage 3: Runtime ──
 FROM python:3.11-slim
 
 # Security: Create non-root user
 RUN groupadd -r lexecon && useradd -r -g lexecon lexecon
 
-# Install runtime dependencies only
+# Install runtime dependencies (tini for init, curl for healthcheck)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     tini \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Copy Python packages from builder
-COPY --from=builder /root/.local /home/lexecon/.local
+COPY --from=python-builder /root/.local /home/lexecon/.local
 
-# Copy application
-COPY --from=builder /build/src ./src
-COPY --from=builder /build/pyproject.toml .
+# Copy application source
+COPY --from=python-builder /build/src ./src
+COPY --from=python-builder /build/pyproject.toml .
+
+# Copy React build output
+COPY --from=frontend-builder /frontend/build ./static
+
+# Copy migrations
+COPY migrations/ ./migrations/
 
 # Create data directory
 RUN mkdir -p /data/.lexecon && chown -R lexecon:lexecon /data
@@ -62,13 +71,12 @@ USER lexecon
 # Expose port
 EXPOSE 8000
 
-# Health check
+# Health check using curl instead of python+requests
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=5)"
+    CMD curl -sf http://localhost:8000/health || exit 1
 
 # Use tini as init system
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
 # Run server
-# Use PORT environment variable from Railway, fallback to 8000 for local development
 CMD sh -c "python -m uvicorn lexecon.api.server:app --host 0.0.0.0 --port ${PORT:-8000}"
