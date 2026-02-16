@@ -56,6 +56,16 @@ from .circuit_breaker import (
     get_circuit_breaker,
 )
 
+# Sentry integration
+from .sentry_config import (
+    add_breadcrumb,
+    capture_exception,
+    capture_message,
+    init_sentry,
+    set_context,
+    set_user,
+)
+
 # Context propagation (new)
 from .context import (
     ObservabilityContext,
@@ -190,6 +200,13 @@ __all__ = [
     "CircuitBreakerConfig",
     "CircuitBreakerError",
     "CircuitBreakerRegistry",
+    # Sentry
+    "init_sentry",
+    "capture_exception",
+    "capture_message",
+    "set_user",
+    "set_context",
+    "add_breadcrumb",
 ]
 
 
@@ -200,11 +217,12 @@ def initialize_observability(
     log_level: str = "INFO",
     log_format: str = "json",
     enable_tracing: bool = True,
+    enable_sentry: bool = True,
 ) -> None:
     """Initialize all observability components.
 
     This is a convenience function to set up logging, tracing,
-    metrics, and health checks in one call.
+    metrics, health checks, and Sentry in one call.
 
     Args:
         service_name: Name of the service
@@ -213,9 +231,19 @@ def initialize_observability(
         log_level: Logging level
         log_format: Log format (json or text)
         enable_tracing: Whether to enable distributed tracing
+        enable_sentry: Whether to enable Sentry error tracking
     """
     # Configure logging
     configure_logging(level=log_level, format=log_format)
+
+    # Initialize Sentry (before other components so it can catch their errors)
+    if enable_sentry:
+        init_sentry(
+            environment=environment,
+            traces_sample_rate=0.1 if environment == "production" else 1.0,
+            profiles_sample_rate=0.1 if environment == "production" else 1.0,
+            enable_tracing=enable_tracing,
+        )
 
     # Initialize metrics
     metrics_v2.initialize(
