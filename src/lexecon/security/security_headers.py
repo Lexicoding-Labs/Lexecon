@@ -55,12 +55,17 @@ class SecurityHeadersMiddleware:
         # CSP: Restrict content sources
         # Note: 'unsafe-inline' allowed for scripts/styles in login.html
         # In production, consider using nonces for inline scripts
+        # Allow cdn.jsdelivr.net for Swagger UI/ReDoc documentation
+        csp_script_src = "'self' 'unsafe-inline'"
+        if self.env == "development":
+            csp_script_src += " https://cdn.jsdelivr.net"
+
         headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline'; "
-            "style-src 'self' 'unsafe-inline'; "
+            f"script-src {csp_script_src}; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
             "img-src 'self' data: https:; "
-            "font-src 'self'; "
+            "font-src 'self' https://cdn.jsdelivr.net; "
             "connect-src 'self'; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
