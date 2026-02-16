@@ -1,28 +1,34 @@
 #!/bin/bash
 # Lexecon Server Startup Script
 
-set -e
+echo "🚀 Starting Lexecon Governance API..."
+echo ""
 
-echo "Starting Lexecon Governance Server..."
-echo "=================================="
-
-# Set PYTHONPATH
-export PYTHONPATH=/Users/air/Lexecon/src:$PYTHONPATH
-
-# Change to Lexecon directory
+# Navigate to project directory
 cd /Users/air/Lexecon
 
-# Check if .env exists
-if [ ! -f .env ]; then
-    echo "Warning: .env file not found. Using defaults."
+# Activate virtual environment
+echo "✓ Activating virtual environment..."
+source .venv/bin/activate
+
+# Load environment variables
+if [ -f .env ]; then
+    echo "✓ Loading .env file..."
+    export $(cat .env | grep -v '^#' | xargs)
 fi
 
-# Start server
-echo "Starting uvicorn server on http://localhost:8000"
-echo "API docs available at http://localhost:8000/docs"
+# Start the server
+echo "✓ Starting uvicorn server..."
 echo ""
-python3 -m uvicorn lexecon.api.server:app \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --reload \
-    --log-level info
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🌐 Server will be available at:"
+echo "   http://localhost:8000"
+echo ""
+echo "📚 Interactive API docs:"
+echo "   http://localhost:8000/docs"
+echo ""
+echo "🛑 Press Ctrl+C to stop the server"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+uvicorn lexecon.api.server:app --reload --host 0.0.0.0 --port 8000

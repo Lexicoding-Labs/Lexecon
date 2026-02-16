@@ -66,6 +66,11 @@ venv.bak/
 *.key
 *.pub
 node_data/
+node_modules/
+data/
+.env.demo
+*.bak
+coverage.json
 
 # Secrets management (Phase 1D)
 secrets/
