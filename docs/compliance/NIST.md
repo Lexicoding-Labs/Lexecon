@@ -91,7 +91,7 @@ stakeholders:
   communication:
     - Slack (internal team communication)
     - PagerDuty (critical alerts)
-    - Email (security@lexecon.ai)
+    - Email (security@lexicodinglabs.com)
 ```
 
 ---
@@ -1000,7 +1000,7 @@ external_comms:
     compliance_violation: as required
 
   security_researchers:
-    vulnerability_disclosure: security@lexecon.ai
+    vulnerability_disclosure: security@lexicodinglabs.com
     acknowledgment: <48 hours
 ```
 
@@ -1200,4 +1200,4 @@ lessons_learned:
 **Last Review:** January 2026
 **Next Review:** April 2026
 
-**NIST Questions:** compliance@lexecon.ai
+**NIST Questions:** compliance@lexicodinglabs.com

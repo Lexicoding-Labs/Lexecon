@@ -454,6 +454,6 @@ Lexecon v1.0 is now **enterprise-ready** with production-grade infrastructure, c
 ---
 
 **For questions or support:**
-- Technical: engineering@lexecon.ai
-- Compliance: compliance@lexecon.ai
-- Security: security@lexecon.ai
+- Technical: engineering@lexicodinglabs.com
+- Compliance: compliance@lexicodinglabs.com
+- Security: security@lexicodinglabs.com

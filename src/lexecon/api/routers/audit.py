@@ -40,7 +40,7 @@ async def export_evidence(
                     "metric": limit_info["metric"],
                     "limit": limit_info["limit"],
                     "current": limit_info["current"],
-                    "upgrade_url": "mailto:sales@lexecon.ai",
+                    "upgrade_url": "mailto:sales@lexicodinglabs.com",
                 },
             )
 
@@ -545,7 +545,7 @@ async def get_audit_decisions(
                 "id": entry.entry_id,
                 "timestamp": entry.timestamp,
                 "action": data.get("action", data.get("proposed_action", "Unknown action")),
-                "actor": data.get("actor", "system@lexecon.ai"),
+                "actor": data.get("actor", "system@lexicodinglabs.com"),
                 "riskLevel": risk,
                 "outcome": data.get("outcome", "approved"),
                 "signature": entry.entry_hash,
@@ -609,7 +609,7 @@ async def get_decision_details(
             "id": entry.entry_id,
             "timestamp": entry.timestamp,
             "action": data.get("action", data.get("proposed_action", "Unknown action")),
-            "actor": data.get("actor", "system@lexecon.ai"),
+            "actor": data.get("actor", "system@lexicodinglabs.com"),
             "riskLevel": risk,
             "outcome": data.get("outcome", "approved"),
             "signature": entry.entry_hash,

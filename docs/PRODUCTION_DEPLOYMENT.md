@@ -625,5 +625,5 @@ curl http://localhost:8000/metrics
 
 For deployment issues:
 - GitHub Issues: https://github.com/Lexicoding-systems/Lexecon/issues
-- Email: jacobporter@lexicoding.tech
+- Email: contact@lexicodinglabs.com
 - Discussions: https://github.com/Lexicoding-systems/Lexecon/discussions

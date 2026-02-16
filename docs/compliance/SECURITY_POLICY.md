@@ -1010,9 +1010,9 @@ recovery:
 
 ### B. Contact Information
 
-- **Security Incidents**: security@lexecon.ai
-- **Compliance Questions**: compliance@lexecon.ai
-- **Vulnerability Disclosure**: security@lexecon.ai (see SECURITY.md)
+- **Security Incidents**: security@lexicodinglabs.com
+- **Compliance Questions**: compliance@lexicodinglabs.com
+- **Vulnerability Disclosure**: security@lexicodinglabs.com (see SECURITY.md)
 - **On-Call Emergency**: PagerDuty escalation
 
 ### C. Related Documents
@@ -1057,4 +1057,4 @@ This is a template security policy. Customers deploying Lexecon must:
 4. Implement enforcement mechanisms
 5. Conduct annual reviews and updates
 
-For assistance adapting this policy, contact: compliance@lexecon.ai
+For assistance adapting this policy, contact: compliance@lexicodinglabs.com
