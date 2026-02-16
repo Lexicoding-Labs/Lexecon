@@ -62,6 +62,18 @@ kubectl create secret generic lexecon-secrets \
   --dry-run=client \
   -o yaml | kubectl apply -f -
 
+# Run database migrations
+echo "🗄️  Running database migrations..."
+EXISTING_POD=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/name=lexecon -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+if [ -n "$EXISTING_POD" ]; then
+  echo "  Running migrations on existing pod: $EXISTING_POD"
+  kubectl exec "$EXISTING_POD" -n $NAMESPACE -- python /app/migrations/run_all.py || {
+    echo "⚠️  Migration failed on existing pod (may be first deploy). Will retry after Helm deploy."
+  }
+else
+  echo "  No existing pods found — migrations will run after first deploy."
+fi
+
 # Deploy/upgrade using Helm
 echo "🎯 Deploying Lexecon with Helm..."
 helm upgrade --install \
@@ -89,6 +101,14 @@ kubectl get service $HELM_RELEASE -n $NAMESPACE -o wide
 echo ""
 echo "📝 Recent Events:"
 kubectl get events -n $NAMESPACE --sort-by='.lastTimestamp' | tail -5
+
+# Run migrations on new pod (handles fresh deploys)
+echo ""
+echo "🗄️  Running post-deploy migrations..."
+NEW_POD=$(kubectl get pods -n $NAMESPACE -l app.kubernetes.io/name=lexecon -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+if [ -n "$NEW_POD" ]; then
+  kubectl exec "$NEW_POD" -n $NAMESPACE -- python /app/migrations/run_all.py || echo "⚠️  Post-deploy migration failed"
+fi
 
 # Verify health check
 echo ""

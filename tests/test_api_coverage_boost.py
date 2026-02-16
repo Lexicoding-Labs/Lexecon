@@ -592,8 +592,8 @@ class TestRootEndpoint:
     """Test root endpoint."""
 
     def test_root(self, client):
-        """Test root endpoint."""
-        response = client.get("/")
+        """Test route listing endpoint."""
+        response = client.get("/api/routes")
         assert response.status_code == 200
         data = response.json()
-        assert "message" in data or "status" in data
+        assert "service" in data or "endpoints" in data

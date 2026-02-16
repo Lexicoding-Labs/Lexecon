@@ -1,10 +1,11 @@
 """API Server - REST API for Lexecon governance system.
 
 Provides endpoints for health checks, policy management, decision requests,
-and audit operations.
+and audit operations. Serves the React SPA from /static when available.
 """
 
 import os
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -70,6 +71,19 @@ app.include_router(eu_compliance.router)
 app.include_router(governance.router)
 app.include_router(compliance_mapping.router)
 app.include_router(audit.router)
+
+# ── Serve React SPA from /static if available ──
+_static_dir = Path(__file__).resolve().parent.parent.parent.parent / "static"
+if _static_dir.is_dir():
+    from fastapi.responses import FileResponse
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        """Serve React SPA — return index.html for client-side routes."""
+        file_path = _static_dir / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(_static_dir / "index.html")
 
 
 # ── Startup event ──
