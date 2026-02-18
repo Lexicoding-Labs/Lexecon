@@ -1,18 +1,6 @@
 """Isolated coverage tests that don't trigger cryptography imports."""
-import sys
 from pathlib import Path
 from unittest.mock import Mock
-
-# Mock cryptography before any imports
-sys.modules['cryptography'] = Mock()
-sys.modules['cryptography.hazmat'] = Mock()
-sys.modules['cryptography.hazmat.primitives'] = Mock()
-sys.modules['cryptography.hazmat.primitives.serialization'] = Mock()
-sys.modules['cryptography.hazmat.primitives.asymmetric'] = Mock()
-sys.modules['cryptography.hazmat.primitives.asymmetric.ed25519'] = Mock()
-sys.modules['cryptography.hazmat.primitives.hashes'] = Mock()
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from lexecon.policy.engine import PolicyEngine, PolicyMode, PolicyDecision
 from lexecon.policy.terms import PolicyTerm
@@ -61,23 +49,26 @@ class TestPolicyEngineCoverage:
 
 class TestPolicyTermsCoverage:
     def test_create_all_term_types(self):
+        from lexecon.policy.terms import TermType
         actor = PolicyTerm.create_actor("user", "User")
-        assert actor.term_type == "actor"
+        assert actor.term_type == TermType.ACTOR
         action = PolicyTerm.create_action("read", "Read")
-        assert action.term_type == "action"
+        assert action.term_type == TermType.ACTION
         resource = PolicyTerm.create_resource("database", "Database")
-        assert resource.term_type == "resource"
+        assert resource.term_type == TermType.RESOURCE
         data_class = PolicyTerm.create_data_class("pii", "PII")
-        assert data_class.term_type == "data_class"
+        assert data_class.term_type == TermType.DATA_CLASS
 
     def test_term_with_constraints(self):
+        from lexecon.policy.terms import TermType
         term = PolicyTerm(
             term_id="constrained_action",
-            term_type="action",
-            name="Constrained Action",
-            constraints={"max_records": 100}
+            term_type=TermType.ACTION,
+            label="Constrained Action",
+            description="Test",
+            metadata={"max_records": 100}
         )
-        assert term.constraints["max_records"] == 100
+        assert term.metadata["max_records"] == 100
 
 
 class TestPolicyDecisionCoverage:

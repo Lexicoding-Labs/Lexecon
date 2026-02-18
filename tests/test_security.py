@@ -34,7 +34,7 @@ class TestAuthService:
         user = auth_service.create_user(
             username="testuser",
             email="test@example.com",
-            password="SecurePass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.AUDITOR,
             full_name="Test User",
         )
@@ -51,14 +51,14 @@ class TestAuthService:
         auth_service.create_user(
             username="user1",
             email="user1@example.com",
-            password="Pass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.VIEWER,
             full_name="User One",
         )
         auth_service.create_user(
             username="user2",
             email="user2@example.com",
-            password="Pass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.AUDITOR,
             full_name="User Two",
         )
@@ -74,12 +74,12 @@ class TestAuthService:
         auth_service.create_user(
             username="authuser",
             email="auth@example.com",
-            password="ValidPass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.VIEWER,
             full_name="Auth User",
         )
 
-        user, error = auth_service.authenticate("authuser", "ValidPass123!")
+        user, error = auth_service.authenticate("authuser", "Xk9$mTgR!wZjV")
 
         assert user is not None
         assert error is None
@@ -90,7 +90,7 @@ class TestAuthService:
         auth_service.create_user(
             username="authuser",
             email="auth@example.com",
-            password="ValidPass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.VIEWER,
             full_name="Auth User",
         )
@@ -113,7 +113,7 @@ class TestAuthService:
         user = auth_service.create_user(
             username="sessionuser",
             email="session@example.com",
-            password="Pass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.AUDITOR,
             full_name="Session User",
         )
@@ -132,7 +132,7 @@ class TestAuthService:
         user = auth_service.create_user(
             username="sessuser",
             email="sess@example.com",
-            password="Pass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.VIEWER,
             full_name="Sess User",
         )
@@ -157,7 +157,7 @@ class TestAuthService:
         user = auth_service.create_user(
             username="revokeuser",
             email="revoke@example.com",
-            password="Pass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.VIEWER,
             full_name="Revoke User",
         )
@@ -186,7 +186,7 @@ class TestAuthService:
         user = auth_service.create_user(
             username="getuser",
             email="get@example.com",
-            password="Pass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.AUDITOR,
             full_name="Get User",
         )
@@ -207,7 +207,7 @@ class TestAuthService:
         user = auth_service.create_user(
             username="sessiontest",
             email="sessiontest@example.com",
-            password="Pass123!",
+            password="Xk9$mTgR!wZjV",
             role=Role.VIEWER,
             full_name="Session Test User",
         )

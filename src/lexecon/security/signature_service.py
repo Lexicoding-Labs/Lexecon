@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Tuple
 
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
@@ -56,7 +55,6 @@ class SignatureService:
         self.private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=4096,
-            backend=default_backend(),
         )
 
         # Derive public key
@@ -91,13 +89,11 @@ class SignatureService:
             self.private_key = serialization.load_pem_private_key(
                 f.read(),
                 password=None,  # Use password in production
-                backend=default_backend(),
             )
 
         with open(self.public_key_path, "rb") as f:
             self.public_key = serialization.load_pem_public_key(
                 f.read(),
-                backend=default_backend(),
             )
 
     def sign_packet(self, packet_data: Dict[str, Any]) -> Dict[str, Any]:

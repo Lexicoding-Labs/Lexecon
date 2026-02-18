@@ -7,6 +7,7 @@ from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from lexecon.security.auth_service import AuthService, Permission, Session
+from lexecon.security.rate_limiter import RateLimiter
 from lexecon.security.security_headers import SecurityHeadersMiddleware
 
 
@@ -87,6 +88,38 @@ def require_permission(permission: Permission):
             return await func(request, *args, **kwargs)
         return wrapper
     return decorator
+
+
+class RateLimitMiddleware:
+    """Rate limiting middleware for FastAPI."""
+
+    BYPASS_PATHS = ("/health",)
+
+    def __init__(self, rate_limiter: RateLimiter):
+        self.rate_limiter = rate_limiter
+
+    async def __call__(self, request: Request, call_next):
+        if any(request.url.path.startswith(p) for p in self.BYPASS_PATHS):
+            return await call_next(request)
+
+        client_ip = request.client.host if request.client else "unknown"
+        allowed, info = self.rate_limiter.check_rate_limit(client_ip)
+
+        if not allowed:
+            return JSONResponse(
+                status_code=429,
+                content={"retry_after_seconds": info.get("retry_after_seconds", 60)},
+                headers={"Retry-After": str(info.get("retry_after_seconds", 60))},
+            )
+
+        response = await call_next(request)
+
+        cfg = self.rate_limiter.config
+        response.headers["X-RateLimit-Limit-Minute"] = str(cfg.requests_per_minute)
+        response.headers["X-RateLimit-Limit-Hour"] = str(cfg.requests_per_hour)
+        response.headers["X-RateLimit-Remaining-Minute"] = str(info.get("remaining_minute", 0))
+        response.headers["X-RateLimit-Remaining-Hour"] = str(info.get("remaining_hour", 0))
+        return response
 
 
 def get_current_user(request: Request) -> Optional[dict]:

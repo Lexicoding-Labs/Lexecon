@@ -187,6 +187,16 @@ class DecisionResponse:
         return self._canonical_decision
 
     @property
+    def is_permitted(self) -> bool:
+        """Check if decision is permit."""
+        return self.decision == "permit"
+
+    @property
+    def is_denied(self) -> bool:
+        """Check if decision is deny."""
+        return self.decision == "deny"
+
+    @property
     def decision_hash(self) -> str:
         """Generate a hash of the decision for verification purposes."""
         decision_data = {

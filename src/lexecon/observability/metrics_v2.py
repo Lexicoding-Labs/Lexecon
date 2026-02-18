@@ -556,6 +556,24 @@ class MetricsCollector:
     # Utility Methods
     # -------------------------------------------------------------------------
 
+    def record_ledger_entry(self, entry_type: str = "decision") -> None:
+        """Record a ledger entry."""
+        ledger_entries_total.labels(entry_type=entry_type).inc()
+
+    def record_token_issuance(self, scope: str) -> None:
+        """Record a token issuance."""
+        tokens_issued_total.labels(scope_type=scope).inc()
+        active_tokens.inc()
+
+    def record_token_verification(self, valid: bool, failure_reason: str = "none") -> None:
+        """Record a token verification."""
+        tokens_verified_total.labels(valid=str(valid), failure_reason=failure_reason).inc()
+
+    def record_policy_load(self, policy_name: str, version: str = "1.0") -> None:
+        """Record a policy load."""
+        policies_loaded_total.labels(policy_version=version).inc()
+        active_policies.inc()
+
     def get_uptime(self) -> float:
         """Get node uptime in seconds."""
         uptime = time.time() - self.start_time

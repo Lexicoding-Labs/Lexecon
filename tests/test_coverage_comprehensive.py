@@ -1,23 +1,11 @@
 """Comprehensive coverage tests for high-impact modules.
 Target: +120 lines coverage toward 85% goal.
 """
-import sys
 import json
 import hashlib
 from pathlib import Path
 from datetime import datetime, timezone
 from unittest.mock import Mock, MagicMock
-
-# Mock cryptography
-for mod_name in [
-    'cryptography', 'cryptography.hazmat', 'cryptography.hazmat.primitives',
-    'cryptography.hazmat.primitives.serialization', 'cryptography.hazmat.primitives.asymmetric',
-    'cryptography.hazmat.primitives.asymmetric.ed25519', 'cryptography.hazmat.primitives.hashes',
-    'cryptography.hazmat.backends', 'cryptography.exceptions'
-]:
-    sys.modules[mod_name] = Mock()
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from lexecon.policy.engine import PolicyEngine, PolicyMode, PolicyDecision
 from lexecon.policy.terms import PolicyTerm, TermType
