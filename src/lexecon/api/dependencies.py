@@ -43,19 +43,26 @@ class ServiceRegistry:
     _instance: Optional["ServiceRegistry"] = None
 
     def __init__(self) -> None:
+        # ── Resolve data directory (honours LEXECON_DATA_DIR in Docker/Railway) ──
+        _data_dir = os.getenv("LEXECON_DATA_DIR", ".")
+        os.makedirs(_data_dir, exist_ok=True)
+
+        def _db(name: str) -> str:
+            return os.path.join(_data_dir, name)
+
         # ── Eager services (created at import time in the old code) ──
-        self.storage: LedgerStorage = LedgerStorage("lexecon_ledger.db")
+        self.storage: LedgerStorage = LedgerStorage(_db("lexecon_ledger.db"))
         self.ledger: LedgerChain = LedgerChain(storage=self.storage)
-        self.responsibility_storage: ResponsibilityStorage = ResponsibilityStorage("lexecon_responsibility.db")
+        self.responsibility_storage: ResponsibilityStorage = ResponsibilityStorage(_db("lexecon_responsibility.db"))
         self.responsibility_tracker: ResponsibilityTracker = ResponsibilityTracker(storage=self.responsibility_storage)
         self.node_id: str = str(uuid.uuid4())
         self.startup_time: float = time.time()
 
         # Security services
-        self.auth_service: AuthService = AuthService("lexecon_auth.db")
+        self.auth_service: AuthService = AuthService(_db("lexecon_auth.db"))
         self.async_auth_service: AsyncAuthService = AsyncAuthService(self.auth_service)
-        self.audit_service: AuditService = AuditService("lexecon_export_audit.db")
-        self.signature_service: SignatureService = SignatureService("lexecon_keys")
+        self.audit_service: AuditService = AuditService(_db("lexecon_export_audit.db"))
+        self.signature_service: SignatureService = SignatureService(_db("lexecon_keys"))
 
         # OIDC OAuth service
         from lexecon.security.oidc_service import get_oidc_service
@@ -106,7 +113,8 @@ class ServiceRegistry:
 
         if self.intervention_storage is None:
             from lexecon.compliance.eu_ai_act.storage import InterventionStorage
-            self.intervention_storage = InterventionStorage("lexecon_interventions.db")
+            _data_dir = os.getenv("LEXECON_DATA_DIR", ".")
+            self.intervention_storage = InterventionStorage(os.path.join(_data_dir, "lexecon_interventions.db"))
 
         if self.oversight_system is None:
             from lexecon.compliance.eu_ai_act.article_14_oversight import HumanOversightEvidence
@@ -134,10 +142,12 @@ class ServiceRegistry:
             )
 
         if self.usage_service is None:
-            self.usage_service = UsageService("lexecon_usage.db")
+            _data_dir = os.getenv("LEXECON_DATA_DIR", ".")
+            self.usage_service = UsageService(os.path.join(_data_dir, "lexecon_usage.db"))
 
         if self.tenancy_service is None:
-            self.tenancy_service = TenancyService("lexecon_auth.db")
+            _data_dir = os.getenv("LEXECON_DATA_DIR", ".")
+            self.tenancy_service = TenancyService(os.path.join(_data_dir, "lexecon_auth.db"))
 
         if self.compliance_mapping_service is None:
             self.compliance_mapping_service = ComplianceMappingService()

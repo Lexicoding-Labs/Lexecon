@@ -52,11 +52,12 @@ COPY --from=python-builder /build/pyproject.toml .
 # Copy React build output
 COPY --from=frontend-builder /frontend/build ./static
 
-# Copy migrations
+# Copy migrations and startup script
 COPY migrations/ ./migrations/
+COPY start.sh ./start.sh
 
 # Create data directory
-RUN mkdir -p /data/.lexecon && chown -R lexecon:lexecon /data
+RUN mkdir -p /data/.lexecon && chown -R lexecon:lexecon /data /app
 
 # Set environment variables
 ENV PATH=/home/lexecon/.local/bin:$PATH \
@@ -72,11 +73,11 @@ USER lexecon
 EXPOSE 8000
 
 # Health check using curl instead of python+requests
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -sf http://localhost:8000/health || exit 1
 
 # Use tini as init system
 ENTRYPOINT ["/usr/bin/tini", "--"]
 
-# Run server
-CMD sh -c "python -m uvicorn lexecon.api.server:app --host 0.0.0.0 --port ${PORT:-8000}"
+# Run migrations then start server
+CMD ["/bin/sh", "/app/start.sh"]
