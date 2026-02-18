@@ -1,23 +1,11 @@
 """Coverage boost tests for reaching 85% target.
 Run with: python3 -m pytest tests/test_coverage_boost.py -v --no-header
 """
-import sys
 import json
 import hashlib
 from pathlib import Path
 from datetime import datetime, timezone
 from unittest.mock import Mock, MagicMock, patch
-
-# Mock cryptography before any imports
-for mod_name in [
-    'cryptography', 'cryptography.hazmat', 'cryptography.hazmat.primitives',
-    'cryptography.hazmat.primitives.serialization', 'cryptography.hazmat.primitives.asymmetric',
-    'cryptography.hazmat.primitives.asymmetric.ed25519', 'cryptography.hazmat.primitives.hashes',
-    'cryptography.hazmat.backends', 'cryptography.exceptions'
-]:
-    sys.modules[mod_name] = Mock()
-
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from lexecon.policy.engine import PolicyEngine, PolicyMode, PolicyDecision
 from lexecon.policy.terms import PolicyTerm, TermType

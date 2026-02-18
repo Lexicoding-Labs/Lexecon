@@ -357,14 +357,14 @@ class TestAuthMiddleware:
 
         auth_service.create_user(
             username=username,
-            password="TestPass123!",
+            password="Xk9$mTgR!wZjV",
             email=email,
             full_name="Test User",
             role=Role.VIEWER
         )
 
         # Authenticate and get session
-        user, error = auth_service.authenticate(username, "TestPass123!")
+        user, error = auth_service.authenticate(username, "Xk9$mTgR!wZjV")
         assert user is not None, f"Authentication failed: {error}"
         session = auth_service.create_session(user)
         session_id = session.session_id

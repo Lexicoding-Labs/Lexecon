@@ -8,12 +8,13 @@ Tests REST API endpoints for Risk, Escalation, Override, and Evidence services.
 import pytest
 from fastapi.testclient import TestClient
 
-from lexecon.api.server import app
+from lexecon.api.server import app, initialize_services
 
 
 @pytest.fixture
 def client():
     """FastAPI test client."""
+    initialize_services()
     return TestClient(app)
 
 

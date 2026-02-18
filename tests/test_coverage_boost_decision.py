@@ -159,7 +159,7 @@ class TestDecisionService:
         action = PolicyTerm.create_action("allowed_action", "Allowed")
         self.policy_engine.add_term(actor)
         self.policy_engine.add_term(action)
-        self.policy_engine.add_relation(PolicyRelation.permits(actor, action))
+        self.policy_engine.add_relation(PolicyRelation.permits(actor.term_id, action.term_id))
 
     def test_service_init_defaults(self):
         """Initialize service with defaults."""

@@ -28,7 +28,7 @@ class ValidationConfig:
     MAX_ARRAY_LENGTH = 1000  # Max items in arrays
 
     # Identifier patterns
-    ACTOR_PATTERN = r"^[a-zA-Z0-9_\-\.@]+$"  # Alphanumeric, underscore, dash, dot, @
+    ACTOR_PATTERN = r"^[a-zA-Z0-9_\-\.@:]+$"  # Alphanumeric, underscore, dash, dot, @, colon
     TOOL_PATTERN = r"^[a-zA-Z0-9_\-\.]+$"  # Alphanumeric, underscore, dash, dot
     ACTION_PATTERN = r"^[a-zA-Z0-9_\-\.\s/:\(\)]+$"  # Action names with spaces and delimiters
 

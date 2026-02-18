@@ -31,14 +31,17 @@ class SecurityHeadersMiddleware:
     - Cache-Control (for sensitive pages)
     """
 
-    def __init__(self, config: Optional[Dict[str, str]] = None):
+    def __init__(self, config: Optional[Dict[str, str]] = None, enable_csp: bool = True):
         """Initialize security headers middleware.
 
         Args:
             config: Optional custom header configuration
+            enable_csp: Whether to include Content-Security-Policy header
         """
         self.env = os.getenv("LEXECON_ENV", "development")
         self.config = config or self._default_headers()
+        if not enable_csp:
+            self.config.pop("Content-Security-Policy", None)
 
     def _default_headers(self) -> Dict[str, str]:
         """Get default security headers configuration.

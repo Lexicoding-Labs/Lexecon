@@ -210,6 +210,7 @@ class AuditVerifier:
         """Find artifact file by ID."""
         # Check common locations
         locations = [
+            self.packet_path / f"{artifact_id}.json",
             self.packet_path / "evidence" / f"{artifact_id}.json",
             self.packet_path / "decisions" / f"{artifact_id}.json",
             self.packet_path / "risk" / f"{artifact_id}.json",
@@ -228,6 +229,11 @@ class AuditVerifier:
             for chunk in iter(lambda: f.read(4096), b""):
                 sha256.update(chunk)
         return sha256.hexdigest()
+
+    def _compute_json_hash(self, data: dict) -> str:
+        """Compute SHA-256 hash of JSON data."""
+        json_str = json.dumps(data, sort_keys=True)
+        return hashlib.sha256(json_str.encode()).hexdigest()
 
     def _compute_root_checksum(self) -> str:
         """Compute root checksum of all packet contents."""
@@ -301,7 +307,8 @@ Examples:
 
     parser.add_argument(
         "packet_path",
-        help="Path to audit packet (file or directory)",
+        nargs="+",
+        help="Path(s) to audit packet (file or directory)",
     )
 
     parser.add_argument(
@@ -313,19 +320,24 @@ Examples:
 
     args = parser.parse_args()
 
-    verifier = AuditVerifier(args.packet_path)
+    all_success = True
+    for packet_path in args.packet_path:
+        verifier = AuditVerifier(packet_path)
 
-    try:
-        success = verifier.verify()
-        sys.exit(0 if success else 1)
-    except Exception as e:
-        print(f"\n❌ Verification failed with exception: {e!s}")
-        if args.verbose:
-            import traceback
+        try:
+            success = verifier.verify()
+            if not success:
+                all_success = False
+        except Exception as e:
+            print(f"\n❌ Verification failed with exception: {e!s}")
+            if args.verbose:
+                import traceback
 
-            traceback.print_exc()
-        sys.exit(2)
+                traceback.print_exc()
+            all_success = False
+
+    return 0 if all_success else 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
