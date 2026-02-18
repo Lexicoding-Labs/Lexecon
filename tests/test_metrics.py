@@ -36,7 +36,7 @@ class TestMetricsCollector:
 
         # Get initial value
         initial_requests = http_requests_total.labels(
-            method="GET", endpoint="/health", status=200,
+            method="GET", endpoint_group="/health", status_class="2xx",
         )._value.get()
 
         # Record request
@@ -44,7 +44,7 @@ class TestMetricsCollector:
 
         # Verify counter increased
         final_requests = http_requests_total.labels(
-            method="GET", endpoint="/health", status=200,
+            method="GET", endpoint_group="/health", status_class="2xx",
         )._value.get()
 
         assert final_requests > initial_requests
@@ -58,7 +58,7 @@ class TestMetricsCollector:
 
         # Histogram should have recorded the observation
         # We can't easily check the exact value, but we can verify it doesn't error
-        histogram = http_request_duration_seconds.labels(method="POST", endpoint="/decide")
+        histogram = http_request_duration_seconds.labels(method="POST", endpoint_group="/decide")
         assert histogram is not None
 
     def test_record_decision(self):
@@ -67,7 +67,7 @@ class TestMetricsCollector:
 
         # Get initial value
         initial_decisions = decisions_total.labels(
-            allowed="True", actor="model", risk_level="1",
+            allowed="True", risk_level="1", policy_mode="strict",
         )._value.get()
 
         # Record decision
@@ -75,7 +75,7 @@ class TestMetricsCollector:
 
         # Verify counter increased
         final_decisions = decisions_total.labels(
-            allowed="True", actor="model", risk_level="1",
+            allowed="True", risk_level="1", policy_mode="strict",
         )._value.get()
 
         assert final_decisions > initial_decisions
@@ -85,13 +85,13 @@ class TestMetricsCollector:
         collector = MetricsCollector()
 
         initial_denials = decisions_denied_total.labels(
-            reason_category="policy", actor="model",
+            reason_category="policy",
         )._value.get()
 
         collector.record_denial(reason_category="policy", actor="model")
 
         final_denials = decisions_denied_total.labels(
-            reason_category="policy", actor="model",
+            reason_category="policy",
         )._value.get()
 
         assert final_denials > initial_denials
@@ -100,12 +100,12 @@ class TestMetricsCollector:
         """Test recording policy load."""
         collector = MetricsCollector()
 
-        initial_loads = policies_loaded_total.labels(policy_name="test_policy")._value.get()
+        initial_loads = policies_loaded_total.labels(policy_version="1.0")._value.get()
         initial_active = active_policies._value.get()
 
         collector.record_policy_load("test_policy")
 
-        final_loads = policies_loaded_total.labels(policy_name="test_policy")._value.get()
+        final_loads = policies_loaded_total.labels(policy_version="1.0")._value.get()
         final_active = active_policies._value.get()
 
         assert final_loads > initial_loads
@@ -115,11 +115,11 @@ class TestMetricsCollector:
         """Test recording ledger entry."""
         collector = MetricsCollector()
 
-        initial_entries = ledger_entries_total._value.get()
+        initial_entries = ledger_entries_total.labels(entry_type="decision")._value.get()
 
         collector.record_ledger_entry()
 
-        final_entries = ledger_entries_total._value.get()
+        final_entries = ledger_entries_total.labels(entry_type="decision")._value.get()
 
         assert final_entries > initial_entries
 
@@ -127,12 +127,12 @@ class TestMetricsCollector:
         """Test recording token issuance."""
         collector = MetricsCollector()
 
-        initial_issued = tokens_issued_total.labels(scope="action:read")._value.get()
+        initial_issued = tokens_issued_total.labels(scope_type="action:read")._value.get()
         initial_active = active_tokens._value.get()
 
         collector.record_token_issuance("action:read")
 
-        final_issued = tokens_issued_total.labels(scope="action:read")._value.get()
+        final_issued = tokens_issued_total.labels(scope_type="action:read")._value.get()
         final_active = active_tokens._value.get()
 
         assert final_issued > initial_issued
@@ -142,11 +142,11 @@ class TestMetricsCollector:
         """Test recording token verification."""
         collector = MetricsCollector()
 
-        initial_verified = tokens_verified_total.labels(valid="True")._value.get()
+        initial_verified = tokens_verified_total.labels(valid="True", failure_reason="none")._value.get()
 
         collector.record_token_verification(valid=True)
 
-        final_verified = tokens_verified_total.labels(valid="True")._value.get()
+        final_verified = tokens_verified_total.labels(valid="True", failure_reason="none")._value.get()
 
         assert final_verified > initial_verified
 
@@ -187,13 +187,13 @@ class TestGlobalMetricsInstance:
     def test_global_metrics_record_decision(self):
         """Test using global metrics instance."""
         initial = decisions_total.labels(
-            allowed="False", actor="user", risk_level="3",
+            allowed="False", risk_level="3", policy_mode="strict",
         )._value.get()
 
         metrics.record_decision(allowed=False, actor="user", risk_level=3, duration=0.2)
 
         final = decisions_total.labels(
-            allowed="False", actor="user", risk_level="3",
+            allowed="False", risk_level="3", policy_mode="strict",
         )._value.get()
 
         assert final > initial
@@ -205,24 +205,24 @@ class TestConvenienceFunctions:
     def test_record_decision_function(self):
         """Test record_decision convenience function."""
         initial = decisions_total.labels(
-            allowed="True", actor="bot", risk_level="2",
+            allowed="True", risk_level="2", policy_mode="strict",
         )._value.get()
 
         record_decision(allowed=True, actor="bot", risk_level=2, duration=0.15)
 
         final = decisions_total.labels(
-            allowed="True", actor="bot", risk_level="2",
+            allowed="True", risk_level="2", policy_mode="strict",
         )._value.get()
 
         assert final > initial
 
     def test_record_policy_load_function(self):
         """Test record_policy_load convenience function."""
-        initial = policies_loaded_total.labels(policy_name="conv_policy")._value.get()
+        initial = policies_loaded_total.labels(policy_version="1.0")._value.get()
 
         record_policy_load("conv_policy")
 
-        final = policies_loaded_total.labels(policy_name="conv_policy")._value.get()
+        final = policies_loaded_total.labels(policy_version="1.0")._value.get()
 
         assert final > initial
 
@@ -233,7 +233,7 @@ class TestMetricTypes:
     def test_counter_increments(self):
         """Test that counters only increment."""
         initial = http_requests_total.labels(
-            method="GET", endpoint="/test", status=200,
+            method="GET", endpoint_group="/test", status_class="2xx",
         )._value.get()
 
         # Increment multiple times
@@ -241,7 +241,7 @@ class TestMetricTypes:
             metrics.record_request("GET", "/test", 200, 0.1)
 
         final = http_requests_total.labels(
-            method="GET", endpoint="/test", status=200,
+            method="GET", endpoint_group="/test", status_class="2xx",
         )._value.get()
 
         # Should have incremented by 5
@@ -263,7 +263,7 @@ class TestMetricTypes:
 
     def test_histogram_records_observations(self):
         """Test that histograms record observations."""
-        histogram = http_request_duration_seconds.labels(method="GET", endpoint="/metrics")
+        histogram = http_request_duration_seconds.labels(method="GET", endpoint_group="/metrics")
 
         # Record several observations
         histogram.observe(0.1)
@@ -281,11 +281,11 @@ class TestMetricLabels:
     def test_different_labels_separate_metrics(self):
         """Test that different labels create separate metric series."""
         initial_200 = http_requests_total.labels(
-            method="GET", endpoint="/api", status=200,
+            method="GET", endpoint_group="/api", status_class="2xx",
         )._value.get()
 
         initial_404 = http_requests_total.labels(
-            method="GET", endpoint="/api", status=404,
+            method="GET", endpoint_group="/api", status_class="4xx",
         )._value.get()
 
         # Record 200
@@ -293,11 +293,11 @@ class TestMetricLabels:
 
         # Only 200 should increment
         final_200 = http_requests_total.labels(
-            method="GET", endpoint="/api", status=200,
+            method="GET", endpoint_group="/api", status_class="2xx",
         )._value.get()
 
         final_404 = http_requests_total.labels(
-            method="GET", endpoint="/api", status=404,
+            method="GET", endpoint_group="/api", status_class="4xx",
         )._value.get()
 
         assert final_200 > initial_200

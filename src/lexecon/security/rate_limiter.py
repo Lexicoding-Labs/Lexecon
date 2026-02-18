@@ -205,29 +205,92 @@ class RateLimiter:
             del self.bucket_created[lru_key]
         del self.access_order[lru_key]
 
-    def check_rate_limit(self, key: str, limit_type: str) -> Tuple[bool, Optional[int]]:
-        """Check if request is within rate limit WITHOUT consuming a token.
+    def check_rate_limit(self, key: str, limit_type: str = None) -> tuple:
+        """Check rate limit for a key.
 
-        Args:
-            key: Unique identifier for rate limit context
-            limit_type: Type of rate limit to check
+        Supports two calling conventions:
 
-        Returns:
-            Tuple of (allowed, retry_after_seconds)
+        1. Simple per-client API (1 arg):
+           ``check_rate_limit("client1")`` → ``(bool, dict)``
+           Uses ``RateLimitConfig`` to enforce minute + hour limits.
+           **Consumes** a token on each call.
+
+        2. Named limit-type API (2 args):
+           ``check_rate_limit("ip", "global_per_ip")`` → ``(bool, Optional[int])``
+           Check-only (does not consume).
         """
+        if limit_type is not None:
+            return self._check_rate_limit_by_type(key, limit_type)
+        return self._check_rate_limit_simple(key)
+
+    # ── 2-arg (named limit-type) API ──
+
+    def _check_rate_limit_by_type(self, key: str, limit_type: str) -> Tuple[bool, Optional[int]]:
         if limit_type not in self.limits:
-            # Unknown limit type, allow by default
             return True, None
 
         bucket = self._get_or_create_bucket(key, limit_type)
 
-        # Check without consuming
         with bucket.lock:
             bucket._refill()
             if bucket.tokens >= 1:
                 return True, None
             retry_after = bucket.get_retry_after()
             return False, retry_after
+
+    # ── 1-arg (simple per-client) API ──
+
+    def _get_or_create_client_buckets(self, key: str):
+        """Return (minute_bucket, hour_bucket) for a client key."""
+        minute_key = f"_client_minute:{key}"
+        hour_key = f"_client_hour:{key}"
+
+        with self.lock:
+            if minute_key not in self.buckets:
+                if len(self.buckets) >= self.max_buckets:
+                    self._evict_lru_bucket()
+                cap = self.config.burst_size
+                self.buckets[minute_key] = TokenBucket(cap, cap / 60.0 if cap else 0)
+                self.bucket_created[minute_key] = datetime.now()
+                self.access_order[minute_key] = time.time()
+
+            if hour_key not in self.buckets:
+                if len(self.buckets) >= self.max_buckets:
+                    self._evict_lru_bucket()
+                cap = self.config.requests_per_hour
+                self.buckets[hour_key] = TokenBucket(cap, cap / 3600.0 if cap else 0)
+                self.bucket_created[hour_key] = datetime.now()
+                self.access_order[hour_key] = time.time()
+
+            now = time.time()
+            self.access_order[minute_key] = now
+            self.access_order[hour_key] = now
+            return self.buckets[minute_key], self.buckets[hour_key]
+
+    def _check_rate_limit_simple(self, key: str) -> Tuple[bool, dict]:
+        minute_bucket, hour_bucket = self._get_or_create_client_buckets(key)
+
+        # Try to consume from both buckets
+        minute_ok = minute_bucket.consume(1)
+        hour_ok = hour_bucket.consume(1) if minute_ok else False
+
+        remaining_minute = int(minute_bucket.get_tokens())
+        remaining_hour = int(hour_bucket.get_tokens())
+
+        if minute_ok and hour_ok:
+            return True, {
+                "allowed": True,
+                "remaining_minute": remaining_minute,
+                "remaining_hour": remaining_hour,
+            }
+
+        retry_after = 3600 if minute_ok and not hour_ok else 60
+        return False, {
+            "allowed": False,
+            "remaining_minute": remaining_minute,
+            "remaining_hour": remaining_hour,
+            "retry_after_seconds": retry_after,
+        }
 
     def consume(self, key: str, limit_type: str, tokens: int = 1) -> bool:
         """Consume tokens from rate limit bucket.
@@ -345,16 +408,42 @@ class RateLimiter:
         thread = threading.Thread(target=cleanup_loop, daemon=True)
         thread.start()
 
-    def get_stats(self) -> Dict[str, int]:
+    def reset_client(self, key: str) -> None:
+        """Reset all rate limit buckets for a client key."""
+        minute_key = f"_client_minute:{key}"
+        hour_key = f"_client_hour:{key}"
+
+        with self.lock:
+            for bk in (minute_key, hour_key):
+                if bk in self.buckets:
+                    del self.buckets[bk]
+                if bk in self.bucket_created:
+                    del self.bucket_created[bk]
+                if bk in self.access_order:
+                    del self.access_order[bk]
+
+    def get_stats(self) -> Dict:
         """Get rate limiter statistics.
 
         Returns:
             Dictionary with statistics
         """
         with self.lock:
+            # Count unique simple-API client keys
+            client_keys = {
+                k.split(":", 1)[1]
+                for k in self.buckets
+                if k.startswith("_client_minute:")
+            }
             return {
                 "total_buckets": len(self.buckets),
                 "configured_limits": len(self.limits),
+                "tracked_clients": len(client_keys),
+                "config": {
+                    "requests_per_minute": self.config.requests_per_minute,
+                    "requests_per_hour": self.config.requests_per_hour,
+                    "burst_size": self.config.burst_size,
+                },
             }
 
 
