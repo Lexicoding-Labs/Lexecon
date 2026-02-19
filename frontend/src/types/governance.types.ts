@@ -23,6 +23,7 @@ export interface LedgerEntry {
 
 // Transformed decision used by the dashboard
 export interface Decision {
+  [key: string]: unknown;
   id: string;
   timestamp: string;
   action: string;

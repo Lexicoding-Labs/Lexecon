@@ -112,7 +112,7 @@ export function Table<T extends Record<string, unknown>>({
   }, [sortKey, sortDir]);
 
   // Keyboard nav: arrow keys on tbody
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTableSectionElement>, rowIndex: number) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLElement>, rowIndex: number) => {
     const rows = tableRef.current?.querySelectorAll('tbody tr');
     if (!rows) return;
     let target: Element | null = null;
