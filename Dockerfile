@@ -43,8 +43,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy Python packages from builder (system-wide install)
+# Only copy site-packages — do NOT copy /usr/local/bin to avoid overwriting
+# the runtime image's own Python binary with the builder's version.
+# python -m uvicorn works without uvicorn on PATH.
 COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=python-builder /usr/local/bin /usr/local/bin
 
 # Copy application source
 COPY --from=python-builder /build/src ./src
