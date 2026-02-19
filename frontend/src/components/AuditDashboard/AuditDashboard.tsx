@@ -67,7 +67,7 @@ function transformEntry(entry: LedgerEntry): Decision {
   return {
     id: (d.decision_id || entry.entry_id || 'UNKNOWN').toUpperCase(),
     timestamp: formatTs(entry.timestamp),
-    action: d.action || d.proposed_action || d.event_type || entry.event_type || 'unknown',
+    action: String(d.action || d.proposed_action || d.event_type || entry.event_type || 'unknown'),
     actor: d.actor || d.user_id || 'system',
     riskLevel: inferRisk(d.risk_level ?? d.riskLevel),
     outcome: OUTCOME_MAP[d.decision || ''] || (d.decision as Outcome) || 'pending',
@@ -173,7 +173,7 @@ export default function AuditDashboard() {
       key: 'id', header: 'Decision ID', sortable: true, width: '130px',
       render: (val) => (
         <span style={{ fontFamily: 'monospace', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--brand-primary)' }}>
-          {val}
+          {String(val)}
         </span>
       ),
     },
@@ -181,7 +181,7 @@ export default function AuditDashboard() {
       key: 'timestamp', header: 'Timestamp', sortable: true, width: '180px',
       render: (val) => (
         <span style={{ fontFamily: 'monospace', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-          {val}
+          {String(val)}
         </span>
       ),
     },
@@ -189,7 +189,7 @@ export default function AuditDashboard() {
       key: 'action', header: 'Action', sortable: true,
       render: (val, row) => (
         <div>
-          <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>{val}</span>
+          <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>{String(val)}</span>
           <br />
           <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>by {(row as Decision).actor}</span>
         </div>
@@ -535,10 +535,13 @@ function LedgerTab({
       }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
           <Input
+            id="search"
             label="Search"
             placeholder="Search decisions…"
             value={filters.search}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => onFiltersChange({ ...filters, search: e.target.value })}
+            error={false}
+            helperText=""
           />
           <Select
             label="Risk Level"
@@ -700,11 +703,11 @@ function ExportsTab() {
   ];
 
   const columns: TableColumn<typeof exports[0]>[] = [
-    { key: 'id', header: 'Export ID', width: '100px', render: (v) => <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--brand-primary)' }}>{v}</span> },
+    { key: 'id', header: 'Export ID', width: '100px', render: (v) => <span style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--brand-primary)' }}>{String(v)}</span> },
     { key: 'dateRange', header: 'Date Range' },
     { key: 'format', header: 'Format', width: '80px', render: (v) => <Badge variant="default" size="sm">{String(v)}</Badge> },
     { key: 'entries', header: 'Entries', width: '80px', render: (v) => <span style={{ fontFamily: 'monospace' }}>{Number(v).toLocaleString()}</span> },
-    { key: 'size', header: 'Size', width: '80px', render: (v) => <span style={{ fontFamily: 'monospace' }}>{v}</span> },
+    { key: 'size', header: 'Size', width: '80px', render: (v) => <span style={{ fontFamily: 'monospace' }}>{String(v)}</span> },
     { key: 'status', header: 'Status', width: '100px', render: (v) => <Badge variant={v === 'ready' ? 'success' : 'warning'} size="sm" dot={v === 'ready'}>{String(v).toUpperCase()}</Badge> },
   ];
 

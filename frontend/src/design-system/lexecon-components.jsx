@@ -141,11 +141,11 @@ export const Input = ({
   value,
   onChange,
   placeholder,
-  error,
-  helperText,
+  error = undefined,
+  helperText = '',
   disabled = false,
   required = false,
-  id,
+  id = undefined,
   ...props
 }) => {
   const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
@@ -328,10 +328,10 @@ export const Badge = ({
  */
 export const Alert = ({
   children,
-  title,
+  title = undefined,
   variant = 'info',
   dismissible = false,
-  onDismiss,
+  onDismiss = undefined,
   icon = true,
   ...props
 }) => {
@@ -589,10 +589,10 @@ export const Select = ({
   value,
   onChange,
   placeholder = 'Select an option',
-  error,
+  error = undefined,
   disabled = false,
   required = false,
-  id,
+  id = undefined,
   ...props
 }) => {
   const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
@@ -664,7 +664,7 @@ export const Checkbox = ({
   checked,
   onChange,
   disabled = false,
-  id,
+  id = undefined,
   ...props
 }) => {
   const checkboxId = id || `checkbox-${Math.random().toString(36).substr(2, 9)}`;
