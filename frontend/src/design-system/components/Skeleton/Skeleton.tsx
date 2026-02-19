@@ -5,6 +5,7 @@ interface SkeletonProps {
   height?: string | number;
   borderRadius?: string | number;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const shimmerBase: React.CSSProperties = {
@@ -12,7 +13,7 @@ const shimmerBase: React.CSSProperties = {
   animation: 'shimmer 1.4s ease-in-out infinite',
 };
 
-export function Skeleton({ width = '100%', height = 16, borderRadius = 4, className = '' }: SkeletonProps) {
+export function Skeleton({ width = '100%', height = 16, borderRadius = 4, className = '', style }: SkeletonProps) {
   return (
     <div
       className={className}
@@ -21,6 +22,7 @@ export function Skeleton({ width = '100%', height = 16, borderRadius = 4, classN
         height,
         borderRadius,
         ...shimmerBase,
+        ...style,
       }}
       aria-hidden="true"
     />
