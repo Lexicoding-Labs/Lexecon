@@ -22,11 +22,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install from pyproject.toml only
+# Install from pyproject.toml only (system-wide so runtime copies cleanly)
 COPY pyproject.toml README.md ./
 COPY src/ ./src/
 
-RUN pip install --no-cache-dir --user .
+RUN pip install --no-cache-dir .
 
 # ── Stage 3: Runtime ──
 FROM python:3.11-slim
@@ -42,8 +42,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy Python packages from builder
-COPY --from=python-builder /root/.local /home/lexecon/.local
+# Copy Python packages from builder (system-wide install)
+COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-builder /usr/local/bin /usr/local/bin
 
 # Copy application source
 COPY --from=python-builder /build/src ./src
@@ -60,8 +61,7 @@ COPY start.sh ./start.sh
 RUN mkdir -p /data/.lexecon && chown -R lexecon:lexecon /data /app
 
 # Set environment variables
-ENV PATH=/home/lexecon/.local/bin:$PATH \
-    PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     LEXECON_DATA_DIR=/data/.lexecon \
     LEXECON_LOG_LEVEL=INFO \
     LEXECON_LOG_FORMAT=json
