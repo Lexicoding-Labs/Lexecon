@@ -64,6 +64,7 @@ RUN mkdir -p /data/.lexecon && chown -R lexecon:lexecon /data /app
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src:/app \
     LEXECON_DATA_DIR=/data/.lexecon \
     LEXECON_LOG_LEVEL=INFO \
     LEXECON_LOG_FORMAT=json
