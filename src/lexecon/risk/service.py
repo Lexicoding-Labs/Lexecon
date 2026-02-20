@@ -75,7 +75,7 @@ class RiskScoringEngine:
     }
 
     # Risk level thresholds (defined conditionally to avoid import errors)
-    if GOVERNANCE_MODELS_AVAILABLE:
+    if GOVERNANCE_MODELS_AVAILABLE and RiskLevel is not None:
         RISK_THRESHOLDS = {
             RiskLevel.CRITICAL: 80,  # >= 80
             RiskLevel.HIGH: 60,  # 60-79
