@@ -60,17 +60,20 @@ def compute_sha256(content: Union[str, bytes]) -> str:
 class EvidenceConfig:
     """Configuration for evidence service."""
 
-    # Default retention periods by artifact type (in days)
-    DEFAULT_RETENTION_PERIODS = {
-        ArtifactType.DECISION_LOG: 2555,  # 7 years
-        ArtifactType.POLICY_SNAPSHOT: 2555,  # 7 years
-        ArtifactType.CONTEXT_CAPTURE: 365,  # 1 year
-        ArtifactType.SCREENSHOT: 365,  # 1 year
-        ArtifactType.ATTESTATION: 2555,  # 7 years
-        ArtifactType.SIGNATURE: 3650,  # 10 years
-        ArtifactType.AUDIT_TRAIL: 2555,  # 7 years
-        ArtifactType.EXTERNAL_REPORT: 2555,  # 7 years
-    }
+    # Default retention periods by artifact type (in days) — only define if models available
+    if GOVERNANCE_MODELS_AVAILABLE:
+        DEFAULT_RETENTION_PERIODS = {
+            ArtifactType.DECISION_LOG: 2555,  # 7 years
+            ArtifactType.POLICY_SNAPSHOT: 2555,  # 7 years
+            ArtifactType.CONTEXT_CAPTURE: 365,  # 1 year
+            ArtifactType.SCREENSHOT: 365,  # 1 year
+            ArtifactType.ATTESTATION: 2555,  # 7 years
+            ArtifactType.SIGNATURE: 3650,  # 10 years
+            ArtifactType.AUDIT_TRAIL: 2555,  # 7 years
+            ArtifactType.EXTERNAL_REPORT: 2555,  # 7 years
+        }
+    else:
+        DEFAULT_RETENTION_PERIODS = {}
 
     # Maximum content size (in bytes)
     MAX_CONTENT_SIZE = 100 * 1024 * 1024  # 100 MB
