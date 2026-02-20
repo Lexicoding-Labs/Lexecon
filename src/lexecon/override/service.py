@@ -69,11 +69,14 @@ class OverrideConfig:
         "act_human_user:security_officer",
     ]
 
-    # Override types that require executive approval
-    EXECUTIVE_ONLY_TYPES = [
-        OverrideType.EMERGENCY_BYPASS,
-        OverrideType.EXECUTIVE_OVERRIDE,
-    ]
+    # Override types that require executive approval (only if models available)
+    if GOVERNANCE_MODELS_AVAILABLE and OverrideType is not None:
+        EXECUTIVE_ONLY_TYPES = [
+            OverrideType.EMERGENCY_BYPASS,
+            OverrideType.EXECUTIVE_OVERRIDE,
+        ]
+    else:
+        EXECUTIVE_ONLY_TYPES = []
 
     # Default time limits for time-limited exceptions (in hours)
     DEFAULT_TIME_LIMIT_HOURS = 24
