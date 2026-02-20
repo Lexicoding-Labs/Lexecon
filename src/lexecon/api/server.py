@@ -89,17 +89,28 @@ if _static_dir.is_dir():
 # ── Startup event ──
 @app.on_event("startup")
 async def startup_event():
-    environment = os.getenv("LEXECON_ENV", "development")
-    initialize_observability(
-        service_name="lexecon-api",
-        version="0.1.0",
-        environment=environment,
-        enable_sentry=True,
-    )
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    try:
+        environment = os.getenv("LEXECON_ENV", "development")
+        initialize_observability(
+            service_name="lexecon-api",
+            version="0.1.0",
+            environment=environment,
+            enable_sentry=True,
+        )
+        logger.info("Observability initialized")
 
-    services = ServiceRegistry.get()
-    services.initialize()
-    services.ledger.append("system_startup", {"message": "API server started"})
+        services = ServiceRegistry.get()
+        services.initialize()
+        logger.info("Services initialized")
+        
+        services.ledger.append("system_startup", {"message": "API server started"})
+        logger.info("Startup complete")
+    except Exception as e:
+        logger.error(f"Startup error (non-fatal): {e}")
+        # Don't re-raise - allow server to start even if some services fail
 
 
 # ── Backwards-compatibility shims ──
