@@ -75,9 +75,9 @@ USER lexecon
 # Expose port
 EXPOSE 8000
 
-# Health check using curl instead of python+requests
+# Health check using curl - respects PORT env var (defaults to 8000)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -sf http://localhost:8000/health || exit 1
+    CMD curl -sf http://localhost:${PORT:-8000}/health || exit 1
 
 # Use tini as init system
 ENTRYPOINT ["/usr/bin/tini", "--"]

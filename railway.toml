@@ -9,5 +9,6 @@ healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
-[[services]]
-name = "lexecon"
+[deploy.env]
+LEXECON_ENV = "production"
+LEXECON_LOG_LEVEL = "INFO"
