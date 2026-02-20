@@ -61,7 +61,7 @@ class EvidenceConfig:
     """Configuration for evidence service."""
 
     # Default retention periods by artifact type (in days) — only define if models available
-    if GOVERNANCE_MODELS_AVAILABLE:
+    if GOVERNANCE_MODELS_AVAILABLE and ArtifactType is not None:
         DEFAULT_RETENTION_PERIODS = {
             ArtifactType.DECISION_LOG: 2555,  # 7 years
             ArtifactType.POLICY_SNAPSHOT: 2555,  # 7 years
