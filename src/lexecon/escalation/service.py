@@ -71,13 +71,16 @@ class EscalationConfig:
     AUTO_ESCALATE_RISK_SCORE = 80  # Critical risk
     AUTO_ESCALATE_RISK_LEVEL = RiskLevel.CRITICAL if GOVERNANCE_MODELS_AVAILABLE else None
 
-    # SLA deadlines by priority (in hours)
-    SLA_DEADLINES = {
-        EscalationPriority.CRITICAL: 2,  # 2 hours
-        EscalationPriority.HIGH: 8,  # 8 hours
-        EscalationPriority.MEDIUM: 24,  # 1 day
-        EscalationPriority.LOW: 72,  # 3 days
-    }
+    # SLA deadlines by priority (in hours) — only define if models available
+    if GOVERNANCE_MODELS_AVAILABLE:
+        SLA_DEADLINES = {
+            EscalationPriority.CRITICAL: 2,  # 2 hours
+            EscalationPriority.HIGH: 8,  # 8 hours
+            EscalationPriority.MEDIUM: 24,  # 1 day
+            EscalationPriority.LOW: 72,  # 3 days
+        }
+    else:
+        SLA_DEADLINES = {}
 
     # SLA warning threshold (notify before deadline)
     SLA_WARNING_HOURS = 1  # Warn 1 hour before deadline
