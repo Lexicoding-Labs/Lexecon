@@ -1,5 +1,6 @@
 """Health, status, and metrics endpoints."""
 
+import os
 import time
 from datetime import datetime
 
@@ -14,11 +15,16 @@ router = APIRouter()
 
 
 @router.get("/health", response_model=HealthResponse)
-async def health_check(services: ServiceRegistry = Depends(get_services)):
+async def health_check():
+    """Simple health check that doesn't require service initialization.
+    
+    This allows the container to pass Railway health checks during startup
+    before all services are fully initialized.
+    """
     return {
         "status": "healthy",
         "version": "0.1.0",
-        "node_id": services.node_id,
+        "node_id": os.getenv("LEXECON_NODE_ID", "unknown"),
         "timestamp": datetime.utcnow().isoformat(),
     }
 
