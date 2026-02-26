@@ -12,7 +12,7 @@ Implements OWASP security best practices.
 """
 
 import os
-from typing import Callable, Dict, Optional
+from typing import Callable, Optional
 
 from fastapi import Request, Response
 
@@ -31,7 +31,7 @@ class SecurityHeadersMiddleware:
     - Cache-Control (for sensitive pages)
     """
 
-    def __init__(self, config: Optional[Dict[str, str]] = None, enable_csp: bool = True):
+    def __init__(self, config: Optional[dict[str, str]] = None, enable_csp: bool = True):
         """Initialize security headers middleware.
 
         Args:
@@ -43,7 +43,7 @@ class SecurityHeadersMiddleware:
         if not enable_csp:
             self.config.pop("Content-Security-Policy", None)
 
-    def _default_headers(self) -> Dict[str, str]:
+    def _default_headers(self) -> dict[str, str]:
         """Get default security headers configuration.
 
         Returns:
@@ -170,7 +170,7 @@ class SecurityHeadersMiddleware:
 
 
 def create_security_headers_middleware(
-    config: Optional[Dict[str, str]] = None,
+    config: Optional[dict[str, str]] = None,
 ) -> SecurityHeadersMiddleware:
     """Create security headers middleware instance.
 

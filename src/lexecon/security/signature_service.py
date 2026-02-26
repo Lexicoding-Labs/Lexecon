@@ -12,7 +12,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
@@ -96,7 +96,7 @@ class SignatureService:
                 f.read(),
             )
 
-    def sign_packet(self, packet_data: Dict[str, Any]) -> Dict[str, Any]:
+    def sign_packet(self, packet_data: dict[str, Any]) -> dict[str, Any]:
         """Sign an audit packet with digital signature.
 
         Args:
@@ -145,12 +145,11 @@ class SignatureService:
             "verification_instructions": "Use /compliance/verify-signature endpoint with packet and signature",
         }
 
-
     def verify_signature(
         self,
-        packet_data: Dict[str, Any],
+        packet_data: dict[str, Any],
         signature_hex: str,
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Verify a signature on an audit packet.
 
         Args:
@@ -215,7 +214,7 @@ class SignatureService:
 
         return hashlib.sha256(public_pem).hexdigest()
 
-    def sign_and_enrich_packet(self, packet_data: Dict[str, Any]) -> Dict[str, Any]:
+    def sign_and_enrich_packet(self, packet_data: dict[str, Any]) -> dict[str, Any]:
         """Sign packet and add signature to the packet itself.
 
         Args:
@@ -236,8 +235,7 @@ class SignatureService:
             "signature_info": signature_info,
         }
 
-
-    def verify_packet_signature(self, packet_data: Dict[str, Any]) -> Tuple[bool, str]:
+    def verify_packet_signature(self, packet_data: dict[str, Any]) -> tuple[bool, str]:
         """Verify signature embedded in packet.
 
         Args:

@@ -6,7 +6,7 @@ The engine loads terms and relations, and evaluates decision requests against th
 import hashlib
 import json
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from lexecon.policy.relations import PolicyRelation, RelationType
 from lexecon.policy.terms import PolicyTerm
@@ -72,8 +72,8 @@ class PolicyEngine:
                 self.mode = PolicyMode(mode_value)
             else:
                 self.mode = mode_value
-            self.terms: Dict[str, PolicyTerm] = {}
-            self.relations: List[PolicyRelation] = []
+            self.terms: dict[str, PolicyTerm] = {}
+            self.relations: list[PolicyRelation] = []
             self._policy_hash: Optional[str] = None
             # Load the policy
             self.load_policy(policy_dict)
@@ -85,8 +85,8 @@ class PolicyEngine:
                 self.mode = mode
             else:
                 self.mode = PolicyMode.STRICT
-            self.terms: Dict[str, PolicyTerm] = {}
-            self.relations: List[PolicyRelation] = []
+            self.terms: dict[str, PolicyTerm] = {}
+            self.relations: list[PolicyRelation] = []
             self._policy_hash: Optional[str] = None
 
     def add_term(self, term: PolicyTerm) -> None:
@@ -99,7 +99,7 @@ class PolicyEngine:
         self.relations.append(relation)
         self._policy_hash = None  # Invalidate cached hash
 
-    def load_policy(self, policy_data: Dict[str, Any]) -> None:
+    def load_policy(self, policy_data: dict[str, Any]) -> None:
         """Load a complete policy from dictionary."""
         # Clear existing policy
         self.terms.clear()
@@ -134,10 +134,10 @@ class PolicyEngine:
         actor: str,
         action: str,
         resource: Optional[str] = None,
-        data_classes: Optional[List[str]] = None,
+        data_classes: Optional[list[str]] = None,
         risk_level: int = 1,
-        context: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        context: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         """Evaluate a decision request against the policy.
 
         Returns a decision with permitted/denied status and reasoning.
@@ -173,8 +173,8 @@ class PolicyEngine:
         )
 
     def _find_relations(
-        self, relation_type: RelationType, actor: str, action: str, data_classes: Optional[List[str]] = None,
-    ) -> List[PolicyRelation]:
+        self, relation_type: RelationType, actor: str, action: str, data_classes: Optional[list[str]] = None,
+    ) -> list[PolicyRelation]:
         """Find relations matching the given criteria.
 
         Matches by both term ID and term label/name.
@@ -232,7 +232,7 @@ class PolicyEngine:
         return value in term_id
 
     def _generate_reasoning(
-        self, decision: bool, permits: List[PolicyRelation], forbids: List[PolicyRelation],
+        self, decision: bool, permits: list[PolicyRelation], forbids: list[PolicyRelation],
     ) -> str:
         """Generate human-readable reasoning for the decision."""
         if decision:
@@ -253,7 +253,7 @@ class PolicyEngine:
             return f"Denied by {len(forbids)} prohibition(s)"
         return "Action not explicitly permitted"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize policy to dictionary."""
         return {
             "mode": self.mode.value,
@@ -262,7 +262,7 @@ class PolicyEngine:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PolicyEngine":
+    def from_dict(cls, data: dict[str, Any]) -> "PolicyEngine":
         """Deserialize policy from dictionary."""
         engine = cls(mode=PolicyMode(data.get("mode", "strict")))
         engine.load_policy(data)

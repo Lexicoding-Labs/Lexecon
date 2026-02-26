@@ -8,7 +8,7 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from .article_14_oversight import HumanIntervention, InterventionType, OversightRole
 
@@ -105,7 +105,7 @@ class InterventionStorage:
         conn.commit()
         conn.close()
 
-    def load_all_interventions(self) -> List[HumanIntervention]:
+    def load_all_interventions(self) -> list[HumanIntervention]:
         """Load all intervention records in chronological order.
 
         Returns:
@@ -148,7 +148,7 @@ class InterventionStorage:
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-    ) -> List[HumanIntervention]:
+    ) -> list[HumanIntervention]:
         """Get interventions within a time range.
 
         Args:

@@ -1,7 +1,7 @@
 """Decision, ledger, storage, and demo endpoints."""
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
@@ -86,13 +86,10 @@ async def make_decision(
 
 @router.post("/decide/verify")
 async def verify_decision(
-    request_data: Dict[str, Any],
+    request_data: dict[str, Any],
     services: ServiceRegistry = Depends(get_services),
 ):
-    if "decision_response" in request_data:
-        decision_response = request_data["decision_response"]
-    else:
-        decision_response = request_data
+    decision_response = request_data.get("decision_response", request_data)
 
     ledger_entry_hash = decision_response.get("ledger_entry_hash")
 

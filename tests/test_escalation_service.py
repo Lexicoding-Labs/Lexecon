@@ -18,7 +18,6 @@ try:
         EscalationStatus,
         EscalationTrigger,
         EvidenceArtifact,
-        Resolution,
         ResolutionOutcome,
         Risk,
         RiskDimensions,

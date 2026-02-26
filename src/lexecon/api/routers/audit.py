@@ -74,7 +74,7 @@ async def export_evidence(
             },
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {e!s}")
 
 
 @router.get("/usage")

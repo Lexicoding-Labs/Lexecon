@@ -17,7 +17,7 @@ import io
 import secrets
 import sqlite3
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import pyotp
 import qrcode
@@ -99,7 +99,7 @@ class MFAService:
         # This allows for slight clock drift and user delay
         return totp.verify(token, valid_window=1)
 
-    def generate_backup_codes(self, count: int = 10) -> List[str]:
+    def generate_backup_codes(self, count: int = 10) -> list[str]:
         """Generate backup recovery codes.
 
         Args:
@@ -188,7 +188,7 @@ class MFAService:
         finally:
             conn.close()
 
-    def enable_mfa(self, user_id: str, secret: str, backup_codes: List[str]) -> bool:
+    def enable_mfa(self, user_id: str, secret: str, backup_codes: list[str]) -> bool:
         """Enable MFA for a user.
 
         Args:
@@ -312,7 +312,7 @@ class MFAService:
         self,
         challenge_id: str,
         totp_code: str,
-    ) -> Tuple[bool, Optional[str], Optional[str]]:
+    ) -> tuple[bool, Optional[str], Optional[str]]:
         """Verify an MFA challenge with TOTP code.
 
         Args:
@@ -372,7 +372,7 @@ class MFAService:
         self,
         challenge_id: str,
         backup_code: str,
-    ) -> Tuple[bool, Optional[str], Optional[str]]:
+    ) -> tuple[bool, Optional[str], Optional[str]]:
         """Verify an MFA challenge with backup code.
 
         Args:
@@ -437,11 +437,10 @@ class MFAService:
             conn.commit()
             return cursor.rowcount
 
-
         finally:
             conn.close()
 
-    def get_mfa_status(self, user_id: str) -> Dict[str, Any]:
+    def get_mfa_status(self, user_id: str) -> dict[str, Any]:
         """Get MFA status for a user.
 
         Args:

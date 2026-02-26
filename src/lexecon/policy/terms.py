@@ -5,7 +5,7 @@ Terms represent entities, actions, data classes, and other policy primitives.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 
 class TermType(Enum):
@@ -29,7 +29,7 @@ class PolicyTerm:
     term_type: TermType
     label: str
     description: str
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -75,7 +75,7 @@ class PolicyTerm:
             description=description,
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize term to dictionary."""
         return {
             "term_id": self.term_id,
@@ -86,7 +86,7 @@ class PolicyTerm:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PolicyTerm":
+    def from_dict(cls, data: dict[str, Any]) -> "PolicyTerm":
         """Deserialize term from dictionary.
 
         Supports both full format and simplified format:

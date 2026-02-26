@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
@@ -63,7 +63,7 @@ async def apply_legal_hold(
     hold_id: str,
     reason: str,
     requester: str = "system",
-    entry_ids: Optional[List[str]] = None,
+    entry_ids: Optional[list[str]] = None,
     services: ServiceRegistry = Depends(get_services),
 ):
     from lexecon.compliance.eu_ai_act.article_12_records import RecordKeepingSystem
@@ -118,11 +118,13 @@ async def get_oversight_effectiveness(
 
 @router.post("/compliance/eu-ai-act/article-14/verify")
 async def verify_intervention(
-    intervention_data: Dict[str, Any],
+    intervention_data: dict[str, Any],
     services: ServiceRegistry = Depends(get_services),
 ):
     from lexecon.compliance.eu_ai_act.article_14_oversight import (
-        HumanIntervention, InterventionType, OversightRole,
+        HumanIntervention,
+        InterventionType,
+        OversightRole,
     )
 
     try:

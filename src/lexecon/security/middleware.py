@@ -8,7 +8,6 @@ from fastapi.responses import JSONResponse
 
 from lexecon.security.auth_service import AuthService, Permission, Session
 from lexecon.security.rate_limiter import RateLimiter
-from lexecon.security.security_headers import SecurityHeadersMiddleware
 
 
 class AuthMiddleware:

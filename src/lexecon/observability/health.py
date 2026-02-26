@@ -2,7 +2,7 @@
 
 import time
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
 
 class HealthStatus(str, Enum):
@@ -19,7 +19,7 @@ class HealthCheck:
     def __init__(self) -> None:
         """Initialize health check manager."""
         self.start_time = time.time()
-        self.checks: Dict[str, Any] = {}
+        self.checks: dict[str, Any] = {}
 
     def add_check(self, name: str, check_func: Any) -> None:
         """Add a health check.
@@ -30,7 +30,7 @@ class HealthCheck:
         """
         self.checks[name] = check_func
 
-    def liveness(self) -> Dict[str, Any]:
+    def liveness(self) -> dict[str, Any]:
         """Liveness probe - is the service running?
 
         Returns:
@@ -42,13 +42,13 @@ class HealthCheck:
             "uptime_seconds": time.time() - self.start_time,
         }
 
-    def readiness(self) -> Dict[str, Any]:
+    def readiness(self) -> dict[str, Any]:
         """Readiness probe - is the service ready to accept traffic?
 
         Returns:
             Readiness status with component checks
         """
-        checks_results: List[Dict[str, Any]] = []
+        checks_results: list[dict[str, Any]] = []
         overall_status = HealthStatus.HEALTHY
 
         for name, check_func in self.checks.items():
@@ -78,7 +78,7 @@ class HealthCheck:
             "checks": checks_results,
         }
 
-    def startup(self) -> Dict[str, Any]:
+    def startup(self) -> dict[str, Any]:
         """Startup probe - has the service completed initialization?
 
         Returns:
@@ -97,19 +97,19 @@ health_check = HealthCheck()
 
 
 # Example health checks
-def check_policy_engine() -> tuple[HealthStatus, Dict[str, Any]]:
+def check_policy_engine() -> tuple[HealthStatus, dict[str, Any]]:
     """Check policy engine health."""
     # Implement actual check
     return HealthStatus.HEALTHY, {"policies_loaded": 3}
 
 
-def check_ledger() -> tuple[HealthStatus, Dict[str, Any]]:
+def check_ledger() -> tuple[HealthStatus, dict[str, Any]]:
     """Check ledger health."""
     # Implement actual check
     return HealthStatus.HEALTHY, {"entries": 100, "last_verified": time.time()}
 
 
-def check_identity() -> tuple[HealthStatus, Dict[str, Any]]:
+def check_identity() -> tuple[HealthStatus, dict[str, Any]]:
     """Check identity system health."""
     # Implement actual check
     return HealthStatus.HEALTHY, {"key_loaded": True}

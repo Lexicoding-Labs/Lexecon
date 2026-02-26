@@ -1,5 +1,4 @@
-"""
-Common feature flags used throughout Lexecon.
+"""Common feature flags used throughout Lexecon.
 
 Centralized flag definitions for easy reference and documentation.
 """
@@ -8,8 +7,7 @@ from enum import Enum
 
 
 class FeatureFlag(str, Enum):
-    """
-    Common feature flags.
+    """Common feature flags.
 
     Usage:
         from lexecon.features import get_feature_flags, FeatureFlag

@@ -9,7 +9,7 @@ Integrates with canonical Risk model to provide:
 
 import hashlib
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Import canonical governance models
 try:
@@ -91,7 +91,7 @@ class RiskScoringEngine:
             "low": 0,
         }
 
-    def __init__(self, weights: Optional[Dict[str, float]] = None):
+    def __init__(self, weights: Optional[dict[str, float]] = None):
         """Initialize the risk scoring engine.
 
         Args:
@@ -173,7 +173,7 @@ class RiskScoringEngine:
 
     def calculate_risk_factors(
         self, dimensions: "RiskDimensions",
-    ) -> List["RiskFactor"]:
+    ) -> list["RiskFactor"]:
         """Generate explainable risk factors from dimensions.
 
         Args:
@@ -237,11 +237,11 @@ class RiskService:
         self.store_evidence = store_evidence
 
         # In-memory storage for risk assessments and evidence
-        self._risk_assessments: Dict[str, Risk] = {}
-        self._evidence_artifacts: Dict[str, EvidenceArtifact] = {}
+        self._risk_assessments: dict[str, Risk] = {}
+        self._evidence_artifacts: dict[str, EvidenceArtifact] = {}
 
         # Track decision-to-risk linkage (one-to-one)
-        self._decision_to_risk: Dict[str, str] = {}
+        self._decision_to_risk: dict[str, str] = {}
 
     def assess_risk(
         self,
@@ -249,8 +249,8 @@ class RiskService:
         dimensions: "RiskDimensions",
         likelihood: Optional[float] = None,
         impact: Optional[int] = None,
-        mitigations: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        mitigations: Optional[list[str]] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> "Risk":
         """Assess risk for a decision.
 
@@ -332,7 +332,7 @@ class RiskService:
         min_score: Optional[int] = None,
         risk_level: Optional["RiskLevel"] = None,
         limit: int = 100,
-    ) -> List["Risk"]:
+    ) -> list["Risk"]:
         """List risk assessments with optional filtering.
 
         Args:
@@ -405,7 +405,7 @@ class RiskService:
 
     def list_evidence_artifacts(
         self, decision_id: Optional[str] = None,
-    ) -> List["EvidenceArtifact"]:
+    ) -> list["EvidenceArtifact"]:
         """List evidence artifacts with optional filtering.
 
         Args:

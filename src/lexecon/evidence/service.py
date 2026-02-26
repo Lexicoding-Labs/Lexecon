@@ -12,7 +12,7 @@ Provides immutable evidence storage with:
 import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 # Import canonical governance models
 try:
@@ -106,23 +106,23 @@ class EvidenceService:
         self.enable_signatures = enable_signatures
 
         # In-memory storage (immutable records)
-        self._artifacts: Dict[str, EvidenceArtifact] = {}
-        self._decision_index: Dict[str, List[str]] = {}  # decision_id -> artifact_ids
-        self._control_index: Dict[str, List[str]] = {}  # control_id -> artifact_ids
-        self._type_index: Dict[ArtifactType, List[str]] = {}  # type -> artifact_ids
+        self._artifacts: dict[str, EvidenceArtifact] = {}
+        self._decision_index: dict[str, list[str]] = {}  # decision_id -> artifact_ids
+        self._control_index: dict[str, list[str]] = {}  # control_id -> artifact_ids
+        self._type_index: dict[ArtifactType, list[str]] = {}  # type -> artifact_ids
 
     def store_artifact(
         self,
         artifact_type: "ArtifactType",
         content: Union[str, bytes],
         source: str,
-        related_decision_ids: Optional[List[str]] = None,
-        related_control_ids: Optional[List[str]] = None,
+        related_decision_ids: Optional[list[str]] = None,
+        related_control_ids: Optional[list[str]] = None,
         content_type: Optional[str] = None,
         storage_uri: Optional[str] = None,
         retention_days: Optional[int] = None,
         digital_signature: Optional["DigitalSignature"] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> "EvidenceArtifact":
         """Store an evidence artifact.
 
@@ -230,7 +230,7 @@ class EvidenceService:
         # Compare with stored hash
         return computed_hash == artifact.sha256_hash
 
-    def get_artifacts_for_decision(self, decision_id: str) -> List["EvidenceArtifact"]:
+    def get_artifacts_for_decision(self, decision_id: str) -> list["EvidenceArtifact"]:
         """Get all artifacts linked to a decision.
 
         Args:
@@ -247,7 +247,7 @@ class EvidenceService:
 
         return artifacts
 
-    def get_artifacts_for_control(self, control_id: str) -> List["EvidenceArtifact"]:
+    def get_artifacts_for_control(self, control_id: str) -> list["EvidenceArtifact"]:
         """Get all artifacts linked to a compliance control.
 
         Args:
@@ -271,7 +271,7 @@ class EvidenceService:
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
         limit: int = 100,
-    ) -> List["EvidenceArtifact"]:
+    ) -> list["EvidenceArtifact"]:
         """List artifacts with optional filtering.
 
         Args:
@@ -309,7 +309,7 @@ class EvidenceService:
     def get_artifacts_needing_retention(
         self,
         days_until_expiry: int = 30,
-    ) -> List["EvidenceArtifact"]:
+    ) -> list["EvidenceArtifact"]:
         """Get artifacts approaching retention deadline.
 
         Args:
@@ -333,7 +333,7 @@ class EvidenceService:
     def export_artifact_lineage(
         self,
         decision_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Export complete artifact lineage for a decision.
 
         Provides audit-ready export with all evidence,
@@ -369,7 +369,6 @@ class EvidenceService:
                 for a in artifacts
             ],
         }
-
 
     def sign_artifact(
         self,
@@ -423,7 +422,7 @@ class EvidenceService:
 
         return signed_artifact
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get evidence service statistics.
 
         Returns:
@@ -496,13 +495,13 @@ class ArtifactBuilder:
         self.artifact_type = artifact_type
         self.content = content
         self.source = source
-        self.related_decision_ids: List[str] = []
-        self.related_control_ids: List[str] = []
+        self.related_decision_ids: list[str] = []
+        self.related_control_ids: list[str] = []
         self.content_type: Optional[str] = None
         self.storage_uri: Optional[str] = None
         self.retention_days: Optional[int] = None
         self.digital_signature: Optional[DigitalSignature] = None
-        self.metadata: Dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
 
     def link_to_decision(self, decision_id: str) -> "ArtifactBuilder":
         """Link artifact to a decision."""

@@ -7,7 +7,7 @@ Critical for audits, legal liability, and EU AI Act Article 14 compliance.
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 class DecisionMaker(Enum):
@@ -63,7 +63,7 @@ class ResponsibilityRecord:
     liability_accepted: bool = False  # Did responsible party accept liability?
     liability_signature: Optional[str] = None  # Cryptographic signature
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             **asdict(self),
@@ -89,7 +89,7 @@ class ResponsibilityTracker:
             storage: Optional ResponsibilityStorage instance for persistence
         """
         self.storage = storage
-        self.records: List[ResponsibilityRecord] = []
+        self.records: list[ResponsibilityRecord] = []
 
         # Load existing records from storage if available
         if self.storage:
@@ -166,22 +166,22 @@ class ResponsibilityTracker:
                 return True
         return False
 
-    def get_responsibility_chain(self, decision_id: str) -> List[ResponsibilityRecord]:
+    def get_responsibility_chain(self, decision_id: str) -> list[ResponsibilityRecord]:
         """Get the full chain of responsibility for a decision.
 
         Shows delegations, escalations, and reviews.
         """
         return [r for r in self.records if r.decision_id == decision_id]
 
-    def get_by_responsible_party(self, party: str) -> List[ResponsibilityRecord]:
+    def get_by_responsible_party(self, party: str) -> list[ResponsibilityRecord]:
         """Get all decisions made by a specific party."""
         return [r for r in self.records if r.responsible_party == party]
 
-    def get_ai_overrides(self) -> List[ResponsibilityRecord]:
+    def get_ai_overrides(self) -> list[ResponsibilityRecord]:
         """Get all decisions where humans overrode AI."""
         return [r for r in self.records if r.override_ai]
 
-    def get_pending_reviews(self) -> List[ResponsibilityRecord]:
+    def get_pending_reviews(self) -> list[ResponsibilityRecord]:
         """Get decisions awaiting review."""
         return [r for r in self.records if r.review_required and not r.reviewed_by]
 
@@ -189,7 +189,7 @@ class ResponsibilityTracker:
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate accountability report.
 
         Critical for audits and legal defense.
@@ -269,7 +269,7 @@ class ResponsibilityTracker:
             },
         }
 
-    def export_for_legal(self, decision_id: str) -> Dict[str, Any]:
+    def export_for_legal(self, decision_id: str) -> dict[str, Any]:
         """Export responsibility chain for legal proceedings.
 
         Provides full accountability trail with signatures.
@@ -296,7 +296,7 @@ class ResponsibilityTracker:
             },
         }
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize all records."""
         return {
             "records": [r.to_dict() for r in self.records],

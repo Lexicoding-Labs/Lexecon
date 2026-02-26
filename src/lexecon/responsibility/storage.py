@@ -7,7 +7,6 @@ and EU AI Act compliance (Article 14 - 10 year retention).
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import List
 
 from .tracker import DecisionMaker, ResponsibilityLevel, ResponsibilityRecord
 
@@ -135,7 +134,7 @@ class ResponsibilityStorage:
         conn.commit()
         conn.close()
 
-    def load_all_records(self) -> List[ResponsibilityRecord]:
+    def load_all_records(self) -> list[ResponsibilityRecord]:
         """Load all responsibility records in chronological order.
 
         Returns:
@@ -283,7 +282,7 @@ class ResponsibilityStorage:
             "override_count": overrides,
         }
 
-    def get_by_decision_id(self, decision_id: str) -> List[ResponsibilityRecord]:
+    def get_by_decision_id(self, decision_id: str) -> list[ResponsibilityRecord]:
         """Get all responsibility records for a specific decision.
 
         Args:

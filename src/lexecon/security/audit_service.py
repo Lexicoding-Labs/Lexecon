@@ -13,7 +13,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 class ExportStatus(str, Enum):
@@ -50,7 +50,7 @@ class ExportRequest:
 
     # Configuration (WHAT)
     time_window: str
-    formats: List[str]  # json, text, csv
+    formats: list[str]  # json, text, csv
     include_decisions: bool
     include_interventions: bool
     include_ledger: bool
@@ -72,7 +72,7 @@ class ExportRequest:
     # Export status
     export_status: ExportStatus
     completed_at: Optional[str]
-    packet_hashes: Optional[Dict[str, str]]  # format -> hash
+    packet_hashes: Optional[dict[str, str]]  # format -> hash
     packet_size_bytes: Optional[int]
 
     # Audit chain
@@ -174,7 +174,7 @@ class AuditService:
         conn.commit()
         conn.close()
 
-    def _compute_hash(self, data: Dict[str, Any]) -> str:
+    def _compute_hash(self, data: dict[str, Any]) -> str:
         """Compute SHA-256 hash of data."""
         json_str = json.dumps(data, sort_keys=True)
         return hashlib.sha256(json_str.encode()).hexdigest()
@@ -210,7 +210,7 @@ class AuditService:
         case_id: Optional[str],
         notes: Optional[str],
         time_window: str,
-        formats: List[str],
+        formats: list[str],
         include_decisions: bool,
         include_interventions: bool,
         include_ledger: bool,
@@ -387,7 +387,7 @@ class AuditService:
     def complete_export(
         self,
         request_id: str,
-        packet_hashes: Dict[str, str],
+        packet_hashes: dict[str, str],
         packet_size_bytes: int,
     ):
         """Mark export as completed."""
@@ -449,7 +449,7 @@ class AuditService:
         user_id: Optional[str] = None,
         status: Optional[ExportStatus] = None,
         limit: int = 100,
-    ) -> List[ExportRequest]:
+    ) -> list[ExportRequest]:
         """List export requests with optional filters."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -545,7 +545,7 @@ class AuditService:
         conn.commit()
         conn.close()
 
-    def verify_audit_chain(self) -> Dict[str, Any]:
+    def verify_audit_chain(self) -> dict[str, Any]:
         """Verify integrity of audit chain."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()

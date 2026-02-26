@@ -6,7 +6,7 @@ Manages key pairs for signing decisions and verifying integrity.
 import base64
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
@@ -26,7 +26,7 @@ class NodeIdentity:
         """Get the node identifier."""
         return self.node_id
 
-    def sign(self, data: Dict[str, Any]) -> str:
+    def sign(self, data: dict[str, Any]) -> str:
         """Sign data using the node's private key."""
         return self.key_manager.sign(data)
 
@@ -106,7 +106,7 @@ class KeyManager:
         public_pem = public_key_path.read_bytes()
         return serialization.load_pem_public_key(public_pem)
 
-    def sign(self, data: Dict[str, Any]) -> str:
+    def sign(self, data: dict[str, Any]) -> str:
         """Sign data using private key.
 
         Returns base64-encoded signature.
@@ -125,7 +125,7 @@ class KeyManager:
         return base64.b64encode(signature).decode()
 
     @staticmethod
-    def verify(data: Dict[str, Any], signature: str, public_key: Ed25519PublicKey) -> bool:
+    def verify(data: dict[str, Any], signature: str, public_key: Ed25519PublicKey) -> bool:
         """Verify signature on data using public key.
 
         Returns True if signature is valid, False otherwise.

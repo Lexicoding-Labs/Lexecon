@@ -1,16 +1,17 @@
 """Pydantic request/response models for the Lexecon Governance API."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
 from lexecon.api.validation import (
+    ValidationConfig,
     validate_context,
     validate_data_classes,
     validate_export_email,
     validate_export_formats,
-    validate_justification,
     validate_iso_timestamp,
+    validate_justification,
     validate_output_type,
     validate_override_scope,
     validate_policy_mode,
@@ -19,11 +20,10 @@ from lexecon.api.validation import (
     validate_risk_level,
     validate_string_field,
     validate_time_window,
-    ValidationConfig,
 )
 
-
 # ========== Decision Models ==========
+
 
 class DecisionRequestModel(BaseModel):
     """Model for decision request with comprehensive input validation."""
@@ -33,11 +33,11 @@ class DecisionRequestModel(BaseModel):
     proposed_action: str = Field(..., description="Proposed action to perform")
     tool: str = Field(..., description="Tool to be used")
     user_intent: str = Field(..., description="User's intent for this action")
-    data_classes: List[str] = Field(default_factory=list)
+    data_classes: list[str] = Field(default_factory=list)
     risk_level: int = Field(default=1, ge=1, le=5)
     requested_output_type: str = Field(default="tool_action")
     policy_mode: str = Field(default="strict")
-    context: Dict[str, Any] = Field(default_factory=dict)
+    context: dict[str, Any] = Field(default_factory=dict)
 
     @field_validator("actor")
     @classmethod
@@ -67,7 +67,7 @@ class DecisionRequestModel(BaseModel):
 
     @field_validator("data_classes")
     @classmethod
-    def validate_data_classes_field(cls, v: List[str]) -> List[str]:
+    def validate_data_classes_field(cls, v: list[str]) -> list[str]:
         return validate_data_classes(v)
 
     @field_validator("risk_level")
@@ -87,7 +87,7 @@ class DecisionRequestModel(BaseModel):
 
     @field_validator("context", mode="before")
     @classmethod
-    def validate_context_field(cls, v: Any) -> Dict[str, Any]:
+    def validate_context_field(cls, v: Any) -> dict[str, Any]:
         if v is None:
             return {}
         return validate_context(v)
@@ -97,13 +97,13 @@ class DecisionRequestModel(BaseModel):
 
 class PolicyLoadModel(BaseModel):
     """Model for loading policy - supports both wrapped and direct formats."""
-    policy: Optional[Dict[str, Any]] = Field(default=None, description="Policy data (wrapped format)")
+    policy: Optional[dict[str, Any]] = Field(default=None, description="Policy data (wrapped format)")
     name: Optional[str] = Field(default=None, description="Policy name")
     version: Optional[str] = Field(default="1.0", description="Policy version")
     mode: Optional[str] = Field(default=None, description="Policy mode")
-    terms: Optional[List[Dict[str, Any]]] = Field(default=None, description="Policy terms")
-    relations: Optional[List[Dict[str, Any]]] = Field(default=None, description="Policy relations")
-    constraints: Optional[List[Dict[str, Any]]] = Field(default=None, description="Policy constraints")
+    terms: Optional[list[dict[str, Any]]] = Field(default=None, description="Policy terms")
+    relations: Optional[list[dict[str, Any]]] = Field(default=None, description="Policy relations")
+    constraints: Optional[list[dict[str, Any]]] = Field(default=None, description="Policy constraints")
 
 
 # ========== Intervention Models ==========
@@ -111,11 +111,11 @@ class PolicyLoadModel(BaseModel):
 class InterventionModel(BaseModel):
     """Model for human intervention request with comprehensive validation."""
     intervention_type: str = Field(..., description="Type of intervention")
-    ai_recommendation: Dict[str, Any] = Field(..., description="AI's recommendation (must include 'confidence' key)")
-    human_decision: Dict[str, Any] = Field(..., description="Human's decision")
+    ai_recommendation: dict[str, Any] = Field(..., description="AI's recommendation (must include 'confidence' key)")
+    human_decision: dict[str, Any] = Field(..., description="Human's decision")
     human_role: str = Field(..., description="Human's role")
     reason: str = Field(..., description="Reason for intervention")
-    request_context: Optional[Dict[str, Any]] = Field(default=None, description="Additional request context")
+    request_context: Optional[dict[str, Any]] = Field(default=None, description="Additional request context")
     response_time_ms: Optional[int] = Field(default=None, description="Response time in milliseconds")
 
     @field_validator("intervention_type")
@@ -125,12 +125,12 @@ class InterventionModel(BaseModel):
 
     @field_validator("ai_recommendation", mode="before")
     @classmethod
-    def validate_ai_recommendation(cls, v: Any) -> Dict[str, Any]:
+    def validate_ai_recommendation(cls, v: Any) -> dict[str, Any]:
         return validate_recommendation_dict(v, "ai_recommendation")
 
     @field_validator("human_decision", mode="before")
     @classmethod
-    def validate_human_decision(cls, v: Any) -> Dict[str, Any]:
+    def validate_human_decision(cls, v: Any) -> dict[str, Any]:
         return validate_recommendation_dict(v, "human_decision")
 
     @field_validator("human_role")
@@ -145,7 +145,7 @@ class InterventionModel(BaseModel):
 
     @field_validator("request_context", mode="before")
     @classmethod
-    def validate_request_context(cls, v: Any) -> Optional[Dict[str, Any]]:
+    def validate_request_context(cls, v: Any) -> Optional[dict[str, Any]]:
         if v is None:
             return None
         return validate_context(v)
@@ -185,7 +185,7 @@ class LoginResponse(BaseModel):
     """Login response."""
     success: bool
     session_id: Optional[str] = None
-    user: Optional[Dict[str, Any]] = None
+    user: Optional[dict[str, Any]] = None
     error: Optional[str] = None
 
 
@@ -256,7 +256,7 @@ class ExportRequestModel(BaseModel):
     case_id: Optional[str] = None
     notes: Optional[str] = None
     time_window: str = "all"
-    formats: List[str] = ["json"]
+    formats: list[str] = ["json"]
     include_decisions: bool = True
     include_interventions: bool = True
     include_ledger: bool = True
@@ -300,7 +300,7 @@ class ExportRequestModel(BaseModel):
 
     @field_validator("formats")
     @classmethod
-    def validate_formats_field(cls, v: List[str]) -> List[str]:
+    def validate_formats_field(cls, v: list[str]) -> list[str]:
         return validate_export_formats(v)
 
     @field_validator("attestation_text")
@@ -325,17 +325,17 @@ class RiskAssessmentRequest(BaseModel):
     """Request to assess risk for a decision."""
     decision_id: str = Field(..., description="Decision ID to assess")
     dimensions: RiskDimensionsModel = Field(..., description="Risk dimensions")
-    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context")
+    context: Optional[dict[str, Any]] = Field(default=None, description="Additional context")
 
 
 class EscalationCreateRequest(BaseModel):
     """Request to create an escalation."""
     decision_id: str = Field(..., description="Decision ID being escalated")
     trigger: str = Field(..., description="What triggered the escalation")
-    escalated_to: List[str] = Field(..., description="List of actor IDs to escalate to")
+    escalated_to: list[str] = Field(..., description="List of actor IDs to escalate to")
     priority: Optional[str] = Field(default=None, description="Escalation priority")
     context_summary: Optional[str] = Field(default=None, description="Summary for reviewers")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
+    metadata: Optional[dict[str, Any]] = Field(default=None, description="Additional metadata")
 
 
 class EscalationResolveRequest(BaseModel):
@@ -354,8 +354,8 @@ class OverrideCreateRequest(BaseModel):
     original_outcome: Optional[str] = Field(default=None, description="Original decision outcome")
     new_outcome: Optional[str] = Field(default=None, description="New outcome after override")
     expires_at: Optional[str] = Field(default=None, description="Expiration timestamp (ISO 8601)")
-    scope: Optional[Dict[str, Any]] = Field(default=None, description="Override scope limitations")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
+    scope: Optional[dict[str, Any]] = Field(default=None, description="Override scope limitations")
+    metadata: Optional[dict[str, Any]] = Field(default=None, description="Additional metadata")
 
     @field_validator("decision_id")
     @classmethod
@@ -400,14 +400,14 @@ class OverrideCreateRequest(BaseModel):
 
     @field_validator("scope", mode="before")
     @classmethod
-    def validate_scope(cls, v: Any) -> Optional[Dict[str, Any]]:
+    def validate_scope(cls, v: Any) -> Optional[dict[str, Any]]:
         if v is None:
             return None
         return validate_override_scope(v)
 
     @field_validator("metadata", mode="before")
     @classmethod
-    def validate_metadata(cls, v: Any) -> Optional[Dict[str, Any]]:
+    def validate_metadata(cls, v: Any) -> Optional[dict[str, Any]]:
         if v is None:
             return None
         return validate_context(v)
@@ -420,12 +420,12 @@ class EvidenceStoreRequest(BaseModel):
     artifact_type: str = Field(..., description="Type of artifact")
     content: str = Field(..., description="Artifact content")
     source: str = Field(..., description="System/process that created artifact")
-    related_decision_ids: Optional[List[str]] = Field(default=None, description="Related decision IDs")
-    related_control_ids: Optional[List[str]] = Field(default=None, description="Related control IDs")
+    related_decision_ids: Optional[list[str]] = Field(default=None, description="Related decision IDs")
+    related_control_ids: Optional[list[str]] = Field(default=None, description="Related control IDs")
     content_type: Optional[str] = Field(default=None, description="MIME type")
     storage_uri: Optional[str] = Field(default=None, description="External storage location")
     retention_days: Optional[int] = Field(default=None, description="Custom retention period")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
+    metadata: Optional[dict[str, Any]] = Field(default=None, description="Additional metadata")
 
 
 class EvidenceVerifyRequest(BaseModel):
@@ -447,7 +447,7 @@ class ComplianceMappingRequest(BaseModel):
     primitive_type: str = Field(..., description="Type of governance primitive")
     primitive_id: str = Field(..., description="ID of primitive instance")
     framework: str = Field(..., description="Regulatory framework")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
+    metadata: Optional[dict[str, Any]] = Field(default=None, description="Additional metadata")
 
 
 class ComplianceLinkEvidenceRequest(BaseModel):
@@ -471,7 +471,7 @@ class AuditExportCreateRequest(BaseModel):
     start_date: Optional[str] = Field(default=None, description="Start date filter (ISO 8601)")
     end_date: Optional[str] = Field(default=None, description="End date filter (ISO 8601)")
     include_deleted: bool = Field(default=False, description="Include deleted records")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
+    metadata: Optional[dict[str, Any]] = Field(default=None, description="Additional metadata")
 
 
 # ========== Evidence Export Models (PR-03) ==========

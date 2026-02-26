@@ -14,7 +14,7 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import List, Optional, Tuple
+from typing import Optional
 
 
 class Role(str, Enum):
@@ -268,7 +268,7 @@ class AuthService:
         username: str,
         password: str,
         ip_address: Optional[str] = None,
-    ) -> Tuple[Optional[User], Optional[str]]:
+    ) -> tuple[Optional[User], Optional[str]]:
         """Authenticate user and return (User, error_message).
 
         Returns:
@@ -352,8 +352,9 @@ class AuthService:
 
             # Lock account if too many failed attempts
             if new_failed_attempts >= self.max_failed_attempts:
-                lock_until = (datetime.now(timezone.utc) +
-                             timedelta(minutes=self.lockout_duration_minutes)).isoformat()
+                lock_until = (
+                    datetime.now(timezone.utc) + timedelta(minutes=self.lockout_duration_minutes)
+                ).isoformat()
                 cursor.execute("""
                     UPDATE users
                     SET locked_until = ?
@@ -467,7 +468,7 @@ class AuthService:
             ip_address=ip_address,
         )
 
-    def validate_session(self, session_id: str) -> Tuple[Optional[Session], Optional[str]]:
+    def validate_session(self, session_id: str) -> tuple[Optional[Session], Optional[str]]:
         """Validate session and return (Session, error_message).
 
         Returns:
@@ -578,7 +579,7 @@ class AuthService:
             locked_until=row[9],
         )
 
-    def list_users(self) -> List[User]:
+    def list_users(self) -> list[User]:
         """List all users."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -608,7 +609,7 @@ class AuthService:
         conn.close()
         return users
 
-    def get_active_sessions(self, user_id: Optional[str] = None) -> List[Session]:
+    def get_active_sessions(self, user_id: Optional[str] = None) -> list[Session]:
         """Get active sessions, optionally filtered by user."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -857,7 +858,7 @@ class AuthService:
         self,
         user_id: str,
         totp_code: str,
-    ) -> Tuple[Optional[User], Optional[str]]:
+    ) -> tuple[Optional[User], Optional[str]]:
         """Complete MFA login with TOTP code.
 
         Args:

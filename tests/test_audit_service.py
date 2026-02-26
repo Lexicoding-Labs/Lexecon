@@ -34,7 +34,7 @@ class TestAuditServiceInitialization:
 
     def test_creates_database(self, temp_db):
         """Test that service creates database on initialization."""
-        service = AuditService(db_path=temp_db)
+        AuditService(db_path=temp_db)
         assert os.path.exists(temp_db)
 
     def test_creates_tables(self, audit_service, temp_db):

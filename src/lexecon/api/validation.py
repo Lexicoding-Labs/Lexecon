@@ -7,8 +7,7 @@ Provides:
 - Type checking for context dicts
 """
 
-from typing import Any, Dict, List, Optional
-from pydantic import ValidationError, validator
+from typing import Any, Optional
 
 
 class ValidationConfig:
@@ -72,7 +71,7 @@ def validate_string_field(
     return value
 
 
-def validate_context(context: Dict[str, Any]) -> Dict[str, Any]:
+def validate_context(context: dict[str, Any]) -> dict[str, Any]:
     """Validate context dictionary for safety and size.
 
     Args:
@@ -170,7 +169,7 @@ def _validate_value_type(key: str, value: Any) -> None:
     # Reject unsafe types
     raise ValueError(
         f"context[{key}] contains unsafe type: {type(value).__name__}. "
-        "Only str, int, float, bool, dict, and list are allowed."
+        "Only str, int, float, bool, dict, and list are allowed.",
     )
 
 
@@ -241,7 +240,7 @@ def validate_output_type(value: str) -> str:
     return value.lower()
 
 
-def validate_data_classes(value: List[str]) -> List[str]:
+def validate_data_classes(value: list[str]) -> list[str]:
     """Validate data classes list.
 
     Args:
@@ -272,7 +271,7 @@ def validate_data_classes(value: List[str]) -> List[str]:
     return value
 
 
-def validate_recommendation_dict(value: Optional[Dict[str, Any]], field_name: str) -> Optional[Dict[str, Any]]:
+def validate_recommendation_dict(value: Optional[dict[str, Any]], field_name: str) -> Optional[dict[str, Any]]:
     """Validate AI recommendation or decision dict.
 
     Ensures 'confidence' key exists for recommendations.
@@ -311,7 +310,7 @@ def validate_recommendation_dict(value: Optional[Dict[str, Any]], field_name: st
     return validated
 
 
-def validate_override_scope(value: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+def validate_override_scope(value: Optional[dict[str, Any]]) -> Optional[dict[str, Any]]:
     """Validate override scope limitations dict.
 
     Args:
@@ -353,7 +352,7 @@ def validate_iso_timestamp(value: Optional[str], field_name: str = "timestamp") 
         from datetime import datetime
         datetime.fromisoformat(value.replace("Z", "+00:00"))
         return value
-    except (ValueError, AttributeError) as e:
+    except (ValueError, AttributeError):
         raise ValueError(f"{field_name} must be valid ISO 8601 format (e.g., 2024-01-25T10:30:00Z)")
 
 
@@ -419,7 +418,7 @@ def validate_time_window(value: str) -> str:
     return value_lower
 
 
-def validate_export_formats(value: List[str]) -> List[str]:
+def validate_export_formats(value: list[str]) -> list[str]:
     """Validate export formats list.
 
     Args:

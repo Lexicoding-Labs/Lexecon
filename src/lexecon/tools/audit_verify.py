@@ -9,7 +9,6 @@ import hashlib
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List
 
 
 class AuditVerificationError(Exception):
@@ -21,9 +20,9 @@ class AuditVerifier:
 
     def __init__(self, packet_path: str):
         self.packet_path = Path(packet_path)
-        self.errors: List[str] = []
-        self.warnings: List[str] = []
-        self.manifest: Dict = {}
+        self.errors: list[str] = []
+        self.warnings: list[str] = []
+        self.manifest: dict = {}
 
     def verify(self) -> bool:
         """Verify audit packet integrity.

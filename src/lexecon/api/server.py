@@ -11,13 +11,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from lexecon.api.dependencies import ServiceRegistry
-from lexecon.observability import initialize_observability
 
 # Re-export models so that `from lexecon.api.server import <Model>` still works
 from lexecon.api.models import *  # noqa: F401,F403
 
 # ── Import routers ──
-from lexecon.api.routers import (  # noqa: E402
+from lexecon.api.routers import (
     audit,
     auth,
     compliance,
@@ -29,6 +28,7 @@ from lexecon.api.routers import (  # noqa: E402
     policy,
     responsibility,
 )
+from lexecon.observability import initialize_observability
 
 # ── Create FastAPI app ──
 app = FastAPI(
@@ -91,7 +91,7 @@ if _static_dir.is_dir():
 async def startup_event():
     import logging
     logger = logging.getLogger(__name__)
-    
+
     try:
         environment = os.getenv("LEXECON_ENV", "development")
         initialize_observability(
@@ -105,11 +105,11 @@ async def startup_event():
         services = ServiceRegistry.get()
         services.initialize()
         logger.info("Services initialized")
-        
+
         services.ledger.append("system_startup", {"message": "API server started"})
         logger.info("Startup complete")
     except Exception as e:
-        logger.error(f"Startup error (non-fatal): {e}")
+        logger.exception(f"Startup error (non-fatal): {e}")
         # Don't re-raise - allow server to start even if some services fail
 
 

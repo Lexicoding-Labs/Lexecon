@@ -13,7 +13,7 @@ Configurable policies for different security requirements.
 import hashlib
 import re
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Tuple
+from typing import Optional
 
 
 class PasswordPolicy:
@@ -61,7 +61,7 @@ class PasswordPolicy:
         # Load common weak passwords
         self.weak_passwords = self._load_weak_passwords()
 
-    def validate_password(self, password: str) -> Tuple[bool, List[str]]:
+    def validate_password(self, password: str) -> tuple[bool, list[str]]:
         """Validate password against all policy rules.
 
         Args:
@@ -174,26 +174,26 @@ class PasswordPolicy:
         password_lower = password.lower()
 
         for i in range(len(password_lower) - length + 1):
-            substr = password_lower[i:i+length]
+            substr = password_lower[i:i + length]
 
             # Check numeric sequences (123, 321, 111)
             if substr.isdigit():
                 digits = [int(d) for d in substr]
                 # Ascending (123)
-                if all(digits[j+1] - digits[j] == 1 for j in range(len(digits)-1)):
+                if all(digits[j + 1] - digits[j] == 1 for j in range(len(digits) - 1)):
                     return True
                 # Descending (321)
-                if all(digits[j] - digits[j+1] == 1 for j in range(len(digits)-1)):
+                if all(digits[j] - digits[j + 1] == 1 for j in range(len(digits) - 1)):
                     return True
 
             # Check alphabetic sequences (abc, zyx)
             if substr.isalpha():
                 chars = [ord(c) for c in substr]
                 # Ascending (abc)
-                if all(chars[j+1] - chars[j] == 1 for j in range(len(chars)-1)):
+                if all(chars[j + 1] - chars[j] == 1 for j in range(len(chars) - 1)):
                     return True
                 # Descending (zyx)
-                if all(chars[j] - chars[j+1] == 1 for j in range(len(chars)-1)):
+                if all(chars[j] - chars[j + 1] == 1 for j in range(len(chars) - 1)):
                     return True
 
         return False
@@ -240,7 +240,7 @@ class PasswordPolicy:
         self,
         new_password: str,
         salt: str,
-        password_history: List[str],
+        password_history: list[str],
     ) -> bool:
         """Check if password was used recently.
 

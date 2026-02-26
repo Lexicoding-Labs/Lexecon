@@ -1,7 +1,7 @@
 """Governance API endpoints: risk, escalation, override, evidence."""
 
+import contextlib
 from datetime import datetime, timezone
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -16,7 +16,7 @@ from lexecon.api.models import (
     RiskAssessmentRequest,
 )
 
-try:
+with contextlib.suppress(ImportError):
     from model_governance_pack.models import (
         ArtifactType,
         EscalationPriority,
@@ -27,8 +27,6 @@ try:
         OverrideType,
         RiskDimensions,
     )
-except ImportError:
-    pass
 
 router = APIRouter()
 

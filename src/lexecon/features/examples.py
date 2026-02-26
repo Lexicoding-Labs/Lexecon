@@ -1,5 +1,4 @@
-"""
-Examples of feature flag usage throughout Lexecon.
+"""Examples of feature flag usage throughout Lexecon.
 
 These examples demonstrate how to integrate feature flags into your application code.
 """
@@ -34,10 +33,9 @@ def example_mfa_enforcement():
 
     # Check if MFA is required for this user
     if flags.is_enabled(
-        FeatureFlag.MFA_REQUIRED, user_id=user_id, user_attributes={"role": "admin"}
-    ):
-        if not user_has_mfa:
-            raise PermissionError("MFA required for this operation")
+        FeatureFlag.MFA_REQUIRED, user_id=user_id, user_attributes={"role": "admin"},
+    ) and not user_has_mfa:
+        raise PermissionError("MFA required for this operation")
 
 
 def example_rate_limiting():
@@ -78,6 +76,10 @@ def example_compliance_mode():
 
     gdpr_enabled = flags.is_enabled(FeatureFlag.GDPR_MODE_ENABLED)
     hipaa_enabled = flags.is_enabled(FeatureFlag.HIPAA_MODE_ENABLED)
+
+    # Example values -- in real usage these come from request context
+    user_id = "user:example"
+    resource_id = "resource:example"
 
     if gdpr_enabled:
         # Add GDPR-specific headers, logging, data handling
@@ -147,17 +149,17 @@ def _evaluate_with_legacy_engine(actor, action, resource):
 
 class rate_limiter:
     @staticmethod
-    def configure(per_user, global_limit):
+    def configure(per_user, global_limit) -> None:
         pass
 
 
 class cache:
     @staticmethod
-    def get(key):
+    def get(key) -> None:
         return None
 
     @staticmethod
-    def set(key, value, ttl):
+    def set(key, value, ttl) -> None:
         pass
 
 
@@ -179,7 +181,7 @@ def enforce_phi_encryption():
 
 class batch_processor:
     @staticmethod
-    def configure(batch_size, timeout, retries):
+    def configure(batch_size, timeout, retries) -> None:
         pass
 
 

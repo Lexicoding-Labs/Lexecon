@@ -9,7 +9,7 @@ import secrets
 import time
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 # W3C Trace Context format: version-trace_id-parent_id-flags
 # https://www.w3.org/TR/trace-context/
@@ -26,7 +26,7 @@ class SpanContext:
     span_id: str
     parent_span_id: Optional[str] = None
     is_sampled: bool = True
-    baggage: Dict[str, str] = field(default_factory=dict)
+    baggage: dict[str, str] = field(default_factory=dict)
 
     def to_traceparent(self) -> str:
         """Serialize to W3C traceparent header format.
@@ -74,7 +74,7 @@ class SpanContext:
             is_sampled = flags == TRACE_FLAG_SAMPLED
 
             # Parse tracestate baggage
-            baggage: Dict[str, str] = {}
+            baggage: dict[str, str] = {}
             if tracestate:
                 for item in tracestate.split(","):
                     if item.startswith("lexecon="):
@@ -116,7 +116,7 @@ class ObservabilityContext:
     start_time: float = field(default_factory=time.time)
 
     # Custom attributes for logging/tracing
-    attributes: Dict[str, Any] = field(default_factory=dict)
+    attributes: dict[str, Any] = field(default_factory=dict)
 
     # Error tracking
     error: Optional[Exception] = None
@@ -147,13 +147,13 @@ class ObservabilityContext:
         self.error = error
         self.error_recorded = True
 
-    def get_log_context(self) -> Dict[str, Any]:
+    def get_log_context(self) -> dict[str, Any]:
         """Get context dict for structured logging.
 
         Returns:
             Dict with trace correlation IDs and context
         """
-        ctx: Dict[str, Any] = {}
+        ctx: dict[str, Any] = {}
 
         if self.trace_id:
             ctx["trace_id"] = self.trace_id

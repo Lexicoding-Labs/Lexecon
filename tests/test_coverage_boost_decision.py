@@ -4,14 +4,12 @@ Target: +60 lines coverage (from 21.7% to ~60%)
 """
 
 import sys
-import uuid
 from pathlib import Path
-from datetime import datetime, timezone
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from lexecon.policy.engine import PolicyEngine, PolicyMode
-from lexecon.decision.service import (
+from lexecon.policy.engine import PolicyEngine, PolicyMode  # noqa: E402
+from lexecon.decision.service import (  # noqa: E402
     DecisionService,
     DecisionRequest,
     DecisionResponse,
@@ -121,10 +119,10 @@ class TestDecisionRequest:
 
 class MockLedger:
     """Mock ledger for testing."""
-    
+
     def __init__(self):
         self.entries = []
-        
+
     def append(self, event_type, data):
         class Entry:
             def __init__(self):
@@ -135,13 +133,13 @@ class MockLedger:
 
 class MockIdentity:
     """Mock identity for testing."""
-    
+
     class MockKeyManager:
         class MockKey:
             def sign(self, message):
                 return b"mock_signature"
         private_key = MockKey()
-    
+
     key_manager = MockKeyManager()
 
 
@@ -154,7 +152,7 @@ class TestDecisionService:
         # Add a permit rule
         from lexecon.policy.terms import PolicyTerm
         from lexecon.policy.relations import PolicyRelation
-        
+
         actor = PolicyTerm.create_actor("test_user", "Test User")
         action = PolicyTerm.create_action("allowed_action", "Allowed")
         self.policy_engine.add_term(actor)
@@ -189,9 +187,9 @@ class TestDecisionService:
             tool="test_tool",
             user_intent="Test",
         )
-        
+
         response = service.evaluate_request(request)
-        
+
         assert response.decision == "permit"
         assert response.decision_id is not None
         assert response.decision_id.startswith("dec_")
@@ -208,9 +206,9 @@ class TestDecisionService:
             tool="test_tool",
             user_intent="Test",
         )
-        
+
         response = service.evaluate_request(request)
-        
+
         assert response.decision == "deny"
         assert response.capability_token is None
 
@@ -224,9 +222,9 @@ class TestDecisionService:
             tool="test_tool",
             user_intent="Test",
         )
-        
+
         response = service.evaluate_request(request)
-        
+
         assert response.ledger_entry_hash is not None
         assert len(ledger.entries) == 1
         assert ledger.entries[0][0] == "decision"
@@ -241,15 +239,15 @@ class TestDecisionService:
             tool="test_tool",
             user_intent="Test",
         )
-        
+
         response = service.evaluate_request(request)
-        
+
         assert response.signature is not None
 
     def test_simple_evaluate_method(self):
         """Use simple evaluate convenience method."""
         service = DecisionService(self.policy_engine)
-        
+
         # Simple policy evaluation
         result = service.evaluate(
             actor="test_user",
@@ -257,13 +255,13 @@ class TestDecisionService:
             data_classes=[],
             risk_level=1,
         )
-        
+
         assert result.allowed is True
 
     def test_evaluate_with_full_request_params(self):
         """Use evaluate with full request parameters."""
         service = DecisionService(self.policy_engine)
-        
+
         result = service.evaluate(
             actor="test_user",
             proposed_action="allowed_action",
@@ -272,7 +270,7 @@ class TestDecisionService:
             data_classes=[],
             risk_level=1,
         )
-        
+
         # Returns DecisionResponse when full params provided
         assert hasattr(result, 'decision')
         assert result.decision == "permit"
@@ -286,10 +284,10 @@ class TestDecisionService:
             policy_version_hash="hash123",
             decision_id="dec_456",
         )
-        
+
         assert response.is_permitted is True
         assert response.is_denied is False
-        
+
         response2 = DecisionResponse(
             request_id="req_123",
             decision="deny",
@@ -309,7 +307,7 @@ class TestDecisionService:
             policy_version_hash="hash123",
             decision_id="dec_456",
         )
-        
+
         d = response.to_dict()
         assert d["request_id"] == "req_123"
         assert d["decision"] == "permit"

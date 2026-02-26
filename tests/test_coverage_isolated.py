@@ -1,6 +1,4 @@
 """Isolated coverage tests that don't trigger cryptography imports."""
-from pathlib import Path
-from unittest.mock import Mock
 
 from lexecon.policy.engine import PolicyEngine, PolicyMode, PolicyDecision
 from lexecon.policy.terms import PolicyTerm
@@ -34,6 +32,7 @@ class TestPolicyEngineCoverage:
         engine.add_term(term)
         hash2 = engine.get_policy_hash()
         assert hash2 is not None
+        assert hash1 != hash2
 
     def test_forbid_relation_overrides_permit(self):
         engine = PolicyEngine(mode=PolicyMode.STRICT)

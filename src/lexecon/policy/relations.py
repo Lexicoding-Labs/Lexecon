@@ -5,7 +5,7 @@ Relations define permissions, prohibitions, requirements, and other connections 
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 class RelationType(Enum):
@@ -29,8 +29,8 @@ class PolicyRelation:
     relation_type: RelationType
     source: str  # Source term ID
     target: str  # Target term ID
-    conditions: List[str] = None
-    metadata: Dict[str, Any] = None
+    conditions: list[str] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.conditions is None:
@@ -39,7 +39,7 @@ class PolicyRelation:
             self.metadata = {}
 
     @classmethod
-    def permits(cls, source: str, target: str, conditions: Optional[List[str]] = None) -> "PolicyRelation":
+    def permits(cls, source: str, target: str, conditions: Optional[list[str]] = None) -> "PolicyRelation":
         """Create a permission relation."""
         relation_id = f"permits:{source}:{target}"
         return cls(
@@ -51,7 +51,7 @@ class PolicyRelation:
         )
 
     @classmethod
-    def forbids(cls, source: str, target: str, conditions: Optional[List[str]] = None) -> "PolicyRelation":
+    def forbids(cls, source: str, target: str, conditions: Optional[list[str]] = None) -> "PolicyRelation":
         """Create a prohibition relation."""
         relation_id = f"forbids:{source}:{target}"
         return cls(
@@ -63,7 +63,7 @@ class PolicyRelation:
         )
 
     @classmethod
-    def requires(cls, source: str, target: str, conditions: Optional[List[str]] = None) -> "PolicyRelation":
+    def requires(cls, source: str, target: str, conditions: Optional[list[str]] = None) -> "PolicyRelation":
         """Create a requirement relation."""
         relation_id = f"requires:{source}:{target}"
         return cls(
@@ -74,7 +74,7 @@ class PolicyRelation:
             conditions=conditions or [],
         )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize relation to dictionary."""
         return {
             "relation_id": self.relation_id,
@@ -86,7 +86,7 @@ class PolicyRelation:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "PolicyRelation":
+    def from_dict(cls, data: dict[str, Any]) -> "PolicyRelation":
         """Deserialize relation from dictionary.
 
         Supports multiple formats:

@@ -1,7 +1,7 @@
 """Digital signature verification and export audit log endpoints."""
 
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/compliance/verify-signature")
 async def verify_signature(
-    packet: Dict[str, Any],
+    packet: dict[str, Any],
     services: ServiceRegistry = Depends(get_services),
 ):
     is_valid, message = services.signature_service.verify_packet_signature(packet)

@@ -11,7 +11,7 @@ This module provides:
 import os
 import time
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 
 from .context import (
     ObservabilityContext,
@@ -36,7 +36,7 @@ try:
     from opentelemetry import trace as otel_trace
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-    from opentelemetry.propagate import extract, inject
+    from opentelemetry.propagate import extract, inject  # noqa: F401
     from opentelemetry.sdk.resources import SERVICE_NAME as RESOURCE_SERVICE_NAME
     from opentelemetry.sdk.resources import Resource
     from opentelemetry.sdk.trace import TracerProvider
@@ -68,8 +68,8 @@ class Span:
         self.context = context
         self.otel_span = otel_span
         self.start_time = time.time()
-        self.attributes: Dict[str, Any] = {}
-        self.events: List[Dict[str, Any]] = []
+        self.attributes: dict[str, Any] = {}
+        self.events: list[dict[str, Any]] = []
         self._ended = False
 
     def set_attribute(self, key: str, value: Any) -> "Span":
@@ -90,7 +90,7 @@ class Span:
 
         return self
 
-    def add_event(self, name: str, attributes: Optional[Dict[str, Any]] = None) -> "Span":
+    def add_event(self, name: str, attributes: Optional[dict[str, Any]] = None) -> "Span":
         """Add an event to the span.
 
         Args:
@@ -439,7 +439,7 @@ def trace_function(name: Optional[str] = None) -> Callable[[F], F]:
     return traced(name=name)
 
 
-def inject_trace_context(headers: Dict[str, str]) -> Dict[str, str]:
+def inject_trace_context(headers: dict[str, str]) -> dict[str, str]:
     """Inject trace context into outgoing request headers.
 
     Args:
@@ -461,7 +461,7 @@ def inject_trace_context(headers: Dict[str, str]) -> Dict[str, str]:
     return headers
 
 
-def extract_trace_context(headers: Dict[str, str]) -> Optional[str]:
+def extract_trace_context(headers: dict[str, str]) -> Optional[str]:
     """Extract trace context from incoming request headers.
 
     Args:

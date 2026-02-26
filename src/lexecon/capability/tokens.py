@@ -6,7 +6,7 @@ Tokens are cryptographically signed and time-limited.
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -17,7 +17,7 @@ class CapabilityToken:
     """
 
     token_id: str
-    scope: Dict[str, Any]
+    scope: dict[str, Any]
     expiry: datetime
     policy_version_hash: str
     granted_at: datetime
@@ -48,7 +48,7 @@ class CapabilityToken:
 
         return self.scope.get("action") == action and self.scope.get("tool") == tool
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize token to dictionary."""
         return {
             "token_id": self.token_id,
@@ -60,7 +60,7 @@ class CapabilityToken:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "CapabilityToken":
+    def from_dict(cls, data: dict[str, Any]) -> "CapabilityToken":
         """Deserialize token from dictionary."""
         return cls(
             token_id=data["token_id"],
@@ -76,7 +76,7 @@ class CapabilityTokenStore:
     """Store and manage capability tokens."""
 
     def __init__(self):
-        self.tokens: Dict[str, CapabilityToken] = {}
+        self.tokens: dict[str, CapabilityToken] = {}
 
     def store(self, token: CapabilityToken) -> None:
         """Store a token."""

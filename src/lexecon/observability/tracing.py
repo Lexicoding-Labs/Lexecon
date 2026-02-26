@@ -1,5 +1,4 @@
-"""
-OpenTelemetry tracing for Lexecon (Phase 6).
+"""OpenTelemetry tracing for Lexecon (Phase 6).
 
 Provides distributed tracing with:
 - Jaeger integration for production
@@ -31,7 +30,7 @@ except ImportError:
     TracerProvider = None  # type: ignore
     logger.warning(
         "OpenTelemetry not installed. Install with: pip install opentelemetry-api "
-        "opentelemetry-sdk opentelemetry-instrumentation-fastapi"
+        "opentelemetry-sdk opentelemetry-instrumentation-fastapi",
     )
 
 
@@ -39,8 +38,7 @@ class TracingManager:
     """Manage OpenTelemetry tracing with Jaeger and console exporters."""
 
     def __init__(self, service_name: str = "lexecon", sample_rate: float = 1.0) -> None:
-        """
-        Initialize tracing manager.
+        """Initialize tracing manager.
 
         Args:
             service_name: Service name for tracing
@@ -94,7 +92,7 @@ class TracingManager:
                         # UDP agent endpoint
                         host, port = jaeger_endpoint.split(":")
                         jaeger_exporter = JaegerExporter(
-                            agent_host_name=host, agent_port=int(port)
+                            agent_host_name=host, agent_port=int(port),
                         )
 
                     jaeger_processor = BatchSpanProcessor(jaeger_exporter)
@@ -104,10 +102,10 @@ class TracingManager:
                 except ImportError:
                     logger.warning(
                         "Jaeger exporter not installed. Install with: "
-                        "pip install opentelemetry-exporter-jaeger"
+                        "pip install opentelemetry-exporter-jaeger",
                     )
                 except Exception as e:
-                    logger.error(f"Failed to initialize Jaeger exporter: {e}")
+                    logger.exception(f"Failed to initialize Jaeger exporter: {e}")
 
             # Set global tracer provider
             trace.set_tracer_provider(provider)
@@ -118,11 +116,11 @@ class TracingManager:
 
             logger.info(
                 f"OpenTelemetry tracing initialized for {self.service_name} "
-                f"(sample_rate={self.sample_rate})"
+                f"(sample_rate={self.sample_rate})",
             )
 
         except Exception as e:
-            logger.error(f"Failed to setup tracing: {e}")
+            logger.exception(f"Failed to setup tracing: {e}")
             self.enabled = False
 
     def start_span(self, name: str, **attributes: Any) -> Any:

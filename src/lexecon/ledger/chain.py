@@ -7,7 +7,7 @@ import hashlib
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 @dataclass
@@ -16,7 +16,7 @@ class LedgerEntry:
 
     entry_id: str
     event_type: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: str
     previous_hash: str
     entry_hash: str = field(init=False)
@@ -37,7 +37,7 @@ class LedgerEntry:
         canonical_json = json.dumps(entry_data, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical_json.encode()).hexdigest()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize entry to dictionary."""
         return {
             "entry_id": self.entry_id,
@@ -65,7 +65,7 @@ class LedgerChain:
                      If provided, ledger will auto-load and auto-save.
         """
         self.storage = storage
-        self.entries: List[LedgerEntry] = []
+        self.entries: list[LedgerEntry] = []
 
         # Load from storage if available
         if self.storage:
@@ -92,7 +92,7 @@ class LedgerChain:
         if self.storage:
             self.storage.save_entry(genesis)
 
-    def append(self, event_type: str, data: Dict[str, Any]) -> LedgerEntry:
+    def append(self, event_type: str, data: dict[str, Any]) -> LedgerEntry:
         """Append a new entry to the ledger.
 
         Automatically saves to storage if configured.
@@ -118,7 +118,7 @@ class LedgerChain:
 
         return entry
 
-    def verify_integrity(self) -> Dict[str, Any]:
+    def verify_integrity(self) -> dict[str, Any]:
         """Verify the integrity of the entire chain.
 
         Returns verification result with details of any corruption.
@@ -173,11 +173,11 @@ class LedgerChain:
                 return entry
         return None
 
-    def get_entries_by_type(self, event_type: str) -> List[LedgerEntry]:
+    def get_entries_by_type(self, event_type: str) -> list[LedgerEntry]:
         """Get all entries of a specific event type."""
         return [e for e in self.entries if e.event_type == event_type]
 
-    def generate_audit_report(self) -> Dict[str, Any]:
+    def generate_audit_report(self) -> dict[str, Any]:
         """Generate a comprehensive audit report."""
         integrity_check = self.verify_integrity()
 
@@ -194,12 +194,12 @@ class LedgerChain:
             "chain_head_hash": self.entries[-1].entry_hash if self.entries else None,
         }
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize ledger to dictionary."""
         return {"entries": [entry.to_dict() for entry in self.entries]}
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "LedgerChain":
+    def from_dict(cls, data: dict[str, Any]) -> "LedgerChain":
         """Deserialize ledger from dictionary."""
         ledger = cls.__new__(cls)
         ledger.entries = []

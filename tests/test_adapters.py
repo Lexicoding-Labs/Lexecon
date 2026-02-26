@@ -8,8 +8,8 @@ import pytest
 # Add model_governance_pack to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../model_governance_pack/adapters"))
 
-from base import GovernanceAdapter, GovernanceError
-from verification import GovernanceVerifier
+from base import GovernanceAdapter, GovernanceError  # noqa: E402
+from verification import GovernanceVerifier  # noqa: E402
 
 
 class MockGovernanceAdapter(GovernanceAdapter):

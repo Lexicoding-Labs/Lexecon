@@ -14,11 +14,11 @@ def test_cache_uses_sha256_not_md5():
     kwargs = {"key": "value"}
     key_prefix = "test:"
     func_name = "test_func"
-    
+
     args_str = json.dumps([args, kwargs], sort_keys=True, default=str)
     cache_key_hash = hashlib.sha256(args_str.encode()).hexdigest()[:32]
     cache_key = f"{key_prefix}{func_name}:{cache_key_hash}"
-    
+
     assert len(cache_key_hash) == 32
     assert cache_key.startswith(f"{key_prefix}{func_name}:")
     print(f"✓ Cache key uses SHA256: {cache_key[:50]}...")

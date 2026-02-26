@@ -6,7 +6,7 @@ import sys
 import traceback
 from contextvars import ContextVar
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 # Context variables for request tracking
 request_id_var: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
@@ -18,7 +18,7 @@ class StructuredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as JSON."""
-        log_data: Dict[str, Any] = {
+        log_data: dict[str, Any] = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "level": record.levelname,
             "logger": record.name,
@@ -104,7 +104,7 @@ def get_logger(name: str) -> logging.Logger:
 class LoggerAdapter(logging.LoggerAdapter):
     """Logger adapter with extra fields support."""
 
-    def process(self, msg: str, kwargs: Dict[str, Any]) -> tuple[str, Dict[str, Any]]:
+    def process(self, msg: str, kwargs: dict[str, Any]) -> tuple[str, dict[str, Any]]:
         """Process log message with extra fields."""
         if "extra" not in kwargs:
             kwargs["extra"] = {}

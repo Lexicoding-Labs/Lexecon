@@ -386,9 +386,7 @@ class MetricsCollector:
         endpoint = re.sub(r"/\d+", "/{id}", endpoint)
 
         # Replace base64-like tokens
-        endpoint = re.sub(r"/[A-Za-z0-9_-]{20,}", "/{token}", endpoint)
-
-        return endpoint
+        return re.sub(r"/[A-Za-z0-9_-]{20,}", "/{token}", endpoint)
 
     # -------------------------------------------------------------------------
     # Decision Metrics

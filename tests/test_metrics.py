@@ -387,8 +387,8 @@ class TestPrometheusExport:
 
         # Should contain HELP and TYPE comments
         lines = decoded.split("\n")
-        help_lines = [l for l in lines if l.startswith("# HELP")]
-        type_lines = [l for l in lines if l.startswith("# TYPE")]
+        help_lines = [ln for ln in lines if ln.startswith("# HELP")]
+        type_lines = [ln for ln in lines if ln.startswith("# TYPE")]
 
         assert len(help_lines) > 0
         assert len(type_lines) > 0
@@ -413,7 +413,7 @@ class TestPrometheusExport:
         lines = decoded.split("\n")
 
         # Each metric line should have format: metric_name{labels} value
-        metric_lines = [l for l in lines if l and not l.startswith("#")]
+        metric_lines = [ln for ln in lines if ln and not ln.startswith("#")]
 
         for line in metric_lines[:10]:  # Check first 10
             if "{" in line:

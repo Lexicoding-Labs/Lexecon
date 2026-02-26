@@ -14,7 +14,7 @@ import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple
+from typing import Optional
 
 
 @dataclass
@@ -123,10 +123,10 @@ class RateLimiter:
             max_buckets: Maximum number of buckets before LRU eviction (DoS protection)
         """
         self.config = config or RateLimitConfig()
-        self.buckets: Dict[str, TokenBucket] = {}
+        self.buckets: dict[str, TokenBucket] = {}
         self.lock = threading.Lock()
         self.max_buckets = max_buckets
-        self.access_order: Dict[str, float] = {}  # Track access times for LRU
+        self.access_order: dict[str, float] = {}  # Track access times for LRU
 
         # Rate limit configurations
         # Format: (capacity, window_seconds)
@@ -151,7 +151,7 @@ class RateLimiter:
         }
 
         # Track bucket creation times for cleanup
-        self.bucket_created: Dict[str, datetime] = {}
+        self.bucket_created: dict[str, datetime] = {}
 
         # Start cleanup thread
         self._start_cleanup_thread()
@@ -205,7 +205,7 @@ class RateLimiter:
             del self.bucket_created[lru_key]
         del self.access_order[lru_key]
 
-    def check_rate_limit(self, key: str, limit_type: str = None) -> tuple:
+    def check_rate_limit(self, key: str, limit_type: Optional[str] = None) -> tuple:
         """Check rate limit for a key.
 
         Supports two calling conventions:
@@ -225,7 +225,7 @@ class RateLimiter:
 
     # ── 2-arg (named limit-type) API ──
 
-    def _check_rate_limit_by_type(self, key: str, limit_type: str) -> Tuple[bool, Optional[int]]:
+    def _check_rate_limit_by_type(self, key: str, limit_type: str) -> tuple[bool, Optional[int]]:
         if limit_type not in self.limits:
             return True, None
 
@@ -267,7 +267,7 @@ class RateLimiter:
             self.access_order[hour_key] = now
             return self.buckets[minute_key], self.buckets[hour_key]
 
-    def _check_rate_limit_simple(self, key: str) -> Tuple[bool, dict]:
+    def _check_rate_limit_simple(self, key: str) -> tuple[bool, dict]:
         minute_bucket, hour_bucket = self._get_or_create_client_buckets(key)
 
         # Try to consume from both buckets
@@ -390,12 +390,12 @@ class RateLimiter:
                     logger = get_logger("rate_limiter")
                     logger.debug(
                         f"Rate limiter cleanup: removed {len(expired_keys)} buckets "
-                        f"({len(self.buckets)} remaining)"
+                        f"({len(self.buckets)} remaining)",
                     )
                 except (ImportError, Exception):
                     # Fallback to print if logging unavailable
                     print(
-                        f"Rate limiter: cleaned up {len(expired_keys)} expired buckets"
+                        f"Rate limiter: cleaned up {len(expired_keys)} expired buckets",
                     )
 
     def _start_cleanup_thread(self) -> None:
@@ -422,7 +422,7 @@ class RateLimiter:
                 if bk in self.access_order:
                     del self.access_order[bk]
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> dict:
         """Get rate limiter statistics.
 
         Returns:

@@ -1,6 +1,6 @@
 """Authentication and OIDC endpoints."""
 
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -92,7 +92,7 @@ async def get_current_user_info(
             "role": user.role.value,
             "full_name": user.full_name,
             "last_login": user.last_login,
-        }
+        },
     }
 
 
@@ -246,7 +246,7 @@ async def get_password_status(
 
 # ── OIDC OAuth Endpoints ──
 
-@router.get("/auth/oidc/providers", response_model=List[OIDCProviderInfo])
+@router.get("/auth/oidc/providers", response_model=list[OIDCProviderInfo])
 async def list_oidc_providers(services: ServiceRegistry = Depends(get_services)):
     providers = services.oidc_service.list_providers()
     return [OIDCProviderInfo(**provider) for provider in providers]
@@ -307,7 +307,7 @@ async def oidc_callback(
         raise HTTPException(status_code=500, detail=f"OAuth callback failed: {e!s}")
 
 
-@router.get("/auth/oidc/linked", response_model=List[OIDCLinkedProvider])
+@router.get("/auth/oidc/linked", response_model=list[OIDCLinkedProvider])
 async def get_linked_providers(
     services: ServiceRegistry = Depends(get_services),
     session_id: Optional[str] = Depends(get_session_id),

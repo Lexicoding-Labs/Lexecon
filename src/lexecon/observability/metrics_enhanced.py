@@ -1,5 +1,4 @@
-"""
-Enhanced Prometheus metrics for enterprise monitoring (Phase 6).
+"""Enhanced Prometheus metrics for enterprise monitoring (Phase 6).
 
 Extends base metrics with detailed observability for:
 - Error tracking and categorization
@@ -263,7 +262,6 @@ class EnhancedMetricsCollector:
 
     def __init__(self):
         """Initialize enhanced metrics collector."""
-        pass
 
     # Error tracking
     def record_error(self, error_type: str, severity: str, component: str):
@@ -356,7 +354,7 @@ class EnhancedMetricsCollector:
     def record_compliance_violation(self, violation_type: str, severity: str):
         """Record compliance violation."""
         compliance_violations_total.labels(
-            violation_type=violation_type, severity=severity
+            violation_type=violation_type, severity=severity,
         ).inc()
 
     def record_audit_log_entry(self, event_type: str):

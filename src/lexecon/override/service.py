@@ -11,7 +11,7 @@ Provides explicit override capability with:
 import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Import canonical governance models
 try:
@@ -112,9 +112,9 @@ class OverrideService:
         self.store_evidence = store_evidence
 
         # In-memory storage (immutable records)
-        self._overrides: Dict[str, Override] = {}
-        self._decision_overrides: Dict[str, List[str]] = {}  # decision_id -> override_ids
-        self._evidence_artifacts: Dict[str, EvidenceArtifact] = {}
+        self._overrides: dict[str, Override] = {}
+        self._decision_overrides: dict[str, list[str]] = {}  # decision_id -> override_ids
+        self._evidence_artifacts: dict[str, EvidenceArtifact] = {}
 
     def is_authorized(
         self,
@@ -157,7 +157,7 @@ class OverrideService:
         expires_at: Optional[datetime] = None,
         scope: Optional["OverrideScope"] = None,
         review_required_by: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> "Override":
         """Create an override for a decision.
 
@@ -247,7 +247,7 @@ class OverrideService:
         """
         return self._overrides.get(override_id)
 
-    def get_overrides_for_decision(self, decision_id: str) -> List["Override"]:
+    def get_overrides_for_decision(self, decision_id: str) -> list["Override"]:
         """Get all overrides for a decision.
 
         Returns list of overrides in chronological order (oldest first).
@@ -311,7 +311,7 @@ class OverrideService:
         authorized_by: Optional[str] = None,
         expired: Optional[bool] = None,
         limit: int = 100,
-    ) -> List["Override"]:
+    ) -> list["Override"]:
         """List overrides with optional filtering.
 
         Args:
@@ -350,7 +350,7 @@ class OverrideService:
 
         return overrides[:limit]
 
-    def get_overrides_needing_review(self) -> List["Override"]:
+    def get_overrides_needing_review(self) -> list["Override"]:
         """Get overrides that need review (past review_required_by date).
 
         Returns:
@@ -369,8 +369,8 @@ class OverrideService:
         return overrides
 
     def get_decision_with_override_status(
-        self, decision_id: str, decision_data: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        self, decision_id: str, decision_data: dict[str, Any],
+    ) -> dict[str, Any]:
         """Enrich decision data with override status.
 
         Preserves original decision outcome and adds override metadata.
@@ -470,7 +470,7 @@ class OverrideService:
         self,
         override_id: Optional[str] = None,
         decision_id: Optional[str] = None,
-    ) -> List["EvidenceArtifact"]:
+    ) -> list["EvidenceArtifact"]:
         """List evidence artifacts with optional filtering.
 
         Args:

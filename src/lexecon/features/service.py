@@ -1,5 +1,4 @@
-"""
-Feature flag service with LaunchDarkly integration and environment variable fallback.
+"""Feature flag service with LaunchDarkly integration and environment variable fallback.
 
 Supports:
 - LaunchDarkly for production (enterprise-grade feature flags)
@@ -10,14 +9,13 @@ Supports:
 
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
 
 class FeatureFlagService:
-    """
-    Feature flag service supporting LaunchDarkly and environment variable fallback.
+    """Feature flag service supporting LaunchDarkly and environment variable fallback.
 
     Usage:
         flags = FeatureFlagService()
@@ -27,8 +25,7 @@ class FeatureFlagService:
     """
 
     def __init__(self, sdk_key: Optional[str] = None):
-        """
-        Initialize feature flag service.
+        """Initialize feature flag service.
 
         Args:
             sdk_key: LaunchDarkly SDK key. If not provided, falls back to LAUNCHDARKLY_SDK_KEY env var.
@@ -55,7 +52,7 @@ class FeatureFlagService:
                 logger.warning("LaunchDarkly SDK not installed, using environment variable fallback")
                 self.client = None
             except Exception as e:
-                logger.error(f"Error initializing LaunchDarkly: {e}, using env fallback")
+                logger.exception(f"Error initializing LaunchDarkly: {e}, using env fallback")
                 self.client = None
         else:
             logger.info("Using environment variable fallback for feature flags")
@@ -64,11 +61,10 @@ class FeatureFlagService:
         self,
         flag_key: str,
         user_id: Optional[str] = None,
-        user_attributes: Optional[Dict[str, Any]] = None,
+        user_attributes: Optional[dict[str, Any]] = None,
         default: bool = False,
     ) -> bool:
-        """
-        Check if a feature flag is enabled.
+        """Check if a feature flag is enabled.
 
         Args:
             flag_key: Feature flag key (e.g., "new_decision_engine")
@@ -91,7 +87,7 @@ class FeatureFlagService:
                 context = Context.builder(user_id or "anonymous").build()
                 return self.client.variation(flag_key, context, default)
             except Exception as e:
-                logger.error(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
+                logger.exception(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
                 return self._get_env_flag(flag_key, default)
         else:
             return self._get_env_flag(flag_key, default)
@@ -100,11 +96,10 @@ class FeatureFlagService:
         self,
         flag_key: str,
         user_id: Optional[str] = None,
-        user_attributes: Optional[Dict[str, Any]] = None,
+        user_attributes: Optional[dict[str, Any]] = None,
         default: str = "",
     ) -> str:
-        """
-        Get string value from feature flag.
+        """Get string value from feature flag.
 
         Args:
             flag_key: Feature flag key
@@ -122,7 +117,7 @@ class FeatureFlagService:
                 context = Context.builder(user_id or "anonymous").build()
                 return self.client.variation(flag_key, context, default)
             except Exception as e:
-                logger.error(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
+                logger.exception(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
                 return self._get_env_flag(flag_key, default)
         else:
             return self._get_env_flag(flag_key, default)
@@ -131,11 +126,10 @@ class FeatureFlagService:
         self,
         flag_key: str,
         user_id: Optional[str] = None,
-        user_attributes: Optional[Dict[str, Any]] = None,
+        user_attributes: Optional[dict[str, Any]] = None,
         default: float = 0.0,
     ) -> float:
-        """
-        Get numeric value from feature flag.
+        """Get numeric value from feature flag.
 
         Args:
             flag_key: Feature flag key
@@ -153,7 +147,7 @@ class FeatureFlagService:
                 context = Context.builder(user_id or "anonymous").build()
                 return self.client.variation(flag_key, context, default)
             except Exception as e:
-                logger.error(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
+                logger.exception(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
                 return self._get_env_flag(flag_key, default)
         else:
             return self._get_env_flag(flag_key, default)
@@ -162,11 +156,10 @@ class FeatureFlagService:
         self,
         flag_key: str,
         user_id: Optional[str] = None,
-        user_attributes: Optional[Dict[str, Any]] = None,
-        default: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        """
-        Get JSON value from feature flag.
+        user_attributes: Optional[dict[str, Any]] = None,
+        default: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Get JSON value from feature flag.
 
         Args:
             flag_key: Feature flag key
@@ -187,14 +180,13 @@ class FeatureFlagService:
                 context = Context.builder(user_id or "anonymous").build()
                 return self.client.variation(flag_key, context, default)
             except Exception as e:
-                logger.error(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
+                logger.exception(f"Error evaluating LaunchDarkly flag {flag_key}: {e}")
                 return self._get_env_flag(flag_key, default)
         else:
             return self._get_env_flag(flag_key, default)
 
     def _get_env_flag(self, flag_key: str, default: Any) -> Any:
-        """
-        Get feature flag from environment variable.
+        """Get feature flag from environment variable.
 
         Environment variable format: FEATURE_FLAG_<FLAG_KEY>=true/false/value
 
@@ -243,7 +235,7 @@ class FeatureFlagService:
                 self.client.close()
                 logger.info("LaunchDarkly client closed")
             except Exception as e:
-                logger.error(f"Error closing LaunchDarkly client: {e}")
+                logger.exception(f"Error closing LaunchDarkly client: {e}")
 
 
 # Global feature flag service instance
@@ -251,8 +243,7 @@ _feature_flags: Optional[FeatureFlagService] = None
 
 
 def get_feature_flags() -> FeatureFlagService:
-    """
-    Get global feature flag service instance.
+    """Get global feature flag service instance.
 
     Returns:
         Singleton FeatureFlagService instance

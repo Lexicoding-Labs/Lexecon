@@ -17,7 +17,7 @@ import json
 import secrets
 import sqlite3
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 from urllib.parse import urlencode
 
 import jwt
@@ -37,7 +37,7 @@ class OIDCProvider:
         client_id: str,
         client_secret: str,
         redirect_uri: str,
-        scopes: Optional[List[str]] = None,
+        scopes: Optional[list[str]] = None,
     ):
         """Initialize OIDC provider.
 
@@ -57,10 +57,10 @@ class OIDCProvider:
         self.scopes = scopes or ["openid", "profile", "email"]
 
         # Cached discovery data
-        self._discovery_data: Optional[Dict[str, Any]] = None
-        self._jwks_data: Optional[Dict[str, Any]] = None
+        self._discovery_data: Optional[dict[str, Any]] = None
+        self._jwks_data: Optional[dict[str, Any]] = None
 
-    def get_discovery_data(self) -> Dict[str, Any]:
+    def get_discovery_data(self) -> dict[str, Any]:
         """Fetch OpenID Connect discovery document.
 
         Returns:
@@ -77,7 +77,7 @@ class OIDCProvider:
         except Exception as e:
             raise ValueError(f"Failed to fetch OIDC discovery document: {e}")
 
-    def get_jwks(self) -> Dict[str, Any]:
+    def get_jwks(self) -> dict[str, Any]:
         """Fetch JSON Web Key Set (JWKS) for token verification.
 
         Returns:
@@ -127,7 +127,7 @@ class OIDCProvider:
 
         return f"{auth_endpoint}?{urlencode(params)}"
 
-    def exchange_code_for_tokens(self, code: str) -> Dict[str, Any]:
+    def exchange_code_for_tokens(self, code: str) -> dict[str, Any]:
         """Exchange authorization code for tokens.
 
         Args:
@@ -157,7 +157,7 @@ class OIDCProvider:
         except Exception as e:
             raise ValueError(f"Token exchange failed: {e}")
 
-    def verify_id_token(self, id_token: str, nonce: str) -> Dict[str, Any]:
+    def verify_id_token(self, id_token: str, nonce: str) -> dict[str, Any]:
         """Verify and decode ID token.
 
         Args:
@@ -215,7 +215,7 @@ class OIDCProvider:
         except Exception as e:
             raise ValueError(f"ID token verification failed: {e}")
 
-    def get_userinfo(self, access_token: str) -> Dict[str, Any]:
+    def get_userinfo(self, access_token: str) -> dict[str, Any]:
         """Fetch user information from userinfo endpoint.
 
         Args:
@@ -257,7 +257,7 @@ class OIDCService:
         """
         self.db_path = db_path
         self.base_url = base_url
-        self.providers: Dict[str, OIDCProvider] = {}
+        self.providers: dict[str, OIDCProvider] = {}
 
     def register_provider(
         self,
@@ -265,7 +265,7 @@ class OIDCService:
         discovery_url: str,
         client_id: str,
         client_secret: str,
-        scopes: Optional[List[str]] = None,
+        scopes: Optional[list[str]] = None,
     ) -> OIDCProvider:
         """Register an OIDC provider.
 
@@ -297,7 +297,7 @@ class OIDCService:
         """Get registered provider by name."""
         return self.providers.get(provider_name)
 
-    def list_providers(self) -> List[Dict[str, str]]:
+    def list_providers(self) -> list[dict[str, str]]:
         """List all registered providers."""
         return [
             {
@@ -307,7 +307,7 @@ class OIDCService:
             for name in self.providers
         ]
 
-    def initiate_login(self, provider_name: str) -> Tuple[str, str]:
+    def initiate_login(self, provider_name: str) -> tuple[str, str]:
         """Initiate OAuth login flow.
 
         Args:
@@ -352,7 +352,7 @@ class OIDCService:
         provider_name: str,
         code: str,
         state: str,
-    ) -> Tuple[Optional[str], Optional[str]]:
+    ) -> tuple[Optional[str], Optional[str]]:
         """Handle OAuth callback.
 
         Args:
@@ -542,7 +542,7 @@ class OIDCService:
         """, (mapping_id, user_id, provider_name, provider_user_id,
               email, linked_at, linked_at))
 
-    def get_linked_providers(self, user_id: str) -> List[Dict[str, Any]]:
+    def get_linked_providers(self, user_id: str) -> list[dict[str, Any]]:
         """Get OIDC providers linked to user."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()

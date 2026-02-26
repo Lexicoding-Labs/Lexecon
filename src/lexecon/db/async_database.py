@@ -5,7 +5,7 @@ Supports both PostgreSQL (production) and SQLite (development).
 """
 
 import os
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
@@ -102,7 +102,6 @@ async def init_async_db():
 
 def get_async_session_maker() -> async_sessionmaker:
     """Get async session maker (initialize if needed)."""
-    global _async_session_maker
     if _async_session_maker is None:
         import asyncio
         asyncio.run(init_async_db())

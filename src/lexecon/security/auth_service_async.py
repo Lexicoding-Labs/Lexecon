@@ -8,7 +8,7 @@ allowing concurrent request handling.
 """
 
 import asyncio
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from .auth_service import AuthService, Permission, Role, Session, User
 
@@ -32,7 +32,7 @@ class AsyncAuthService:
         username: str,
         password: str,
         ip_address: Optional[str] = None,
-    ) -> Tuple[Optional[User], Optional[str]]:
+    ) -> tuple[Optional[User], Optional[str]]:
         """Async wrapper for authenticate.
 
         Args:
@@ -59,7 +59,7 @@ class AsyncAuthService:
         password: str,
         role: Role,
         full_name: str,
-    ) -> Tuple[Optional[User], Optional[str]]:
+    ) -> tuple[Optional[User], Optional[str]]:
         """Async wrapper for create_user.
 
         Args:
@@ -108,7 +108,7 @@ class AsyncAuthService:
     async def validate_session(
         self,
         session_id: str,
-    ) -> Tuple[Optional[Session], Optional[str]]:
+    ) -> tuple[Optional[Session], Optional[str]]:
         """Async wrapper for validate_session.
 
         Args:
@@ -153,7 +153,7 @@ class AsyncAuthService:
             user_id,
         )
 
-    async def list_users(self) -> List[User]:
+    async def list_users(self) -> list[User]:
         """Async wrapper for list_users.
 
         Args:
@@ -170,7 +170,7 @@ class AsyncAuthService:
     async def get_active_sessions(
         self,
         user_id: Optional[str] = None,
-    ) -> List[Session]:
+    ) -> list[Session]:
         """Async wrapper for get_active_sessions.
 
         Args:
@@ -191,7 +191,7 @@ class AsyncAuthService:
         user_id: str,
         old_password: str,
         new_password: str,
-    ) -> Tuple[bool, Optional[str]]:
+    ) -> tuple[bool, Optional[str]]:
         """Async wrapper for change_password.
 
         Args:
@@ -248,7 +248,7 @@ class AsyncAuthService:
         user_id: str,
         totp_code: str,
         ip_address: Optional[str] = None,
-    ) -> Tuple[Optional[Session], Optional[str]]:
+    ) -> tuple[Optional[Session], Optional[str]]:
         """Async wrapper for complete_mfa_login.
 
         Args:

@@ -29,8 +29,8 @@ from lexecon.security.auth_service import AuthService
 from lexecon.security.auth_service_async import AsyncAuthService
 from lexecon.security.signature_service import SignatureService
 from lexecon.storage.persistence import LedgerStorage
-from lexecon.usage.service import UsageService
 from lexecon.tenancy.service import TenancyService
+from lexecon.usage.service import UsageService
 
 
 class ServiceRegistry:

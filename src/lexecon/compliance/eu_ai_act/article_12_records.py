@@ -14,7 +14,7 @@ import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from lexecon.ledger.chain import LedgerChain, LedgerEntry
 
@@ -49,12 +49,12 @@ class RetentionPolicy:
 class ComplianceRecord:
     """Article 12 compliant record wrapper."""
     record_id: str
-    original_entry: Dict[str, Any]
+    original_entry: dict[str, Any]
     retention_class: RetentionClass
     created_at: str
     expires_at: str
     status: RecordStatus
-    legal_holds: List[str]  # List of legal hold IDs
+    legal_holds: list[str]  # List of legal hold IDs
     anonymized_at: Optional[str] = None
     deletion_eligible_at: Optional[str] = None
 
@@ -67,7 +67,7 @@ class RecordKeepingSystem:
 
     def __init__(self, ledger: LedgerChain):
         self.ledger = ledger
-        self.legal_holds: Dict[str, Dict[str, Any]] = {}  # hold_id -> metadata
+        self.legal_holds: dict[str, dict[str, Any]] = {}  # hold_id -> metadata
 
         # Define retention policies
         self.policies = {
@@ -128,7 +128,7 @@ class RecordKeepingSystem:
 
         return RetentionClass.STANDARD
 
-    def _contains_personal_data(self, data: Dict[str, Any]) -> bool:
+    def _contains_personal_data(self, data: dict[str, Any]) -> bool:
         """Check if data contains personal information."""
         personal_indicators = [
             "email", "name", "user_id", "ip_address",
@@ -163,7 +163,7 @@ class RecordKeepingSystem:
             legal_holds=legal_holds,
         )
 
-    def get_retention_status(self) -> Dict[str, Any]:
+    def get_retention_status(self) -> dict[str, Any]:
         """Get overall retention status report."""
         records = [self.wrap_entry(e) for e in self.ledger.entries]
 
@@ -199,10 +199,10 @@ class RecordKeepingSystem:
     def apply_legal_hold(
         self,
         hold_id: str,
-        entry_ids: Optional[List[str]] = None,
+        entry_ids: Optional[list[str]] = None,
         reason: str = "",
         requester: str = "system",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Apply legal hold to records.
 
         Legal holds freeze deletion and anonymization for investigations.
@@ -226,7 +226,7 @@ class RecordKeepingSystem:
             "status": "applied",
         }
 
-    def release_legal_hold(self, hold_id: str, releaser: str = "system") -> Dict[str, Any]:
+    def release_legal_hold(self, hold_id: str, releaser: str = "system") -> dict[str, Any]:
         """Release a legal hold."""
         if hold_id not in self.legal_holds:
             return {"error": "Legal hold not found", "hold_id": hold_id}
@@ -244,7 +244,7 @@ class RecordKeepingSystem:
             "status": "released",
         }
 
-    def _record_to_dict(self, record: ComplianceRecord) -> Dict[str, Any]:
+    def _record_to_dict(self, record: ComplianceRecord) -> dict[str, Any]:
         """Convert ComplianceRecord to dict with enum values as strings."""
         record_dict = asdict(record)
         # Convert enums to their string values
@@ -256,8 +256,8 @@ class RecordKeepingSystem:
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        entry_types: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        entry_types: Optional[list[str]] = None,
+    ) -> dict[str, Any]:
         """Generate complete package for regulatory requests.
 
         One-click generation of everything a regulator would ask for.
@@ -318,7 +318,6 @@ class RecordKeepingSystem:
             },
         }
 
-
     def export_for_regulator(
         self,
         format: str = "json",
@@ -341,7 +340,7 @@ class RecordKeepingSystem:
 
         raise ValueError(f"Unsupported format: {format}")
 
-    def _format_markdown_package(self, package: Dict[str, Any]) -> str:
+    def _format_markdown_package(self, package: dict[str, Any]) -> str:
         """Format regulatory package as Markdown."""
         return f"""# EU AI Act Article 12 - Regulatory Response Package
 
@@ -386,7 +385,7 @@ We attest that this package complies with EU AI Act Article 12 requirements:
 *For detailed record data, request JSON format export.*
 """
 
-    def _format_csv_package(self, package: Dict[str, Any]) -> str:
+    def _format_csv_package(self, package: dict[str, Any]) -> str:
         """Format records as CSV."""
         import csv
         import io
@@ -422,7 +421,7 @@ We attest that this package complies with EU AI Act Article 12 requirements:
 
         return output.getvalue()
 
-    def anonymize_record(self, entry_id: str) -> Dict[str, Any]:
+    def anonymize_record(self, entry_id: str) -> dict[str, Any]:
         """Anonymize personal data in a record.
 
         Called automatically after retention period expires (if policy allows).
@@ -457,7 +456,7 @@ We attest that this package complies with EU AI Act Article 12 requirements:
             "note": "Personal data removed, decision metadata retained for compliance",
         }
 
-    def _anonymize_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _anonymize_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """Remove personal data while preserving compliance-relevant information."""
         anonymized = data.copy()
 

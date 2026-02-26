@@ -16,7 +16,7 @@ import hashlib
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from lexecon.ledger.chain import LedgerChain
 from lexecon.policy.engine import PolicyEngine
@@ -32,31 +32,31 @@ class TechnicalDocumentation:
     version: str = "1.0"
 
     # Article 11(1) - General description
-    general_description: Dict[str, Any] = None
+    general_description: dict[str, Any] = None
 
     # Article 11(2) - Intended purpose
-    intended_purpose: Dict[str, Any] = None
+    intended_purpose: dict[str, Any] = None
 
     # Article 11(3) - Design specifications
-    design_specifications: Dict[str, Any] = None
+    design_specifications: dict[str, Any] = None
 
     # Article 11(4) - Development methodology
-    development_methodology: Dict[str, Any] = None
+    development_methodology: dict[str, Any] = None
 
     # Article 11(5) - Data requirements
-    data_requirements: Dict[str, Any] = None
+    data_requirements: dict[str, Any] = None
 
     # Article 11(6) - Human oversight measures
-    human_oversight_measures: Dict[str, Any] = None
+    human_oversight_measures: dict[str, Any] = None
 
     # Article 11(7) - Accuracy metrics
-    accuracy_metrics: Dict[str, Any] = None
+    accuracy_metrics: dict[str, Any] = None
 
     # Article 11(8) - Known limitations
-    known_limitations: Dict[str, Any] = None
+    known_limitations: dict[str, Any] = None
 
     # Evidence chain
-    evidence_chain: List[str] = None
+    evidence_chain: list[str] = None
 
     def __post_init__(self):
         if self.evidence_chain is None:
@@ -78,7 +78,7 @@ class TechnicalDocumentationGenerator:
 
     def generate(
         self,
-        system_info: Optional[Dict[str, Any]] = None,
+        system_info: Optional[dict[str, Any]] = None,
     ) -> TechnicalDocumentation:
         """Generate complete Article 11 documentation.
 
@@ -112,8 +112,8 @@ class TechnicalDocumentationGenerator:
 
     def _generate_general_description(
         self,
-        system_info: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        system_info: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         """Article 11(1) - General characteristics, capabilities and limitations."""
         return {
             "article": "Article 11(1)",
@@ -154,7 +154,7 @@ class TechnicalDocumentationGenerator:
             ],
         }
 
-    def _generate_intended_purpose(self) -> Dict[str, Any]:
+    def _generate_intended_purpose(self) -> dict[str, Any]:
         """Article 11(2) - Intended purpose and reasonably foreseeable misuse."""
         policy_count = len(self.policy_engine.terms) if self.policy_engine else 0
 
@@ -217,7 +217,7 @@ class TechnicalDocumentationGenerator:
             },
         }
 
-    def _generate_design_specifications(self) -> Dict[str, Any]:
+    def _generate_design_specifications(self) -> dict[str, Any]:
         """Article 11(3) - Design specifications and architecture."""
         return {
             "article": "Article 11(3)",
@@ -278,7 +278,7 @@ class TechnicalDocumentationGenerator:
             },
         }
 
-    def _generate_development_methodology(self) -> Dict[str, Any]:
+    def _generate_development_methodology(self) -> dict[str, Any]:
         """Article 11(4) - Development, training and testing processes."""
         return {
             "article": "Article 11(4)",
@@ -318,7 +318,7 @@ class TechnicalDocumentationGenerator:
             },
         }
 
-    def _generate_data_requirements(self) -> Dict[str, Any]:
+    def _generate_data_requirements(self) -> dict[str, Any]:
         """Article 11(5) - Data requirements and characteristics."""
         return {
             "article": "Article 11(5)",
@@ -360,7 +360,7 @@ class TechnicalDocumentationGenerator:
             },
         }
 
-    def _generate_human_oversight(self) -> Dict[str, Any]:
+    def _generate_human_oversight(self) -> dict[str, Any]:
         """Article 11(6) - Human oversight measures."""
         return {
             "article": "Article 11(6)",
@@ -428,7 +428,7 @@ class TechnicalDocumentationGenerator:
             },
         }
 
-    def _generate_accuracy_metrics(self) -> Dict[str, Any]:
+    def _generate_accuracy_metrics(self) -> dict[str, Any]:
         """Article 11(7) - Expected level of accuracy."""
         decisions_count = len(self.ledger.entries) if self.ledger else 0
 
@@ -471,7 +471,7 @@ class TechnicalDocumentationGenerator:
             },
         }
 
-    def _generate_known_limitations(self) -> Dict[str, Any]:
+    def _generate_known_limitations(self) -> dict[str, Any]:
         """Article 11(8) - Known limitations and constraints."""
         return {
             "article": "Article 11(8)",
@@ -547,7 +547,7 @@ class TechnicalDocumentationGenerator:
             },
         }
 
-    def _build_evidence_chain(self) -> List[str]:
+    def _build_evidence_chain(self) -> list[str]:
         """Build evidence chain from ledger entries."""
         if not self.ledger or not self.ledger.entries:
             return []

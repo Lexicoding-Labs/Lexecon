@@ -2,8 +2,6 @@
 Tests for feature flag service.
 """
 
-import os
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -97,7 +95,7 @@ class TestFeatureFlagService:
 
         # Try to import LaunchDarkly SDK
         try:
-            import ldclient
+            import ldclient  # noqa: F401
 
             # Skip test if SDK not installed (optional dependency)
             pytest.skip("LaunchDarkly SDK not installed (optional dependency)")

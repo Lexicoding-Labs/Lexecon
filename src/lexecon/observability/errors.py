@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from threading import Lock
-from typing import Any, Callable, Deque, Dict, List, Optional, Type
+from typing import Any, Callable, Optional
 
 from .context import ObservabilityContext, get_current_context
 
@@ -85,13 +85,13 @@ class ErrorRecord:
     # Error details
     stack_trace: Optional[str] = None
     cause: Optional[str] = None
-    attributes: Dict[str, Any] = field(default_factory=dict)
+    attributes: dict[str, Any] = field(default_factory=dict)
 
     # System state at error time
     service_name: str = "lexecon"
     hostname: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
             "error_id": self.error_id,
@@ -117,7 +117,7 @@ class ErrorClassifier:
     """Classifies exceptions into categories and severities."""
 
     # Default exception to category mapping
-    DEFAULT_MAPPINGS: Dict[Type[Exception], ErrorCategory] = {
+    DEFAULT_MAPPINGS: dict[type[Exception], ErrorCategory] = {
         # Database errors
         ConnectionError: ErrorCategory.DATABASE,
         # Network errors
@@ -132,7 +132,7 @@ class ErrorClassifier:
     }
 
     # Exception patterns for string matching
-    PATTERN_MAPPINGS: Dict[str, ErrorCategory] = {
+    PATTERN_MAPPINGS: dict[str, ErrorCategory] = {
         "connection": ErrorCategory.DATABASE,
         "timeout": ErrorCategory.TIMEOUT,
         "redis": ErrorCategory.CACHE,
@@ -150,12 +150,12 @@ class ErrorClassifier:
 
     def __init__(self) -> None:
         """Initialize classifier with default mappings."""
-        self._custom_mappings: Dict[Type[Exception], ErrorCategory] = {}
-        self._custom_severities: Dict[Type[Exception], ErrorSeverity] = {}
+        self._custom_mappings: dict[type[Exception], ErrorCategory] = {}
+        self._custom_severities: dict[type[Exception], ErrorSeverity] = {}
 
     def register_mapping(
         self,
-        exception_type: Type[Exception],
+        exception_type: type[Exception],
         category: ErrorCategory,
         severity: Optional[ErrorSeverity] = None,
     ) -> None:
@@ -224,15 +224,15 @@ class ErrorCorrelator:
             error_window_seconds: Time window for error rate calculation
         """
         self._classifier = ErrorClassifier()
-        self._history: Deque[ErrorRecord] = deque(maxlen=max_history)
+        self._history: deque[ErrorRecord] = deque(maxlen=max_history)
         self._lock = Lock()
         self._error_window = error_window_seconds
 
         # Callbacks for error notifications
-        self._callbacks: List[Callable[[ErrorRecord], None]] = []
+        self._callbacks: list[Callable[[ErrorRecord], None]] = []
 
         # Error counters by category (for rate limiting)
-        self._error_counts: Dict[str, List[float]] = {}
+        self._error_counts: dict[str, list[float]] = {}
 
         # Import hostname
         import socket
@@ -395,7 +395,7 @@ class ErrorCorrelator:
         limit: int = 100,
         category: Optional[ErrorCategory] = None,
         severity: Optional[ErrorSeverity] = None,
-    ) -> List[ErrorRecord]:
+    ) -> list[ErrorRecord]:
         """Get recent error records.
 
         Args:
@@ -418,7 +418,7 @@ class ErrorCorrelator:
         # Return most recent
         return records[-limit:]
 
-    def get_error_summary(self) -> Dict[str, Any]:
+    def get_error_summary(self) -> dict[str, Any]:
         """Get summary of recent errors.
 
         Returns:
@@ -427,8 +427,8 @@ class ErrorCorrelator:
         with self._lock:
             records = list(self._history)
 
-        by_category: Dict[str, int] = {}
-        by_severity: Dict[str, int] = {}
+        by_category: dict[str, int] = {}
+        by_severity: dict[str, int] = {}
 
         for record in records:
             cat = record.category.value

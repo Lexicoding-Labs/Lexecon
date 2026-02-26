@@ -7,7 +7,7 @@ Feature-flagged: Must be explicitly enabled. When disabled, behaves
 as pass-through to underlying storage.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 
 class AppendOnlyViolationError(Exception):
@@ -29,7 +29,7 @@ class AppendOnlyStore:
 
     def __init__(
         self,
-        underlying_store: Dict[str, Any],
+        underlying_store: dict[str, Any],
         enabled: bool = False,
     ):
         """Initialize append-only store wrapper.

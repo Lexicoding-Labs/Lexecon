@@ -11,7 +11,7 @@ import hashlib
 import json
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from lexecon.policy.engine import PolicyEngine
 
@@ -88,7 +88,7 @@ class DecisionRequest:
         risk_level: int = 1,
         requested_output_type: str = "tool_action",
         policy_mode: str = "strict",
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
     ):
         self.request_id = request_id or str(uuid.uuid4())
         self.actor = actor
@@ -102,7 +102,7 @@ class DecisionRequest:
         self.context = context or {}
         self.timestamp = datetime.now(timezone.utc).isoformat()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize request to dictionary."""
         return {
             "request_id": self.request_id,
@@ -163,7 +163,7 @@ class DecisionResponse:
         decision: str,
         reasoning: str,
         policy_version_hash: str,
-        capability_token: Optional[Dict[str, Any]] = None,
+        capability_token: Optional[dict[str, Any]] = None,
         ledger_entry_hash: Optional[str] = None,
         signature: Optional[str] = None,
         timestamp: Optional[str] = None,
@@ -209,7 +209,7 @@ class DecisionResponse:
         canonical_json = json.dumps(decision_data, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical_json.encode()).hexdigest()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize response to dictionary."""
         # Map internal fields to API-expected field names
         allowed = self.decision in ["allow", "permit", "approved"]
@@ -227,7 +227,7 @@ class DecisionResponse:
             "timestamp": self.timestamp,
         }
 
-    def to_canonical_dict(self) -> Optional[Dict[str, Any]]:
+    def to_canonical_dict(self) -> Optional[dict[str, Any]]:
         """Get canonical Decision as dictionary if available."""
         if self._canonical_decision:
             return self._canonical_decision.model_dump()
@@ -260,7 +260,7 @@ class DecisionService:
         self.ledger = ledger
         self.identity = identity
         self.store_canonical = store_canonical and GOVERNANCE_MODELS_AVAILABLE
-        self._canonical_decisions: Dict[str, CanonicalDecision] = {}
+        self._canonical_decisions: dict[str, CanonicalDecision] = {}
 
     def evaluate_request(self, request: DecisionRequest) -> DecisionResponse:
         """Evaluate a decision request.
@@ -393,7 +393,7 @@ class DecisionService:
         proposed_action: Optional[str] = None,
         tool: Optional[str] = None,
         user_intent: Optional[str] = None,
-        data_classes: Optional[List[str]] = None,
+        data_classes: Optional[list[str]] = None,
         risk_level: int = 1,
     ):
         """Evaluate a decision (convenience method).
@@ -423,7 +423,7 @@ class DecisionService:
 
     def _generate_capability_token(
         self, request: DecisionRequest, policy_version_hash: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate an ephemeral capability token for approved action."""
         token_id = f"tok_{uuid.uuid4().hex[:16]}"
         expiry = datetime.now(timezone.utc) + timedelta(minutes=5)
@@ -444,7 +444,7 @@ class DecisionService:
         self,
         limit: int = 100,
         outcome: Optional["DecisionOutcome"] = None,
-    ) -> List["CanonicalDecision"]:
+    ) -> list["CanonicalDecision"]:
         """List canonical decisions with optional filtering.
 
         Args:
@@ -468,7 +468,7 @@ class DecisionService:
         self,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Export canonical decisions for audit purposes.
 
         Args:

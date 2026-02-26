@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass, field
 from functools import wraps
 from threading import Lock
-from typing import Any, Callable, Dict, Generic, Optional, TypeVar
+from typing import Any, Callable, Generic, Optional, TypeVar
 
 from .metrics_v2 import CircuitState, metrics
 
@@ -154,10 +154,7 @@ class CircuitBreaker(Generic[T]):
 
         # Check triggers if specified
         if self.config.trigger_exceptions:
-            for exc_type in self.config.trigger_exceptions:
-                if isinstance(exception, exc_type):
-                    return True
-            return False
+            return any(isinstance(exception, exc_type) for exc_type in self.config.trigger_exceptions)
 
         # Default: all exceptions trigger
         return True
@@ -406,7 +403,7 @@ class CircuitBreaker(Generic[T]):
 
         return decorator
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get current circuit breaker status.
 
         Returns:
@@ -434,7 +431,7 @@ class CircuitBreakerRegistry:
 
     def __init__(self) -> None:
         """Initialize registry."""
-        self._breakers: Dict[str, CircuitBreaker] = {}
+        self._breakers: dict[str, CircuitBreaker] = {}
         self._lock = Lock()
 
     def get_or_create(
@@ -468,7 +465,7 @@ class CircuitBreakerRegistry:
         with self._lock:
             return self._breakers.get(service_name)
 
-    def get_all_status(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_status(self) -> dict[str, dict[str, Any]]:
         """Get status of all circuit breakers.
 
         Returns:

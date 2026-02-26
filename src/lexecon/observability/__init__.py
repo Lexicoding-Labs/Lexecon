@@ -56,16 +56,6 @@ from .circuit_breaker import (
     get_circuit_breaker,
 )
 
-# Sentry integration
-from .sentry_config import (
-    add_breadcrumb,
-    capture_exception,
-    capture_message,
-    init_sentry,
-    set_context,
-    set_user,
-)
-
 # Context propagation (new)
 from .context import (
     ObservabilityContext,
@@ -120,6 +110,16 @@ from .metrics_v2 import (
 from .metrics_v2 import metrics as metrics_v2
 from .metrics_v2 import record_decision as record_decision_v2
 
+# Sentry integration
+from .sentry_config import (
+    add_breadcrumb,
+    capture_exception,
+    capture_message,
+    init_sentry,
+    set_context,
+    set_user,
+)
+
 # Tracing - import both old and new for backward compatibility
 from .tracing import trace_function, tracer
 from .tracing_v2 import (
@@ -134,79 +134,79 @@ from .tracing_v2 import (
 from .tracing_v2 import tracer as tracer_v2
 
 __all__ = [
-    # Logging
-    "configure_logging",
-    "get_logger",
-    "LoggerAdapter",
-    "StructuredFormatter",
-    "request_id_var",
-    "user_id_var",
-    # Context
-    "ObservabilityContext",
-    "SpanContext",
-    "create_context",
-    "get_current_context",
-    "set_current_context",
-    "reset_context",
-    "observe",
-    "hash_high_cardinality",
-    # Tracing (backward compatible)
-    "tracer",
-    "trace_function",
-    # Tracing v2
-    "tracer_v2",
-    "traced",
-    "traced_async",
-    "TracingManager",
-    "Span",
-    "SpanContextManager",
-    "inject_trace_context",
-    "extract_trace_context",
-    # Metrics (backward compatible)
-    "metrics",
-    "record_decision",
-    "record_policy_load",
-    # Metrics v2
-    "metrics_v2",
-    "record_decision_v2",
-    "MetricsCollector",
-    "CircuitState",
-    "timed_operation",
-    # Health (backward compatible)
-    "health_check",
-    "HealthCheck",
-    "HealthStatus",
-    # Health v2
-    "health_manager",
-    "HealthCheckManager",
-    "HealthCheckResult",
-    "DependencyHealth",
-    "HealthStatusV2",
-    "liveness",
-    "readiness",
-    "startup",
-    # Errors
-    "record_error",
-    "error_correlator",
-    "ErrorCorrelator",
-    "ErrorRecord",
-    "ErrorSeverity",
-    "ErrorCategory",
-    "error_boundary",
-    # Circuit Breaker
-    "get_circuit_breaker",
-    "circuit_breakers",
     "CircuitBreaker",
     "CircuitBreakerConfig",
     "CircuitBreakerError",
     "CircuitBreakerRegistry",
-    # Sentry
-    "init_sentry",
+    "CircuitState",
+    "DependencyHealth",
+    "ErrorCategory",
+    "ErrorCorrelator",
+    "ErrorRecord",
+    "ErrorSeverity",
+    "HealthCheck",
+    "HealthCheckManager",
+    "HealthCheckResult",
+    "HealthStatus",
+    "HealthStatusV2",
+    "LoggerAdapter",
+    "MetricsCollector",
+    # Context
+    "ObservabilityContext",
+    "Span",
+    "SpanContext",
+    "SpanContextManager",
+    "StructuredFormatter",
+    "TracingManager",
+    "add_breadcrumb",
     "capture_exception",
     "capture_message",
-    "set_user",
+    "circuit_breakers",
+    # Logging
+    "configure_logging",
+    "create_context",
+    "error_boundary",
+    "error_correlator",
+    "extract_trace_context",
+    # Circuit Breaker
+    "get_circuit_breaker",
+    "get_current_context",
+    "get_logger",
+    "hash_high_cardinality",
+    # Health (backward compatible)
+    "health_check",
+    # Health v2
+    "health_manager",
+    # Sentry
+    "init_sentry",
+    "inject_trace_context",
+    "liveness",
+    # Metrics (backward compatible)
+    "metrics",
+    # Metrics v2
+    "metrics_v2",
+    "observe",
+    "readiness",
+    "record_decision",
+    "record_decision_v2",
+    # Errors
+    "record_error",
+    "record_policy_load",
+    "request_id_var",
+    "reset_context",
     "set_context",
-    "add_breadcrumb",
+    "set_current_context",
+    "set_user",
+    "startup",
+    "timed_operation",
+    "trace_function",
+    "traced",
+    "traced_async",
+    # Tracing (backward compatible)
+    "tracer",
+    # Tracing v2
+    "tracer_v2",
+    "user_id_var",
 ]
 
 

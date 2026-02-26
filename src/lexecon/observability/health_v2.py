@@ -11,10 +11,11 @@ import asyncio
 import logging
 import os
 import time
+from collections.abc import Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Coroutine, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 
 from .circuit_breaker import circuit_breakers
 
@@ -37,11 +38,11 @@ class HealthCheckResult:
     name: str
     status: HealthStatus
     message: str = ""
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
     latency_ms: float = 0.0
     timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "name": self.name,
@@ -75,8 +76,8 @@ class DependencyHealth:
 
 
 HealthCheckFunc = Union[
-    Callable[[], tuple[HealthStatus, Dict[str, Any]]],
-    Callable[[], Coroutine[Any, Any, tuple[HealthStatus, Dict[str, Any]]]],
+    Callable[[], tuple[HealthStatus, dict[str, Any]]],
+    Callable[[], Coroutine[Any, Any, tuple[HealthStatus, dict[str, Any]]]],
 ]
 
 
@@ -107,16 +108,16 @@ class HealthCheckManager:
         self.start_time = time.time()
 
         # Health checks
-        self._checks: Dict[str, HealthCheckFunc] = {}
-        self._dependencies: Dict[str, DependencyHealth] = {}
+        self._checks: dict[str, HealthCheckFunc] = {}
+        self._dependencies: dict[str, DependencyHealth] = {}
 
         # Cached results
-        self._cached_readiness: Optional[Dict[str, Any]] = None
+        self._cached_readiness: Optional[dict[str, Any]] = None
         self._cache_time: float = 0.0
 
         # Initialization tracking
         self._initialized = False
-        self._initialization_checks: Dict[str, bool] = {}
+        self._initialization_checks: dict[str, bool] = {}
 
         # Version info
         self._version = os.getenv("LEXECON_VERSION", "0.1.0")
@@ -202,7 +203,7 @@ class HealthCheckManager:
         # Check if all initialized
         self._initialized = all(self._initialization_checks.values())
 
-    def liveness(self) -> Dict[str, Any]:
+    def liveness(self) -> dict[str, Any]:
         """Kubernetes liveness probe.
 
         Returns 200 if the process is running.
@@ -221,7 +222,7 @@ class HealthCheckManager:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    def readiness(self) -> Dict[str, Any]:
+    def readiness(self) -> dict[str, Any]:
         """Kubernetes readiness probe.
 
         Returns 200 if service can accept traffic.
@@ -235,7 +236,7 @@ class HealthCheckManager:
         if self._cached_readiness and (now - self._cache_time) < self.cache_ttl:
             return self._cached_readiness
 
-        checks_results: List[Dict[str, Any]] = []
+        checks_results: list[dict[str, Any]] = []
         overall_status = HealthStatus.HEALTHY
 
         # Run health checks
@@ -246,9 +247,8 @@ class HealthCheckManager:
             # Update overall status
             if result.status == HealthStatus.UNHEALTHY:
                 overall_status = HealthStatus.UNHEALTHY
-            elif result.status == HealthStatus.DEGRADED:
-                if overall_status == HealthStatus.HEALTHY:
-                    overall_status = HealthStatus.DEGRADED
+            elif result.status == HealthStatus.DEGRADED and overall_status == HealthStatus.HEALTHY:
+                overall_status = HealthStatus.DEGRADED
 
         # Check dependencies
         for name, dep in self._dependencies.items():
@@ -265,9 +265,8 @@ class HealthCheckManager:
 
             if dep.status == HealthStatus.UNHEALTHY:
                 overall_status = HealthStatus.UNHEALTHY
-            elif dep.status == HealthStatus.DEGRADED:
-                if overall_status == HealthStatus.HEALTHY:
-                    overall_status = HealthStatus.DEGRADED
+            elif dep.status == HealthStatus.DEGRADED and overall_status == HealthStatus.HEALTHY:
+                overall_status = HealthStatus.DEGRADED
 
         # Check circuit breakers
         cb_status = circuit_breakers.get_all_status()
@@ -295,7 +294,7 @@ class HealthCheckManager:
 
         return result
 
-    def startup(self) -> Dict[str, Any]:
+    def startup(self) -> dict[str, Any]:
         """Kubernetes startup probe.
 
         Returns 200 when service has completed initialization.
@@ -370,7 +369,7 @@ class HealthCheckManager:
                 latency_ms=latency,
             )
 
-    async def readiness_async(self) -> Dict[str, Any]:
+    async def readiness_async(self) -> dict[str, Any]:
         """Async version of readiness probe.
 
         Returns:
@@ -381,7 +380,7 @@ class HealthCheckManager:
         if self._cached_readiness and (now - self._cache_time) < self.cache_ttl:
             return self._cached_readiness
 
-        checks_results: List[Dict[str, Any]] = []
+        checks_results: list[dict[str, Any]] = []
         overall_status = HealthStatus.HEALTHY
 
         # Run health checks concurrently
@@ -396,9 +395,8 @@ class HealthCheckManager:
 
             if result.status == HealthStatus.UNHEALTHY:
                 overall_status = HealthStatus.UNHEALTHY
-            elif result.status == HealthStatus.DEGRADED:
-                if overall_status == HealthStatus.HEALTHY:
-                    overall_status = HealthStatus.DEGRADED
+            elif result.status == HealthStatus.DEGRADED and overall_status == HealthStatus.HEALTHY:
+                overall_status = HealthStatus.DEGRADED
 
         # Add dependency checks (same as sync)
         for name, dep in self._dependencies.items():
@@ -415,9 +413,8 @@ class HealthCheckManager:
 
             if dep.status == HealthStatus.UNHEALTHY:
                 overall_status = HealthStatus.UNHEALTHY
-            elif dep.status == HealthStatus.DEGRADED:
-                if overall_status == HealthStatus.HEALTHY:
-                    overall_status = HealthStatus.DEGRADED
+            elif dep.status == HealthStatus.DEGRADED and overall_status == HealthStatus.HEALTHY:
+                overall_status = HealthStatus.DEGRADED
 
         result = {
             "status": overall_status.value,
@@ -488,19 +485,19 @@ health_manager = HealthCheckManager()
 # Default Health Checks
 # =============================================================================
 
-def check_policy_engine() -> tuple[HealthStatus, Dict[str, Any]]:
+def check_policy_engine() -> tuple[HealthStatus, dict[str, Any]]:
     """Check policy engine health."""
     # Placeholder - implement actual check
     return HealthStatus.HEALTHY, {"policies_loaded": 0}
 
 
-def check_ledger() -> tuple[HealthStatus, Dict[str, Any]]:
+def check_ledger() -> tuple[HealthStatus, dict[str, Any]]:
     """Check ledger health."""
     # Placeholder - implement actual check
     return HealthStatus.HEALTHY, {"chain_length": 0}
 
 
-def check_database() -> tuple[HealthStatus, Dict[str, Any]]:
+def check_database() -> tuple[HealthStatus, dict[str, Any]]:
     """Check database connectivity."""
     try:
         import sqlite3
@@ -512,7 +509,7 @@ def check_database() -> tuple[HealthStatus, Dict[str, Any]]:
         return HealthStatus.UNHEALTHY, {"error": str(e)}
 
 
-async def check_redis() -> tuple[HealthStatus, Dict[str, Any]]:
+async def check_redis() -> tuple[HealthStatus, dict[str, Any]]:
     """Check Redis cache connectivity."""
     try:
         # Placeholder - implement actual Redis check
@@ -531,16 +528,16 @@ health_manager.add_check("database", check_database, required_for_startup=True)
 # Convenience Functions
 # =============================================================================
 
-def liveness() -> Dict[str, Any]:
+def liveness() -> dict[str, Any]:
     """Get liveness status."""
     return health_manager.liveness()
 
 
-def readiness() -> Dict[str, Any]:
+def readiness() -> dict[str, Any]:
     """Get readiness status."""
     return health_manager.readiness()
 
 
-def startup() -> Dict[str, Any]:
+def startup() -> dict[str, Any]:
     """Get startup status."""
     return health_manager.startup()

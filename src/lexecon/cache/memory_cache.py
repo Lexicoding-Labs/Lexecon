@@ -1,5 +1,4 @@
-"""
-In-memory LRU cache implementation (Phase 8).
+"""In-memory LRU cache implementation (Phase 8).
 
 Thread-safe in-memory cache with TTL support.
 """
@@ -16,8 +15,7 @@ class MemoryCache:
     """Thread-safe in-memory LRU cache with TTL."""
 
     def __init__(self, max_size: int = 10000, ttl: int = 300) -> None:
-        """
-        Initialize memory cache.
+        """Initialize memory cache.
 
         Args:
             max_size: Maximum number of items in cache
@@ -30,8 +28,7 @@ class MemoryCache:
         self._lock = threading.Lock()
 
     def get(self, key: str) -> Optional[Any]:
-        """
-        Get value from cache if not expired.
+        """Get value from cache if not expired.
 
         Args:
             key: Cache key
@@ -51,8 +48,7 @@ class MemoryCache:
             return self._cache[key]
 
     def set(self, key: str, value: Any) -> None:
-        """
-        Set value in cache with TTL.
+        """Set value in cache with TTL.
 
         Args:
             key: Cache key
@@ -68,8 +64,7 @@ class MemoryCache:
             self._timestamps[key] = time.time()
 
     def delete(self, key: str) -> None:
-        """
-        Remove key from cache.
+        """Remove key from cache.
 
         Args:
             key: Cache key to delete
@@ -89,8 +84,7 @@ class MemoryCache:
             self._timestamps.clear()
 
     def size(self) -> int:
-        """
-        Get current cache size.
+        """Get current cache size.
 
         Returns:
             Number of items in cache
@@ -99,8 +93,7 @@ class MemoryCache:
             return len(self._cache)
 
     def get_stats(self) -> dict[str, Any]:
-        """
-        Get cache statistics.
+        """Get cache statistics.
 
         Returns:
             Dictionary with cache stats
@@ -119,10 +112,9 @@ class MemoryCache:
 
 
 def cached(
-    ttl: int = 300, cache_instance: Optional[MemoryCache] = None, key_prefix: str = ""
+    ttl: int = 300, cache_instance: Optional[MemoryCache] = None, key_prefix: str = "",
 ) -> Callable:
-    """
-    Decorator to cache function results.
+    """Decorator to cache function results.
 
     Args:
         ttl: Time to live in seconds (default: 5 minutes)

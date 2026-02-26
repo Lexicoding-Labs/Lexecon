@@ -18,7 +18,7 @@ import base64
 import json
 import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from cryptography.fernet import Fernet
 
@@ -50,7 +50,7 @@ class SecretsManager:
         self.master_key = master_key or os.getenv("LEXECON_MASTER_KEY")
 
         # Cache for loaded secrets
-        self._cache: Dict[str, str] = {}
+        self._cache: dict[str, str] = {}
 
         # Load encrypted env file if it exists
         if self.env_encrypted_path.exists() and self.master_key:

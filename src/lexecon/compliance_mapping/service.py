@@ -13,7 +13,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 class RegulatoryFramework(Enum):
@@ -52,12 +52,12 @@ class ComplianceControl:
     title: str
     description: str
     category: str
-    required_evidence_types: List[str]
-    mapped_primitives: List[GovernancePrimitive]
+    required_evidence_types: list[str]
+    mapped_primitives: list[GovernancePrimitive]
     status: ControlStatus
     last_verified: Optional[datetime] = None
     verification_notes: Optional[str] = None
-    evidence_artifact_ids: List[str] = None
+    evidence_artifact_ids: list[str] = None
 
     def __post_init__(self):
         if self.evidence_artifact_ids is None:
@@ -70,11 +70,11 @@ class ControlMapping:
     mapping_id: str
     primitive_type: GovernancePrimitive
     primitive_id: str  # e.g., risk_id, escalation_id
-    control_ids: List[str]
+    control_ids: list[str]
     framework: RegulatoryFramework
     mapped_at: datetime
     verification_status: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -88,8 +88,8 @@ class ComplianceReport:
     verified_controls: int
     non_compliant_controls: int
     compliance_percentage: float
-    gaps: List[Dict[str, Any]]
-    recommendations: List[str]
+    gaps: list[dict[str, Any]]
+    recommendations: list[str]
 
 
 class ComplianceMappingService:
@@ -235,20 +235,20 @@ class ComplianceMappingService:
 
     def __init__(self):
         """Initialize compliance mapping service."""
-        self._mappings: Dict[str, ControlMapping] = {}
-        self._control_registry: Dict[RegulatoryFramework, Dict[str, ComplianceControl]] = {
+        self._mappings: dict[str, ControlMapping] = {}
+        self._control_registry: dict[RegulatoryFramework, dict[str, ComplianceControl]] = {
             RegulatoryFramework.SOC2: copy.deepcopy(self.SOC2_CONTROLS),
             RegulatoryFramework.ISO27001: copy.deepcopy(self.ISO27001_CONTROLS),
             RegulatoryFramework.GDPR: copy.deepcopy(self.GDPR_CONTROLS),
         }
-        self._reports: Dict[str, ComplianceReport] = {}
+        self._reports: dict[str, ComplianceReport] = {}
 
     def map_primitive_to_controls(
         self,
         primitive_type: GovernancePrimitive,
         primitive_id: str,
         framework: RegulatoryFramework,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> ControlMapping:
         """Map a governance primitive to relevant compliance controls.
 
@@ -364,7 +364,7 @@ class ComplianceMappingService:
         framework: RegulatoryFramework,
         status: Optional[ControlStatus] = None,
         category: Optional[str] = None,
-    ) -> List[ComplianceControl]:
+    ) -> list[ComplianceControl]:
         """List compliance controls with optional filtering.
 
         Args:
@@ -391,7 +391,7 @@ class ComplianceMappingService:
     def analyze_gaps(
         self,
         framework: RegulatoryFramework,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Analyze compliance gaps for a framework.
 
         Args:
@@ -471,7 +471,7 @@ class ComplianceMappingService:
     def get_framework_coverage(
         self,
         framework: RegulatoryFramework,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get coverage statistics for a framework.
 
         Args:
@@ -511,7 +511,7 @@ class ComplianceMappingService:
     def get_primitive_mappings(
         self,
         primitive_id: str,
-    ) -> List[ControlMapping]:
+    ) -> list[ControlMapping]:
         """Get all control mappings for a primitive.
 
         Args:
@@ -525,7 +525,7 @@ class ComplianceMappingService:
             if mapping.primitive_id == primitive_id
         ]
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         """Get overall compliance mapping statistics.
 
         Returns:

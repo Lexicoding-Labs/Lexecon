@@ -18,7 +18,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 
 class ExportFormat(Enum):
@@ -62,7 +62,7 @@ class ExportRequest:
     include_signatures: bool = True
     requested_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     status: ExportStatus = ExportStatus.PENDING
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -71,14 +71,14 @@ class ExportPackage:
     export_id: str
     request: ExportRequest
     generated_at: datetime
-    data: Dict[str, Any]
+    data: dict[str, Any]
     format: ExportFormat
     content: str
     checksum: str
     signature: Optional[str] = None
     size_bytes: int = 0
     record_count: int = 0
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -91,8 +91,8 @@ class ExportStatistics:
     total_mappings: int = 0
     total_decisions: int = 0
     total_controls: int = 0
-    frameworks_covered: List[str] = field(default_factory=list)
-    date_range: Optional[Dict[str, str]] = None
+    frameworks_covered: list[str] = field(default_factory=list)
+    date_range: Optional[dict[str, str]] = None
     export_size_bytes: int = 0
 
 
@@ -105,8 +105,8 @@ class AuditExportService:
 
     def __init__(self):
         """Initialize audit export service."""
-        self._exports: Dict[str, ExportPackage] = {}
-        self._requests: Dict[str, ExportRequest] = {}
+        self._exports: dict[str, ExportPackage] = {}
+        self._requests: dict[str, ExportRequest] = {}
 
     def create_export_request(
         self,
@@ -117,7 +117,7 @@ class AuditExportService:
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         include_deleted: bool = False,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> ExportRequest:
         """Create a new export request.
 
@@ -257,7 +257,7 @@ class AuditExportService:
         risk_service,
         start_date: Optional[datetime],
         end_date: Optional[datetime],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Collect risk assessments from service."""
         risks = []
 
@@ -295,7 +295,7 @@ class AuditExportService:
         escalation_service,
         start_date: Optional[datetime],
         end_date: Optional[datetime],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Collect escalations from service."""
         escalations = []
 
@@ -338,7 +338,7 @@ class AuditExportService:
         override_service,
         start_date: Optional[datetime],
         end_date: Optional[datetime],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Collect overrides from service."""
         overrides = []
 
@@ -372,7 +372,7 @@ class AuditExportService:
         evidence_service,
         start_date: Optional[datetime],
         end_date: Optional[datetime],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Collect evidence artifacts from service."""
         evidence = []
 
@@ -403,7 +403,7 @@ class AuditExportService:
 
         return evidence
 
-    def _collect_compliance(self, compliance_service) -> Dict[str, Any]:
+    def _collect_compliance(self, compliance_service) -> dict[str, Any]:
         """Collect compliance mappings from service."""
         compliance_data = {
             "statistics": compliance_service.get_statistics(),
@@ -441,7 +441,7 @@ class AuditExportService:
         ledger,
         start_date: Optional[datetime],
         end_date: Optional[datetime],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Collect decision log from ledger."""
         decisions = []
 
@@ -475,7 +475,7 @@ class AuditExportService:
 
         return decisions
 
-    def _calculate_statistics(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def _calculate_statistics(self, data: dict[str, Any]) -> dict[str, Any]:
         """Calculate statistics from collected data."""
         stats = {
             "total_risks": len(data.get("risks", [])),
@@ -494,7 +494,7 @@ class AuditExportService:
 
         return stats
 
-    def _count_records(self, data: Dict[str, Any]) -> int:
+    def _count_records(self, data: dict[str, Any]) -> int:
         """Count total records in export."""
         count = 0
         count += len(data.get("risks", []))
@@ -504,7 +504,7 @@ class AuditExportService:
         count += len(data.get("decisions", []))
         return count
 
-    def _format_data(self, data: Dict[str, Any], format: ExportFormat) -> str:
+    def _format_data(self, data: dict[str, Any], format: ExportFormat) -> str:
         """Format data according to requested format."""
         if format == ExportFormat.JSON:
             return self._format_json(data)
@@ -516,11 +516,11 @@ class AuditExportService:
             return self._format_html(data)
         return json.dumps(data, indent=2, default=str)
 
-    def _format_json(self, data: Dict[str, Any]) -> str:
+    def _format_json(self, data: dict[str, Any]) -> str:
         """Format as JSON."""
         return json.dumps(data, indent=2, default=str)
 
-    def _format_csv(self, data: Dict[str, Any]) -> str:
+    def _format_csv(self, data: dict[str, Any]) -> str:
         """Format as CSV (multiple sections)."""
         output = io.StringIO()
 
@@ -580,7 +580,7 @@ class AuditExportService:
 
         return output.getvalue()
 
-    def _format_markdown(self, data: Dict[str, Any]) -> str:
+    def _format_markdown(self, data: dict[str, Any]) -> str:
         """Format as Markdown."""
         lines = []
 
@@ -644,7 +644,7 @@ class AuditExportService:
 
         return "\n".join(lines)
 
-    def _format_html(self, data: Dict[str, Any]) -> str:
+    def _format_html(self, data: dict[str, Any]) -> str:
         """Format as HTML."""
         html = ["<!DOCTYPE html>", "<html>", "<head>"]
         html.append("<title>Governance Audit Export</title>")
@@ -687,7 +687,7 @@ class AuditExportService:
         self,
         requester: Optional[str] = None,
         limit: int = 100,
-    ) -> List[ExportPackage]:
+    ) -> list[ExportPackage]:
         """List export packages with optional filtering."""
         exports = list(self._exports.values())
 
@@ -699,7 +699,7 @@ class AuditExportService:
 
         return exports[:limit]
 
-    def get_export_statistics(self) -> Dict[str, Any]:
+    def get_export_statistics(self) -> dict[str, Any]:
         """Get overall export statistics."""
         total_exports = len(self._exports)
         total_size = sum(e.size_bytes for e in self._exports.values())

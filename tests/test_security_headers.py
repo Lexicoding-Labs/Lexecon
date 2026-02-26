@@ -2,10 +2,9 @@
 Tests for security headers middleware.
 """
 
-import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
-from lexecon.security.middleware import SecurityHeadersMiddleware
+from lexecon.security.security_headers import SecurityHeadersMiddleware
 from lexecon.security.rate_limiter import RateLimiter, RateLimitConfig
 
 
@@ -250,10 +249,8 @@ class TestCombinedMiddleware:
 
     def test_both_middleware_applied(self):
         """Test both middleware are applied correctly."""
-        from lexecon.security.middleware import (
-            RateLimitMiddleware,
-            SecurityHeadersMiddleware,
-        )
+        from lexecon.security.middleware import RateLimitMiddleware
+        from lexecon.security.security_headers import SecurityHeadersMiddleware
 
         app = FastAPI()
         rate_limiter = RateLimiter()

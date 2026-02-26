@@ -1,5 +1,4 @@
-"""
-Caching module for Lexecon (Phase 8).
+"""Caching module for Lexecon (Phase 8).
 
 Provides multi-layer caching:
 - In-memory LRU cache (L1)
@@ -17,9 +16,9 @@ from lexecon.cache.redis_cache import (
 
 __all__ = [
     "MemoryCache",
-    "cached",
     "cache_api_response",
     "cache_compliance_mapping",
     "cache_decision",
     "cache_policy_eval",
+    "cached",
 ]

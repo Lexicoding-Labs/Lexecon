@@ -8,7 +8,7 @@ import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from lexecon.ledger.chain import LedgerEntry
 
@@ -97,7 +97,7 @@ class LedgerStorage:
         finally:
             conn.close()
 
-    def load_all_entries(self) -> List[LedgerEntry]:
+    def load_all_entries(self) -> list[LedgerEntry]:
         """Load all ledger entries in chronological order."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -132,7 +132,7 @@ class LedgerStorage:
         finally:
             conn.close()
 
-    def get_entries_by_type(self, event_type: str) -> List[LedgerEntry]:
+    def get_entries_by_type(self, event_type: str) -> list[LedgerEntry]:
         """Get all entries of a specific event type."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()

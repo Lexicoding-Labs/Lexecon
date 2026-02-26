@@ -12,7 +12,7 @@ EU AI Act Article 14 Requirements:
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from lexecon.identity.signing import KeyManager
 
@@ -45,15 +45,15 @@ class HumanIntervention:
     intervention_type: InterventionType
 
     # What AI recommended
-    ai_recommendation: Dict[str, Any]
+    ai_recommendation: dict[str, Any]
     ai_confidence: float  # 0.0 to 1.0
 
     # What human decided
-    human_decision: Dict[str, Any]
+    human_decision: dict[str, Any]
     human_role: OversightRole
 
     # Context
-    request_context: Dict[str, Any]
+    request_context: dict[str, Any]
     reason: str  # Human's rationale
 
     # Verification
@@ -69,7 +69,7 @@ class HumanIntervention:
 class EscalationPath:
     """Defines escalation chain for decision types."""
     decision_class: str  # e.g., "financial", "safety", "operational"
-    roles: List[OversightRole]  # Ordered list of escalation roles
+    roles: list[OversightRole]  # Ordered list of escalation roles
     max_response_time_minutes: int
     requires_approval_from: OversightRole
 
@@ -90,8 +90,8 @@ class HumanOversightEvidence:
         """
         self.key_manager = key_manager or KeyManager.generate()
         self.storage = storage
-        self.interventions: List[HumanIntervention] = []
-        self.escalation_paths: Dict[str, EscalationPath] = {}
+        self.interventions: list[HumanIntervention] = []
+        self.escalation_paths: dict[str, EscalationPath] = {}
 
         # Load existing interventions from storage if available
         if self.storage:
@@ -147,11 +147,11 @@ class HumanOversightEvidence:
     def log_intervention(
         self,
         intervention_type: InterventionType,
-        ai_recommendation: Dict[str, Any],
-        human_decision: Dict[str, Any],
+        ai_recommendation: dict[str, Any],
+        human_decision: dict[str, Any],
         human_role: OversightRole,
         reason: str,
-        request_context: Optional[Dict[str, Any]] = None,
+        request_context: Optional[dict[str, Any]] = None,
         response_time_ms: Optional[int] = None,
         sign: bool = True,
     ) -> HumanIntervention:
@@ -227,7 +227,7 @@ class HumanOversightEvidence:
     def generate_oversight_effectiveness_report(
         self,
         time_period_days: int = 30,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Generate oversight effectiveness report.
 
         Proves humans actually intervene, not just rubber-stamp.
@@ -327,7 +327,6 @@ class HumanOversightEvidence:
             },
         }
 
-
     def _interpret_override_rate(self, rate: float) -> str:
         """Interpret override rate for compliance."""
         if rate < 5:
@@ -338,7 +337,7 @@ class HumanOversightEvidence:
             return "HEALTHY - Clear evidence of active human judgment."
         return "HIGH - Frequent overrides may indicate AI recommendations need improvement."
 
-    def _assess_compliance(self, override_rate: float, avg_response_ms: float) -> Dict[str, Any]:
+    def _assess_compliance(self, override_rate: float, avg_response_ms: float) -> dict[str, Any]:
         """Assess overall Article 14 compliance."""
         compliant = True
         issues = []
@@ -369,7 +368,7 @@ class HumanOversightEvidence:
         self,
         decision_class: str,
         current_role: OversightRole,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Simulate escalation chain for a decision.
 
         Shows who can override/approve and response time requirements.
@@ -402,7 +401,7 @@ class HumanOversightEvidence:
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Export complete evidence package for Article 14 compliance.
 
         Includes all interventions with cryptographic proofs.
@@ -456,7 +455,7 @@ class HumanOversightEvidence:
             },
         }
 
-    def export_markdown(self, evidence_package: Dict[str, Any]) -> str:
+    def export_markdown(self, evidence_package: dict[str, Any]) -> str:
         """Export evidence package as Markdown report."""
         effectiveness = evidence_package["effectiveness_report"]
 

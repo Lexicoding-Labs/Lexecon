@@ -16,7 +16,6 @@ from lexecon.evidence.service import (
 try:
     from model_governance_pack.models import (
         ArtifactType,
-        DigitalSignature,
         EvidenceArtifact,
     )
 

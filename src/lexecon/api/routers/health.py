@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("/health", response_model=HealthResponse)
 async def health_check():
     """Simple health check that doesn't require service initialization.
-    
+
     This allows the container to pass Railway health checks during startup
     before all services are fully initialized.
     """

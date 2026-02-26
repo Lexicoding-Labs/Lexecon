@@ -886,7 +886,7 @@ class TestCanonicalDecisionStorage:
     def test_get_canonical_decision(self, policy_engine):
         """Test retrieving canonical decision by ID."""
         try:
-            from model_governance_pack.models import Decision as CanonicalDecision
+            from model_governance_pack.models import Decision as CanonicalDecision  # noqa: F401
         except ImportError:
             pytest.skip("Governance models not available")
 
@@ -907,7 +907,7 @@ class TestCanonicalDecisionStorage:
     def test_list_canonical_decisions(self, policy_engine):
         """Test listing canonical decisions."""
         try:
-            from model_governance_pack.models import Decision as CanonicalDecision
+            from model_governance_pack.models import Decision as CanonicalDecision  # noqa: F401
         except ImportError:
             pytest.skip("Governance models not available")
 
@@ -929,7 +929,7 @@ class TestCanonicalDecisionStorage:
     def test_list_canonical_decisions_with_limit(self, policy_engine):
         """Test listing with limit."""
         try:
-            from model_governance_pack.models import Decision as CanonicalDecision
+            from model_governance_pack.models import Decision as CanonicalDecision  # noqa: F401
         except ImportError:
             pytest.skip("Governance models not available")
 
@@ -950,7 +950,7 @@ class TestCanonicalDecisionStorage:
     def test_export_decisions_for_audit(self, policy_engine):
         """Test exporting decisions for audit."""
         try:
-            from model_governance_pack.models import Decision as CanonicalDecision
+            from model_governance_pack.models import Decision as CanonicalDecision  # noqa: F401
         except ImportError:
             pytest.skip("Governance models not available")
 
@@ -973,7 +973,7 @@ class TestCanonicalDecisionStorage:
     def test_canonical_decision_contains_context(self, policy_engine):
         """Test that canonical decision contains context snapshot."""
         try:
-            from model_governance_pack.models import Decision as CanonicalDecision
+            from model_governance_pack.models import Decision as CanonicalDecision  # noqa: F401
         except ImportError:
             pytest.skip("Governance models not available")
 
@@ -1017,7 +1017,7 @@ class TestCanonicalDecisionStorage:
     def test_response_canonical_property(self, policy_engine):
         """Test accessing canonical decision via response property."""
         try:
-            from model_governance_pack.models import Decision as CanonicalDecision
+            from model_governance_pack.models import Decision as CanonicalDecision  # noqa: F401
         except ImportError:
             pytest.skip("Governance models not available")
 
@@ -1038,7 +1038,7 @@ class TestCanonicalDecisionStorage:
     def test_response_to_canonical_dict(self, policy_engine):
         """Test converting response to canonical dict."""
         try:
-            from model_governance_pack.models import Decision as CanonicalDecision
+            from model_governance_pack.models import Decision as CanonicalDecision  # noqa: F401
         except ImportError:
             pytest.skip("Governance models not available")
 
