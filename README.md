@@ -1,42 +1,47 @@
 # Lexecon
 
-A cryptographic governance engine for AI safety and regulatory compliance.
-
-> **Quick Demo:** `./scripts/demo-setup.sh && ./scripts/demo-run.sh` → http://localhost:8000
+A governance runtime for AI agents. Evaluates proposed actions against a deterministic policy graph, issues Ed25519-signed capability tokens for approved actions, and records every decision in a SHA-256 hash-chained audit ledger.
 
 [![CI](https://github.com/Lexicoding-systems/Lexecon/actions/workflows/ci.yml/badge.svg)](https://github.com/Lexicoding-systems/Lexecon/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Lexicoding-systems/Lexecon/branch/main/graph/badge.svg)](https://codecov.io/gh/Lexicoding-systems/Lexecon)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-```bash
-pip install -e ".[dev]"
-uvicorn lexecon.api.server:app --reload --port 8000
-python3 -m pytest tests/ -q   # 1,053 tests, 81% coverage
-```
-
-**Status:** v0.1.0 | 1,053 tests passing | 81% coverage | 17,882 LOC
+**v0.1.0** | 1,053 tests | 81% coverage | 17,882 LOC
 
 ---
 
-## What It Does
+## How It Works
 
-Lexecon sits between AI agents and the systems they interact with, evaluating every proposed action before it executes:
+```
+AI Agent / Application
+        │  proposed action
+        ▼
+┌───────────────────────────────────────────────────┐
+│               REST API  (FastAPI)                  │
+└───────────────────────────────────────────────────┘
+        │
+        ▼
+┌───────────────────────────────────────────────────┐
+│             Governance Runtime                     │
+│                                                   │
+│  PolicyEngine  ──  deterministic graph, <10ms     │
+│       │                                           │
+│       ├── RiskService      6-dimension scoring    │
+│       ├── LedgerChain      SHA-256 hash chain     │
+│       ├── EvidenceService  immutable artifacts    │
+│       └── CapabilityToken  Ed25519-signed auth    │
+└───────────────────────────────────────────────────┘
+        │
+        ▼
+SQLite (dev) / PostgreSQL (prod)  ·  Redis (optional)
+```
 
-1. **Evaluates decisions in <10ms** using a graph-based policy engine — no LLM in the evaluation path
-2. **Issues capability tokens** — time-limited, Ed25519-signed authorization for approved actions
-3. **Records everything** in a tamper-evident SHA-256 hash-chained ledger
-4. **Scores risk** across 6 dimensions (security, privacy, compliance, operational, reputational, financial)
-5. **Maps governance records to framework controls** — SOC 2, ISO 27001, GDPR, HIPAA, PCI-DSS, NIST CSF
-6. **Implements record-keeping and oversight controls** for EU AI Act Articles 11 (technical docs), 12 (record retention), and 14 (human oversight logging)
-
-> **On compliance claims:** Lexecon provides infrastructure — auditable records, structured policy enforcement, cryptographic attestations — that can serve as evidence when satisfying regulatory controls. It does not certify compliance. Regulatory conformity requires organisational processes, legal review, and additional controls beyond what any software library provides. See [docs/SECURITY_POSTURE.md](docs/SECURITY_POSTURE.md).
+An agent submits a proposed action. The policy engine evaluates it deterministically — no LLM in the path. Approved actions receive a time-limited signed token. Every decision, approved or denied, is appended to a hash-chained ledger that can be independently verified.
 
 ---
 
 ## Quick Start
-
-### Install
 
 ```bash
 git clone https://github.com/Lexicoding-systems/Lexecon.git
@@ -46,9 +51,7 @@ pip install -e ".[dev]"
 uvicorn lexecon.api.server:app --reload --port 8000
 ```
 
-Interactive API docs: http://localhost:8000/docs
-
-### Make a Governance Decision
+Open http://localhost:8000/docs, or send a decision directly:
 
 ```python
 import requests
@@ -63,96 +66,33 @@ response = requests.post("http://localhost:8000/decide", json={
     "policy_mode": "strict"
 })
 
-result = response.json()
 # {
 #   "decision_id": "dec_01HQXYZ...",
 #   "outcome": "approved",
-#   "reasoning": "Policy permits support access to customer data",
-#   "risk_level": "medium",
-#   "risk_score": 42,
 #   "capability_token": "cap_...",
+#   "risk_score": 42,
 #   "ledger_entry_id": "entry_5"
 # }
 ```
 
-### Verify the Audit Trail
+Verify the audit chain:
 
 ```python
-# Verify cryptographic chain integrity
-response = requests.get("http://localhost:8000/ledger/verify")
-print(response.json())
+requests.get("http://localhost:8000/ledger/verify").json()
 # {"valid": true, "entries_verified": 42, "chain_intact": true}
 ```
 
-### CLI
-
-> **Key generation:** `lexecon init` generates a fresh keypair locally.
-> Keys are never committed to the repository — keep them outside the project root
-> or use a KMS in production (see [SECURITY.md](SECURITY.md)).
+Run the tests:
 
 ```bash
-lexecon init --node-id my-node          # generate keys, create config
-lexecon server --port 8000              # start API server
-lexecon decide --actor "ai_agent:bot" \
-               --action "read:data" \
-               --tool "db_query" \
-               --intent "answer user question"
-lexecon verify-ledger --ledger-file lexecon_ledger.db
+python3 -m pytest tests/ -q   # 1,053 tests, 81% coverage
 ```
-
----
-
-## Architecture
-
-```
-AI Agents / Applications
-        │
-        ▼
-┌───────────────────────────────────────────────────────┐
-│                  REST API (FastAPI)                     │
-│   Rate Limiting │ Security Headers │ Auth Middleware    │
-└───────────────────────────────────────────────────────┘
-        │
-        ▼
-┌───────────────────────────────────────────────────────┐
-│              SERVICE REGISTRY (DI)                     │
-│                                                       │
-│  DecisionService ──► PolicyEngine (<10ms)             │
-│       │                                               │
-│       ├──► RiskService (6 dimensions, auto-escalate)  │
-│       ├──► LedgerChain (SHA-256 hash chain)           │
-│       ├──► EvidenceService (immutable artifacts)      │
-│       └──► CapabilityToken (Ed25519-signed)           │
-│                                                       │
-│  EscalationService │ OverrideService                  │
-│  ComplianceMappingService │ ResponsibilityTracker      │
-│  AuthService (MFA + RBAC + OIDC)                      │
-└───────────────────────────────────────────────────────┘
-        │
-        ▼
-SQLite (dev) / PostgreSQL (prod) │ Redis (optional cache)
-```
-
-### Component Summary
-
-| Component | Purpose | Notes |
-|-----------|---------|-------|
-| **PolicyEngine** | Deterministic graph-based evaluation | <10ms, 3 modes |
-| **DecisionService** | Request orchestration + token issuance | Async FastAPI |
-| **LedgerChain** | SHA-256 hash-chained audit trail | Tamper-evident |
-| **RiskService** | 6-dimension scoring (0–100) | Auto-escalate ≥80 |
-| **EvidenceService** | Immutable artifact storage | 8 artifact types |
-| **EscalationService** | High-risk safety valve | SLA-tracked |
-| **OverrideService** | Human intervention | Role-gated, justification required |
-| **ComplianceMappingService** | Framework alignment | 6 frameworks + EU AI Act |
-| **ResponsibilityTracker** | WHO/WHY accountability | 4 responsibility levels |
-| **AuthService** | RBAC + MFA + OIDC | 4 roles, TOTP, Google/Azure/Okta |
 
 ---
 
 ## Policy Engine
 
-Graph-based, fully deterministic — no LLM dependency:
+Policies are expressed as graphs of typed terms and relations — not prompts. Evaluation is fully deterministic.
 
 ```python
 from lexecon.policy.engine import PolicyEngine, PolicyMode
@@ -161,11 +101,9 @@ from lexecon.policy.relations import PolicyRelation, RelationType
 
 engine = PolicyEngine(mode=PolicyMode.STRICT)
 
-# Define terms
-actor = PolicyTerm(term_id="t_ai", term_type=TermType.ACTOR, value="ai_agent:*")
+actor  = PolicyTerm(term_id="t_ai",   term_type=TermType.ACTOR,  value="ai_agent:*")
 action = PolicyTerm(term_id="t_read", term_type=TermType.ACTION, value="read:customer_data")
 
-# Define relation
 engine.add_term(actor)
 engine.add_term(action)
 engine.add_relation(PolicyRelation(
@@ -175,62 +113,67 @@ engine.add_relation(PolicyRelation(
 ))
 
 result = engine.evaluate(actor="ai_agent:assistant", action="read:customer_data")
-# result.outcome = "approved"
+# result.outcome == "approved"
 ```
 
-**Modes:**
-- `strict` — deny by default, explicit permit required
-- `permissive` — allow unless explicitly forbidden
-- `paranoid` — deny high-risk without human confirmation
+**Modes:** `strict` (deny by default) · `permissive` (allow unless forbidden) · `paranoid` (deny high-risk without human confirmation)
 
 ---
 
-## EU AI Act Compliance
+## Components
+
+| Component | Purpose | Notes |
+|-----------|---------|-------|
+| **PolicyEngine** | Deterministic graph-based evaluation | <10ms, 3 modes |
+| **LedgerChain** | SHA-256 hash-chained audit trail | Tamper-evident, independently verifiable |
+| **RiskService** | 6-dimension scoring (0–100) | Auto-escalate ≥80 |
+| **CapabilityToken** | Ed25519-signed authorization | Time-limited |
+| **EvidenceService** | Immutable artifact storage | 8 artifact types |
+| **EscalationService** | High-risk safety valve | SLA-tracked |
+| **OverrideService** | Human intervention | Role-gated, justification required |
+| **ComplianceMappingService** | Audit record → framework mapping | SOC 2, ISO 27001, GDPR, HIPAA, PCI-DSS, NIST CSF |
+| **AuthService** | RBAC + MFA + OIDC | 4 roles, TOTP, Google/Azure/Okta |
+
+---
+
+## CLI
 
 ```bash
-# Article 11 — Auto-generated technical documentation
-GET /compliance/eu-ai-act/article-11
-
-# Article 12 — 10-year record-keeping with legal hold
-GET /compliance/eu-ai-act/article-12/status
-POST /compliance/eu-ai-act/article-12/legal-hold
-
-# Article 14 — Human oversight intervention logging
-POST /compliance/eu-ai-act/article-14/intervention
+lexecon init --node-id my-node          # generate keypair, create config
+lexecon server --port 8000
+lexecon decide --actor "ai_agent:bot" \
+               --action "read:data" \
+               --tool "db_query" \
+               --intent "answer user question"
+lexecon verify-ledger --ledger-file lexecon_ledger.db
 ```
+
+> Keys are generated locally and never committed to the repository. Use a KMS in production — see [SECURITY.md](SECURITY.md).
 
 ---
 
-## API Reference (Summary)
+## API Reference
 
 ```
-# Decisions & Ledger
 POST  /decide                              evaluate a governance decision
 POST  /decide/verify                       verify decision signature
 GET   /ledger/entries                      query ledger
 GET   /ledger/verify                       verify chain integrity
 
-# Policies
 GET   /policies                            list loaded policies
 POST  /policies/load                       load a policy
 
-# Auth
-POST  /auth/login                          login
-GET   /auth/me                             current user
+POST  /auth/login
+GET   /auth/me
 POST  /auth/users                          create user (admin)
-GET   /auth/oidc/providers                 list OIDC providers
+GET   /auth/oidc/providers
 
-# Risk, Escalation, Override
 POST  /api/governance/risk/assess          6-dimension risk score
-POST  /api/governance/escalation           create escalation
-POST  /api/governance/override             execute override
-
-# Evidence & Compliance
+POST  /api/governance/escalation
+POST  /api/governance/override
 POST  /api/governance/evidence             register artifact
 GET   /api/governance/compliance/{fw}/gaps gap analysis
-GET   /api/governance/audit-export/list    list exports
 
-# Observability
 GET   /health
 GET   /metrics                             Prometheus format
 ```
@@ -241,7 +184,7 @@ Full reference: [docs/API_REFERENCE.md](docs/API_REFERENCE.md) or http://localho
 
 ## Configuration
 
-Minimum for development (`.env`):
+Development (`.env`):
 
 ```dotenv
 LEXECON_ENV=development
@@ -260,34 +203,23 @@ DB_ENCRYPTION_KEY=<base64-32-bytes>
 LEXECON_CORS_ORIGINS=https://your-domain.com
 ```
 
-Full variable reference: [docs/SETUP.md](docs/SETUP.md)
+Full reference: [docs/SETUP.md](docs/SETUP.md)
 
 ---
 
 ## Testing
 
 ```bash
-# Run all tests
 python3 -m pytest tests/ -q
-
-# With coverage
 python3 -m pytest tests/ --cov=src/lexecon --cov-report=term-missing
-
-# Specific area
 python3 -m pytest tests/test_decision_service.py tests/test_policy_engine.py -v
-python3 -m pytest tests/test_security.py tests/test_compliance_mapping.py -v
-
-# Security scan
 bandit -r src/
 ```
-
-**Test coverage by area:**
 
 | Area | Tests | Coverage |
 |------|-------|----------|
 | Security / Auth | ~100 | 90%+ |
 | Compliance mapping | ~60 | 100% |
-| EU AI Act | ~50 | 95%+ |
 | Policy engine | ~100 | 90%+ |
 | Decision service | ~200 | 82%+ |
 | API endpoints | ~150 | 85%+ |
@@ -310,7 +242,28 @@ helm install lexecon deployment/helm/ \
   --set env.DATABASE_URL=<your-db-url>
 ```
 
-See [docs/SETUP.md](docs/SETUP.md) for full production guide.
+See [docs/SETUP.md](docs/SETUP.md) for the full production guide.
+
+---
+
+## Use Cases
+
+Governance records and policy enforcement can support requirements in a range of contexts:
+
+- **AI agent safety** — intercept and evaluate agent actions before execution
+- **Regulated industries** — auditable records for healthcare, finance, and legal workflows
+- **Framework alignment** — governance records mapped to SOC 2, ISO 27001, GDPR, HIPAA, PCI-DSS, NIST CSF, and EU AI Act Articles 11, 12, and 14
+- **Internal compliance programs** — structured evidence collection and gap analysis
+
+Lexecon provides infrastructure: auditable records, structured policy enforcement, cryptographic attestations. It does not certify compliance. Regulatory conformity requires organisational processes, legal review, and additional controls beyond what any software library provides. See [docs/SECURITY_POSTURE.md](docs/SECURITY_POSTURE.md).
+
+---
+
+## Known Limitations
+
+- REST API only — no GraphQL or event streaming
+- Frontend dashboard not fully integrated with API
+- Multi-tenancy uses logical separation, not database sharding
 
 ---
 
@@ -322,16 +275,6 @@ See [docs/SETUP.md](docs/SETUP.md) for full production guide.
 | [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | All 40+ endpoints with request/response examples |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System diagrams, data flows, component architecture |
 | [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) | Developer guide and module reference |
-| [docs/market/](docs/market/) | Business strategy, investor, and market-positioning materials |
-
----
-
-## Known Limitations
-
-- No GraphQL — REST API only
-- Frontend (React dashboard) not fully integrated with API
-- Multi-tenancy uses logical separation, not database sharding
-- Synchronous API only — no event streaming
 
 ---
 
@@ -353,4 +296,4 @@ MIT — see [LICENSE](LICENSE).
 
 **Contact:** contact@lexicodinglabs.com | security@lexicodinglabs.com
 
-**Version:** 0.1.0 | **Updated:** February 2026
+**Version:** 0.1.0 | **Updated:** March 2026
