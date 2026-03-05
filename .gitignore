@@ -72,15 +72,14 @@ data/
 *.bak
 coverage.json
 
-# Secrets management (Phase 1D)
+# Secrets / keys — never commit
 secrets/
 .env
 *.env.local
 *.pem
 *.pem.backup
 lexecon_keys/
-# .env.encrypted can be committed (encrypted with master key)
-# but exclude for extra safety unless you want to version it
+src/lexecon_keys/
 
 # Sphinx documentation
 docs/_build/
