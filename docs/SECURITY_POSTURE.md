@@ -24,12 +24,12 @@ This document describes Lexecon's security controls, threat model, and known lim
 
 | Threat | Description | Mitigation Status |
 |--------|-------------|-------------------|
-| **Data Tampering** | Modification of governance records after creation | ✓ Mitigated (hash chain) |
-| **Unauthorized Access** | Access to governance data without proper authorization | ⚠ Partial (permission checks, no SSO) |
-| **Injection Attacks** | SQL/command injection via inputs | ✓ Mitigated (Pydantic validation) |
-| **Denial of Service** | Resource exhaustion via excessive requests | ❌ Not addressed |
-| **Privilege Escalation** | Unauthorized override or escalation resolution | ⚠ Partial (permission checks) |
-| **Data Exfiltration** | Unauthorized export of governance data | ⚠ Partial (permission checks, no encryption at rest) |
+| **Data Tampering** | Modification of governance records after creation | ✓ Mitigated (SHA-256 hash chain) |
+| **Unauthorized Access** | Access to governance data without proper authorization | ✓ Mitigated (RBAC + MFA + OIDC — see `src/lexecon/security/`) |
+| **Injection Attacks** | SQL/command injection via inputs | ✓ Mitigated (Pydantic validation + parameterised queries) |
+| **Denial of Service** | Resource exhaustion via excessive requests | ✓ Mitigated (rate limiting middleware — `rate_limit_middleware.py`) |
+| **Privilege Escalation** | Unauthorized override or escalation resolution | ✓ Mitigated (RBAC permission checks at API layer) |
+| **Data Exfiltration** | Unauthorized export of governance data | ⚠ Partial (permission checks exist; encryption at rest not enforced by app) |
 
 ---
 
@@ -148,44 +148,46 @@ This document describes Lexecon's security controls, threat model, and known lim
 
 ---
 
-## Out of Scope (Explicitly)
+## Implemented — But Requiring Deployment Configuration
 
-The following security controls are **not currently implemented**:
+The following controls are built into the application but rely on correct deployment
+configuration to be effective:
 
-### Authentication
-- No built-in user authentication
-- No session management
-- No password handling
-- Assumes external authentication layer
+### Authentication & Authorization
+- Built-in auth service: `src/lexecon/security/auth_service.py` (RBAC, 4 roles)
+- MFA (TOTP): `src/lexecon/security/mfa_service.py`
+- OIDC (Google / Azure / Okta): `src/lexecon/security/oidc_service.py`
+- Password policy: `src/lexecon/security/password_policy.py`
+- Session keys and DB encryption keys must be set via environment variables (see `.env.example`)
+
+### Rate Limiting
+- Rate limiting middleware: `src/lexecon/security/rate_limit_middleware.py`
+- Configurable per-IP and per-user limits via `LEXECON_RATE_LIMIT_*` env vars
+- Defaults in `.env.example`; must be tuned for production traffic
+
+### Security Headers
+- `src/lexecon/security/security_headers.py` sets HSTS, CSP, X-Frame-Options, etc.
+- Effective only when app is behind TLS termination
+
+## Out of Scope (Explicitly Not Implemented)
+
+The following controls are **not** handled by the application and must be provided
+by the deployment environment:
 
 ### Network Security
-- No TLS/HTTPS enforcement in application code
-- No mTLS support
-- No network policy definitions
-- Assumes deployment environment handles network security
+- TLS/HTTPS termination (use reverse proxy: nginx, Caddy, AWS ALB, etc.)
+- mTLS for service-to-service calls
+- Network segmentation policies
 
-### Encryption
-- No encryption at rest for stored data
-- No field-level encryption for sensitive values
-- No key management system
+### Encryption at Rest
+- Database-level encryption (use PostgreSQL TDE or encrypted RDS)
+- Field-level encryption for high-sensitivity values
+- KMS integration (roadmap: v0.3.0)
 
-### Advanced Authorization
-- No OAuth 2.0 / OIDC integration
-- No SAML SSO support
-- No fine-grained attribute-based access control (ABAC)
-- No dynamic policy evaluation
-
-### Resilience
-- No rate limiting or throttling
-- No circuit breakers for external calls
-- No request size limits enforced
-- No DoS protection
-
-### Monitoring
-- No security event monitoring
-- No anomaly detection
-- No real-time alerting
-- No SIEM integration
+### Monitoring / SIEM
+- Real-time anomaly detection
+- Security event forwarding to SIEM
+- Automated alerting on auth failure patterns
 
 ---
 
@@ -280,9 +282,8 @@ To achieve a production-ready security posture, deployers should:
 ## Security Contact
 
 For security issues or questions:
-- Review `docs/ENTERPRISE_READINESS_GAPS.md` for roadmap
-- File issues at: https://github.com/Lexicoding-systems/Lexecon/issues
-- For sensitive security disclosures, contact repository maintainers directly
+- **Sensitive disclosures**: follow the process in [SECURITY.md](../SECURITY.md) (do not open public issues)
+- **General questions**: GitHub Discussions or GitHub Issues
 
 ---
 
@@ -316,7 +317,8 @@ Organizations using Lexecon must:
 
 ## Version History
 
+- **v0.2.0** (2026-03-05): Updated to reflect built-in auth, rate limiting, MFA, and OIDC
+  - Corrected "out-of-scope" section — these controls ARE implemented in `src/lexecon/security/`
+  - Separated "built-in but needs deployment config" from "truly out of scope"
+  - Updated security contact to point to SECURITY.md
 - **v0.1.0** (2026-01-04): Initial security posture documentation
-  - Documented implemented controls
-  - Identified out-of-scope areas
-  - Provided deployment recommendations

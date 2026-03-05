@@ -1,8 +1,37 @@
 # Lexecon — Architecture Guide
 
-## System Overview
+## What Lexecon Is
 
-Lexecon is a **cryptographic governance engine** for AI safety and regulatory compliance. It evaluates governance decisions deterministically (no LLM), issues capability tokens, maintains a tamper-evident audit ledger, and automates compliance with 6 regulatory frameworks including the EU AI Act.
+Lexecon is a **governance runtime** that sits between AI agents (or any automated
+system) and the resources they interact with. When an agent wants to perform an
+action — read a database, execute a command, make a financial transaction — it
+asks Lexecon first. Lexecon evaluates the request against a policy graph,
+scores it across six risk dimensions, records the decision in a
+cryptographically hash-chained ledger, and returns a signed capability token
+if the action is approved.
+
+**It is not a compliance certification tool.** It provides infrastructure —
+auditable records, structured policy enforcement, cryptographic attestations —
+that organizations can use as evidence when implementing controls required by
+regulations such as the EU AI Act, SOC 2, or GDPR. Compliance also requires
+human processes, legal review, and additional organizational controls.
+
+**Design choices that matter:**
+
+- **No LLM in the evaluation path.** Every policy decision is deterministic and
+  reproducible. Given the same request and the same policy graph, the answer is
+  always identical — and that answer is explainable without black-box reasoning.
+- **Cryptographic attestation over access logs.** A traditional access log can be
+  truncated, rotated, or modified. Lexecon's ledger is a SHA-256 hash chain: any
+  tampering breaks every subsequent hash, and the break is detectable on
+  verification. This is not just an audit log — it is a tamper-evident record
+  that carries its own integrity proof.
+- **Structured policy graph over prompt-based control.** Policies are formal
+  PERMITS / FORBIDS / REQUIRES relations between typed terms (actor, action,
+  resource). They are versioned, testable, and inspectable — not embedded in
+  prompts where they can be elided by sufficiently creative instructions.
+
+## System Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -204,29 +233,35 @@ POST /decide
 
 ---
 
-## EU AI Act Compliance Automation
+## EU AI Act — Supported Controls (Articles 11, 12, 14)
 
 ```
-  EU AI ACT COVERAGE
+  IMPLEMENTED CONTROLS (src/lexecon/compliance/eu_ai_act/)
 
   Article 11 — Technical Documentation
-  ├─ System architecture description
-  ├─ Data flow diagrams (auto-generated)
+  ├─ article_11_technical_docs.py
+  ├─ System architecture description (auto-generated)
+  ├─ Data flow diagrams
   ├─ Risk assessment reports
   └─ Component traceability matrix
 
   Article 12 — Record-Keeping
+  ├─ article_12_records.py
   ├─ 10-year retention (high-risk systems)
   ├─ 6-month retention (standard systems)
   ├─ Legal hold mechanism
-  ├─ GDPR data subject rights
   └─ Export: JSON │ CSV │ Markdown
 
   Article 14 — Human Oversight
+  ├─ article_14_oversight.py
   ├─ Intervention logging (rejection/modification/confirmation)
   ├─ Human role tracking (Operator/Manager/Supervisor)
-  ├─ Response time metrics
   └─ Resolution outcome recording
+
+  Note: These controls support the technical record-keeping and oversight
+  mechanisms described in Articles 11, 12, and 14. Full EU AI Act conformity
+  requires additional organisational processes, legal review, and human
+  oversight controls beyond what any software library can provide alone.
 ```
 
 ---
@@ -313,16 +348,21 @@ POST /decide
 
 ---
 
-## Performance Targets (Achieved)
+## Performance Design Targets
 
-| Metric                | Target   | Achieved    |
-|-----------------------|----------|-------------|
-| Decision latency P50  | <10ms    | <10ms ✓     |
-| Decision latency P99  | <20ms    | <20ms ✓     |
-| Throughput            | 1,000/s  | 10,000/s ✓  |
-| Cache hit rate        | >70%     | ~80% ✓      |
-| Ledger 10k verify     | <100ms   | ~50ms ✓     |
-| Code coverage         | >80%     | 81% ✓       |
+The policy engine is designed for sub-10ms evaluation latency (no LLM, no
+network calls — pure in-process graph traversal). Actual throughput depends
+heavily on deployment configuration (workers, database pool, cache hit rate).
+
+| Metric                | Design Target | How to Measure |
+|-----------------------|---------------|----------------|
+| Decision latency P50  | <10ms         | `GET /metrics` (Prometheus) after warm-up |
+| Decision latency P99  | <20ms         | `GET /metrics` |
+| Cache hit rate        | >70%          | `GET /metrics` (policy cache hit counter) |
+| Ledger 10k verify     | <100ms        | `lexecon verify-ledger` on 10k-entry ledger |
+| Code coverage         | >80%          | `pytest --cov=src/lexecon` from fresh clone → 81% |
+
+To reproduce the coverage number: `pip install -e ".[dev]" && pytest tests/ --cov=src/lexecon -q`
 
 ---
 

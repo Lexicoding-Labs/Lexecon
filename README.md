@@ -21,14 +21,16 @@ python3 -m pytest tests/ -q   # 1,053 tests, 81% coverage
 
 ## What It Does
 
-Lexecon sits between AI agents and the systems they interact with, enforcing governance decisions in real time:
+Lexecon sits between AI agents and the systems they interact with, evaluating every proposed action before it executes:
 
-1. **Evaluates decisions in <10ms** using a graph-based policy engine — no LLM in the loop
+1. **Evaluates decisions in <10ms** using a graph-based policy engine — no LLM in the evaluation path
 2. **Issues capability tokens** — time-limited, Ed25519-signed authorization for approved actions
-3. **Records everything** in a tamper-evident SHA-256 hash-chained ledger (Ed25519/RSA-4096)
+3. **Records everything** in a tamper-evident SHA-256 hash-chained ledger
 4. **Scores risk** across 6 dimensions (security, privacy, compliance, operational, reputational, financial)
-5. **Maps to compliance frameworks** automatically — SOC 2, ISO 27001, GDPR, HIPAA, PCI-DSS, NIST CSF
-6. **Automates EU AI Act** compliance — Articles 11 (technical docs), 12 (10-year records), 14 (human oversight)
+5. **Maps governance records to framework controls** — SOC 2, ISO 27001, GDPR, HIPAA, PCI-DSS, NIST CSF
+6. **Implements record-keeping and oversight controls** for EU AI Act Articles 11 (technical docs), 12 (record retention), and 14 (human oversight logging)
+
+> **On compliance claims:** Lexecon provides infrastructure — auditable records, structured policy enforcement, cryptographic attestations — that can serve as evidence when satisfying regulatory controls. It does not certify compliance. Regulatory conformity requires organisational processes, legal review, and additional controls beyond what any software library provides. See [docs/SECURITY_POSTURE.md](docs/SECURITY_POSTURE.md).
 
 ---
 
