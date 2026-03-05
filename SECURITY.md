@@ -451,6 +451,9 @@ Lexecon's security model assumes:
 ### Internal Reviews
 
 - **2025-12**: Initial security design review
+- **2026-03**: Rotated and purged a keypair that was accidentally committed to the
+  repository; history rewritten with `git-filter-repo`. Assume any keys from
+  before this date are compromised.
 - Ongoing code reviews with security focus
 
 ### Bounty Program
@@ -578,4 +581,4 @@ We thank the security research community for their valuable contributions to mak
 
 ---
 
-*Last Updated: 2025-12-31*
+*Last Updated: 2026-03-05*

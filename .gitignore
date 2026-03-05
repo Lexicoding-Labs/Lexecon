@@ -76,8 +76,9 @@ coverage.json
 secrets/
 .env
 *.env.local
+*.pem
 *.pem.backup
-private_key.pem
+lexecon_keys/
 # .env.encrypted can be committed (encrypted with master key)
 # but exclude for extra safety unless you want to version it
 

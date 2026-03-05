@@ -84,6 +84,10 @@ print(response.json())
 
 ### CLI
 
+> **Key generation:** `lexecon init` generates a fresh keypair locally.
+> Keys are never committed to the repository — keep them outside the project root
+> or use a KMS in production (see [SECURITY.md](SECURITY.md)).
+
 ```bash
 lexecon init --node-id my-node          # generate keys, create config
 lexecon server --port 8000              # start API server
@@ -132,7 +136,7 @@ SQLite (dev) / PostgreSQL (prod) │ Redis (optional cache)
 | Component | Purpose | Notes |
 |-----------|---------|-------|
 | **PolicyEngine** | Deterministic graph-based evaluation | <10ms, 3 modes |
-| **DecisionService** | Request orchestration + token issuance | 10k+ req/sec |
+| **DecisionService** | Request orchestration + token issuance | Async FastAPI |
 | **LedgerChain** | SHA-256 hash-chained audit trail | Tamper-evident |
 | **RiskService** | 6-dimension scoring (0–100) | Auto-escalate ≥80 |
 | **EvidenceService** | Immutable artifact storage | 8 artifact types |
@@ -316,6 +320,7 @@ See [docs/SETUP.md](docs/SETUP.md) for full production guide.
 | [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | All 40+ endpoints with request/response examples |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System diagrams, data flows, component architecture |
 | [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) | Developer guide and module reference |
+| [docs/market/](docs/market/) | Business strategy, investor, and market-positioning materials |
 
 ---
 
