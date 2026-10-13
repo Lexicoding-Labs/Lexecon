@@ -1,0 +1,2 @@
+# Unified patches contain significant space-only context lines.
+integrations/hermes/required-tool-gate.patch -whitespace

@@ -1,0 +1,741 @@
+diff --git a/agent/agent_runtime_helpers.py b/agent/agent_runtime_helpers.py
+index 76cb67df..6ddaed78 100644
+--- a/agent/agent_runtime_helpers.py
++++ b/agent/agent_runtime_helpers.py
+@@ -2404,6 +2404,10 @@ def invoke_tool(agent, function_name: str, function_args: dict, effective_task_i
+         InlineToolContext, apply_transform_tool_result, emit_terminal_post_tool_call,
+         resolve_invoke_tool_executor, tool_hook_ids
+     )
++    from tools.required_tool_gate import mandatory_block
++    required_block = mandatory_block(function_name)
++    if required_block is not None:
++        return json.dumps({"error": required_block})
+     if not isinstance(function_args, dict):
+         function_args = {}
+     hook_ids = tool_hook_ids(agent, effective_task_id, tool_call_id)
+@@ -2438,6 +2442,9 @@ def invoke_tool(agent, function_name: str, function_args: dict, effective_task_i
+         )
+ 
+         def _execute(next_args: dict) -> Any:
++            required_block = mandatory_block(function_name)
++            if required_block is not None:
++                return json.dumps({"error": required_block})
+             result = inline_executor(agent, next_args, inline_ctx)
+             call_args = next_args if isinstance(next_args, dict) else function_args
+             duration_ms = int((time.monotonic() - tool_start_time) * 1000)
+diff --git a/agent/tool_executor.py b/agent/tool_executor.py
+index 72abc90f..80051d48 100644
+--- a/agent/tool_executor.py
++++ b/agent/tool_executor.py
+@@ -701,6 +701,10 @@ def _dispatch_authorized_once(
+             callback()
+ 
+     block_message, block_error_type = scope_block, "tool_scope_block"
++    from tools.required_tool_gate import mandatory_block
++    if block_message is None:
++        block_message = mandatory_block(ref.name)
++        block_error_type = "required_tool_gate"
+     if block_message is None:
+         block_error_type = "plugin_block"
+         resolve = lambda: _pre_tool_block(agent, ref)  # noqa: E731
+@@ -727,6 +731,11 @@ def _dispatch_authorized_once(
+         if guardrail_decision.allows_execution:
+             guardrail_decision = None
+ 
++    if block_body is None and guardrail_decision is None:
++        required_block = mandatory_block(ref.name)
++        if required_block is not None:
++            block_body = {"error": required_block}
++            block_error_type = "required_tool_gate"
+     if block_body is not None or guardrail_decision is not None:
+         _advance_start_order()
+         state.blocked = True
+diff --git a/model_tools.py b/model_tools.py
+index 9a068d5a..0ed22dc7 100644
+--- a/model_tools.py
++++ b/model_tools.py
+@@ -890,6 +890,10 @@ def handle_function_call(
+         function_args = {}
+     trace = list(tool_request_middleware_trace or [])
+     function_name = _LEGACY_TOOL_ALIASES.get(function_name, function_name)
++    from tools.required_tool_gate import mandatory_block
++    required_block = mandatory_block(function_name)
++    if required_block is not None:
++        return tool_error(required_block)
+     ids = _CallIds(task_id, session_id, tool_call_id, turn_id, api_request_id)
+     start = time.monotonic()
+ 
+diff --git a/tests/hermes_cli/test_real_home_tripwire.py b/tests/hermes_cli/test_real_home_tripwire.py
+index de1ae67d..97721e03 100644
+--- a/tests/hermes_cli/test_real_home_tripwire.py
++++ b/tests/hermes_cli/test_real_home_tripwire.py
+@@ -98,6 +98,26 @@ def test_unprotected_paths_and_open_descriptors_still_work(protected_home, tmp_p
+     connection.close()
+ 
+ 
++def test_duplicated_directory_retains_guard_after_original_closes(protected_home, tmp_path):
++    """Descriptor-relative plugin reads work without bypassing protected roots."""
++    (tmp_path / "allowed.txt").write_text("allowed", encoding="utf-8")
++    original = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
++    try:
++        duplicated = os.dup(original)
++    finally:
++        os.close(original)
++    try:
++        permitted = os.open("allowed.txt", os.O_RDONLY, dir_fd=duplicated)
++        try:
++            assert os.read(permitted, 32) == b"allowed"
++        finally:
++            os.close(permitted)
++        with pytest.raises(AssertionError, match="REAL hermes home"):
++            os.open("protected/file.txt", os.O_RDONLY, dir_fd=duplicated)
++    finally:
++        os.close(duplicated)
++
++
+ @pytest.mark.allow_real_home_io
+ def test_explicit_opt_out_allows_only_the_disposable_canary(protected_home):
+     target = protected_home / "file.txt"
+diff --git a/tests/home_io_guard.py b/tests/home_io_guard.py
+index a047815a..ce5ca0f2 100644
+--- a/tests/home_io_guard.py
++++ b/tests/home_io_guard.py
+@@ -160,7 +160,7 @@ class HomeIOGuard:
+         wrap(shutil, "rmtree", (("path", "dir_fd"),))
+         wrap(sqlite3, "connect", (("database", None),))
+ 
+-        original_open, original_close = os.open, os.close
++        original_open, original_close, original_dup = os.open, os.close, os.dup
+ 
+         @wraps(original_open)
+         def guarded_open(path, flags, *args, **kwargs):
+@@ -179,5 +179,18 @@ class HomeIOGuard:
+             self.directories.pop(fd, None)
+             return original_close(fd)
+ 
++        @wraps(original_dup)
++        def guarded_dup(fd):
++            # A duplicated directory retains the same path authority after the
++            # original descriptor closes; never exempt it from guarded opens.
++            parent = self.directories.get(fd)
++            duplicated = original_dup(fd)
++            if parent is not None:
++                self.directories[duplicated] = parent
++            else:
++                self.directories.pop(duplicated, None)
++            return duplicated
++
+         monkeypatch.setattr(os, "open", guarded_open)
+         monkeypatch.setattr(os, "close", guarded_close)
++        monkeypatch.setattr(os, "dup", guarded_dup)
+diff --git a/tests/tools/test_required_tool_gate.py b/tests/tools/test_required_tool_gate.py
+new file mode 100644
+index 00000000..f8b2d780
+--- /dev/null
++++ b/tests/tools/test_required_tool_gate.py
+@@ -0,0 +1,290 @@
++"""Local pilot integration: real Lexecon plugin, host dispatch, fixture-only API.
++
++Run with scripts/run_tests.sh. The sibling Lexecon release checkout is the
++explicit integration fixture; no live profile, account, model or socket is used.
++"""
++
++import importlib
++import json
++import shutil
++import socket
++import sys
++from concurrent.futures import ThreadPoolExecutor
++from pathlib import Path
++from types import SimpleNamespace
++
++import pytest
++
++PLUGIN = Path(__file__).resolve().parents[3] / "lexecon-release-review-2026-10-07/integrations/hermes/lexecon_gate"
++ALLOWED = ["lexecon_list_files", "lexecon_read_file"]
++
++
++@pytest.fixture(autouse=True)
++def isolated_required_state(monkeypatch):
++    from tools import required_tool_gate
++
++    monkeypatch.setattr(required_tool_gate, "_states", {})
++
++
++def parse(result):
++    return json.loads(result) if isinstance(result, str) else result
++
++
++def prepare_home(base, *, enabled=True):
++    home = base.resolve() / "home"
++    home.mkdir(parents=True, mode=0o700)
++    for name in ("workspace", "private", "plugins"):
++        (home / name).mkdir(mode=0o700)
++    assert PLUGIN.is_dir(), "The Lexecon sibling checkout is required for this local integration suite"
++    shutil.copytree(PLUGIN, home / "plugins/lexecon-gate", ignore=shutil.ignore_patterns("__pycache__"))
++    (home / "workspace/hello.txt").write_text("bounded workspace content")
++    settings = {"workspace_root": str(home / "workspace"), "username": "hermes-test",
++                "session_file": str(home / "private/session"), "audit_file": str(home / "private/audit.jsonl")}
++    config = {"required_tool_gate": {"plugin": "lexecon-gate", "tools": ALLOWED},
++              "plugins": {"enabled": ["lexecon-gate"] if enabled else [],
++                          "entries": {"lexecon-gate": {"settings": settings}}},
++              "platform_toolsets": {"cli": ["lexecon_workspace"]},
++              "tools": {"tool_search": {"enabled": False}}}
++    (home / "config.yaml").write_text(json.dumps(config))
++    return home, config
++
++
++def load_home(home, config, monkeypatch):
++    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
++    from hermes_cli import plugins
++    from tools import required_tool_gate as required
++
++    token = set_hermes_home_override(home)
++    try:
++        required.arm_from_config()
++        model_tools = importlib.import_module("model_tools")
++        plugins.discover_plugins(force=True)
++        try:
++            required.seal_required_gate()
++        except required.RequiredToolGateError:
++            if config["plugins"]["enabled"]:
++                raise
++        manager = plugins.get_plugin_manager()
++        loaded = manager._plugins.get("lexecon-gate")
++        return SimpleNamespace(home=home, config=config, required=required, plugins=plugins,
++                               manager=manager, module=None if loaded is None else loaded.module,
++                               model=model_tools)
++    finally:
++        reset_hermes_home_override(token)
++
++
++@pytest.fixture
++def pilot(tmp_path, monkeypatch):
++    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
++    from hermes_cli import plugins
++
++    def forbidden(*args, **kwargs):
++        raise AssertionError("Network connection forbidden in required-gate tests")
++
++    monkeypatch.setattr(socket.socket, "connect", forbidden)
++    monkeypatch.setattr(socket.socket, "connect_ex", forbidden)
++    monkeypatch.setattr(socket, "create_connection", forbidden)
++    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "0")
++    home, config = prepare_home(tmp_path)
++    monkeypatch.chdir(home / "workspace")
++    plugins._reset_plugin_managers_for_tests()
++    gate = load_home(home, config, monkeypatch)
++    token = set_hermes_home_override(home)
++    try:
++        assert gate.module is not None
++        yield gate
++    finally:
++        reset_hermes_home_override(token)
++        plugins._reset_plugin_managers_for_tests()
++
++
++def fixture_api(pilot, monkeypatch, *, deny=False):
++    runtime = sys.modules[pilot.module.__name__ + ".runtime"]
++    requests = []
++
++    def post(self, path, payload):
++        requests.append((path, payload))
++        if path == "/decide":
++            return {"decision": "deny" if deny else "permit", "decision_id": "fixture-decision",
++                    "capability_token": {"arguments_digest": runtime.arguments_digest(payload["tool_arguments"])}}
++        assert path == "/capability/verify"
++        return {"valid": True, "consumed": True}
++
++    monkeypatch.setattr(runtime.LoopbackClient, "for_call", lambda self: self)
++    monkeypatch.setattr(runtime.LoopbackClient, "whoami", lambda self: {
++        "user": {"username": "hermes-test", "role": "viewer"}})
++    monkeypatch.setattr(runtime.LoopbackClient, "post", post)
++    return requests
++
++
++def call(pilot, name, args=None, **kwargs):
++    return parse(pilot.model.handle_function_call(name, args or {}, "fixture-task",
++                                                 session_id="fixture-session", **kwargs))
++
++
++def test_required_mode_blocks_before_loading_or_sealing(tmp_path, monkeypatch):
++    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
++    from tools import required_tool_gate as required
++    from tools.registry import registry
++
++    home, _ = prepare_home(tmp_path)
++    token = set_hermes_home_override(home)
++    try:
++        effects = []
++        registry.register(name="required_gate_sentinel", toolset="test", schema={},
++                          handler=lambda args: effects.append(args) or '{}', scope=str(home))
++        required.arm_from_config()
++        assert parse(registry.dispatch("required_gate_sentinel", {})).get("error")
++        assert effects == []
++    finally:
++        reset_hermes_home_override(token)
++
++
++@pytest.mark.parametrize("route", ["normal", "registry", "invoke"])
++def test_allowed_handlers_authorize_and_deny_every_route(pilot, monkeypatch, route):
++    from agent.agent_runtime_helpers import invoke_tool
++
++    agent = SimpleNamespace(session_id="test", valid_tool_names=set(ALLOWED), _context_engine=None,
++                            _memory_manager=None, enabled_toolsets=["lexecon_workspace"], _current_turn_id="")
++    routes = {
++        "normal": lambda: call(pilot, ALLOWED[1], {"path": "hello.txt"}),
++        "registry": lambda: parse(pilot.model.registry.dispatch(ALLOWED[1], {"path": "hello.txt"})),
++        "invoke": lambda: parse(invoke_tool(agent, ALLOWED[1], {"path": "hello.txt"}, "test",
++                                             pre_tool_block_checked=True, skip_tool_request_middleware=True,
++                                             skip_tool_execution_middleware=True)),
++    }
++    requests = fixture_api(pilot, monkeypatch)
++    assert routes[route]()["content"] == "bounded workspace content"
++    assert [path for path, _ in requests] == ["/decide", "/capability/verify"]
++    fixture_api(pilot, monkeypatch, deny=True)
++    assert routes[route]().get("error") == "policy_denied"
++
++
++@pytest.mark.parametrize("name", ["terminal", "read_file", "execute_code", "delegate_task", "tool_call",
++                                "tool_search", "connectors", "memory", "todo", "unmapped"])
++def test_all_unmapped_routes_block_without_effects(pilot, monkeypatch, name):
++    from agent.agent_runtime_helpers import invoke_tool
++
++    effects = []
++    pilot.model.registry.register(name=name, toolset="test", schema={},
++                                 handler=lambda args: effects.append(args) or '{}', scope=str(pilot.home), override=True)
++    agent = SimpleNamespace(session_id="test", valid_tool_names={name})
++    assert call(pilot, name, {}, skip_pre_tool_call_hook=True).get("error")
++    assert parse(pilot.model.registry.dispatch(name, {})).get("error")
++    assert parse(invoke_tool(agent, name, {}, "test", pre_tool_block_checked=True)).get("error")
++    assert effects == []
++
++
++@pytest.mark.parametrize("failure", ["unload", "disabled", "handler_replaced", "entry_replaced", "foreign_scope"])
++def test_seal_rejects_changed_owner_handler_or_scope(pilot, monkeypatch, failure):
++    fixture_api(pilot, monkeypatch)
++    effects = []
++    handler = lambda args, **kwargs: effects.append(args) or '{}'
++    scope = None
++    if failure == "unload":
++        pilot.manager.unload("lexecon-gate")
++    elif failure == "disabled":
++        pilot.manager._plugins["lexecon-gate"].enabled = False
++    elif failure == "handler_replaced":
++        monkeypatch.setattr(pilot.model.registry.get_entry(ALLOWED[1]), "handler", handler)
++    elif failure == "entry_replaced":
++        pilot.model.registry.register(name=ALLOWED[1], toolset="test", schema={}, handler=handler,
++                                      scope=str(pilot.home), override=True)
++    else:
++        scope = str(pilot.home.parent / "foreign")
++        pilot.model.registry.register(name=ALLOWED[1], toolset="test", schema={}, handler=handler,
++                                      scope=scope, override=True)
++    assert parse(pilot.model.registry.dispatch(ALLOWED[1], {"path": "hello.txt"}, scope=scope)).get("error")
++    assert effects == []
++
++
++@pytest.mark.parametrize("config", [{}, {"required_tool_gate": None}, {"required_tool_gate": {"plugin": "other"}}])
++def test_removed_or_malformed_config_does_not_disarm(pilot, monkeypatch, config):
++    fixture_api(pilot, monkeypatch)
++    (pilot.home / "config.yaml").write_text(json.dumps(config))
++    assert call(pilot, ALLOWED[1], {"path": "hello.txt"}).get("error")
++    assert call(pilot, "terminal", {}).get("error")
++
++
++def test_missing_plugin_remains_blocked(tmp_path, monkeypatch):
++    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
++
++    home, config = prepare_home(tmp_path, enabled=False)
++    pilot = load_home(home, config, monkeypatch)
++    token = set_hermes_home_override(home)
++    try:
++        assert call(pilot, ALLOWED[1], {"path": "hello.txt"}).get("error")
++        assert call(pilot, "terminal", {}).get("error")
++    finally:
++        reset_hermes_home_override(token)
++
++
++def test_final_rewritten_arguments_are_reauthorized(pilot, monkeypatch):
++    requests = fixture_api(pilot, monkeypatch)
++    pilot.manager._hooks["pre_tool_call"].append(
++        lambda **kwargs: {"action": "modify", "args": {"path": "../outside.txt"}})
++    assert call(pilot, ALLOWED[1], {"path": "hello.txt"}).get("error")
++    assert requests == []
++
++
++def test_parallel_calls_each_reach_bound_consumption(pilot, monkeypatch):
++    from tools.thread_context import propagate_context_to_thread
++
++    requests = fixture_api(pilot, monkeypatch)
++    with ThreadPoolExecutor(max_workers=4) as pool:
++        futures = [pool.submit(propagate_context_to_thread(
++            lambda: call(pilot, ALLOWED[1], {"path": "hello.txt"}))) for _ in range(8)]
++        results = [future.result(timeout=10) for future in futures]
++    assert all(result.get("content") == "bounded workspace content" for result in results), results
++    assert sum(path == "/capability/verify" for path, _ in requests) == 8
++
++
++@pytest.mark.parametrize("concurrent", [False, True])
++def test_shared_sequential_parallel_authorizer_blocks_before_effects(pilot, monkeypatch, concurrent):
++    from agent import tool_executor
++
++    effects = []
++    observed = []
++    monkeypatch.setattr(tool_executor, "_emit_terminal_post_tool_call",
++                        lambda *args, **kwargs: observed.append(kwargs))
++    ref = tool_executor._ToolCallRef("delegate_task", {}, "test", "test-call", [])
++    state = tool_executor._ManagedToolResult(None, {}, [], False, False)
++    start_order = lambda callback=None: effects.append("start") if callback else None
++    result = tool_executor._dispatch_authorized_once(
++        SimpleNamespace(session_id="test"), state, ref,
++        execute=lambda args: effects.append("executed"), scope_block=None, display_index=None,
++        begin_execution=start_order if concurrent else None, authorization_gate=None)
++    assert parse(result).get("error")
++    assert state.blocked is True
++    assert effects == []
++    assert observed[0]["status"] == "blocked"
++
++
++def test_outer_hook_infrastructure_failure_cannot_enable_unmapped_tool(pilot, monkeypatch):
++    effects = []
++    pilot.model.registry.register(name="unsafe_fixture", toolset="test", schema={},
++                                 handler=lambda args: effects.append(args) or '{}', scope=str(pilot.home))
++    def broken(*args, **kwargs):
++        raise RuntimeError("hook infrastructure failure")
++    monkeypatch.setattr(pilot.plugins, "_dispatch_pre_tool_call_hooks", broken)
++    assert call(pilot, "unsafe_fixture", {}).get("error")
++    assert effects == []
++
++
++def test_profile_a_b_a_never_shares_workspace_or_seal(pilot, tmp_path, monkeypatch):
++    from hermes_constants import reset_hermes_home_override, set_hermes_home_override
++
++    fixture_api(pilot, monkeypatch)
++    (pilot.home / "workspace/hello.txt").write_text("A")
++    assert call(pilot, ALLOWED[1], {"path": "hello.txt"})["content"] == "A"
++    home_b, config_b = prepare_home(tmp_path / "B")
++    other = load_home(home_b, config_b, monkeypatch)
++    fixture_api(other, monkeypatch)
++    (home_b / "workspace/hello.txt").write_text("B")
++    token = set_hermes_home_override(home_b)
++    try:
++        assert call(other, ALLOWED[1], {"path": "hello.txt"})["content"] == "B"
++        assert parse(other.model.registry.dispatch(ALLOWED[1], {"path": "hello.txt"}, scope=str(pilot.home))).get("error")
++    finally:
++        reset_hermes_home_override(token)
++    assert call(pilot, ALLOWED[1], {"path": "hello.txt"})["content"] == "A"
+diff --git a/tools/connectors/catalog_tool.py b/tools/connectors/catalog_tool.py
+index 0cedf41b..92cec264 100644
+--- a/tools/connectors/catalog_tool.py
++++ b/tools/connectors/catalog_tool.py
+@@ -122,6 +122,10 @@ def manage_catalog(
+ 
+ def install(items: List[Dict[str, str]], *, session_id: Optional[str], tool_call_id: Optional[str],
+             connection_callback: Callable[[Dict[str, Any]], Optional[str]], installer: Any = None) -> str:
++    from tools.required_tool_gate import mandatory_block
++    blocked = mandatory_block("manage_catalog")
++    if blocked is not None:
++        return tool_error(blocked)
+     from tools.connectors.catalog import open_runner
+     from tools.connectors.gateway.config import operation_session_key
+     from tools.connectors.operation import Target
+@@ -145,6 +149,10 @@ def install(items: List[Dict[str, str]], *, session_id: Optional[str], tool_call
+ 
+ 
+ def search(query: str, kind: Optional[str], *, installer: Any = None) -> Dict[str, Any]:
++    from tools.required_tool_gate import mandatory_block
++    blocked = mandatory_block("manage_catalog")
++    if blocked is not None:
++        return {"error": blocked}
+     from tools.connectors.catalog import DEFAULT_PROFILE, target_scope
+ 
+     rows: List[Dict[str, Any]] = []
+diff --git a/tools/connectors/dispatch.py b/tools/connectors/dispatch.py
+index b3d97aad..a50add74 100644
+--- a/tools/connectors/dispatch.py
++++ b/tools/connectors/dispatch.py
+@@ -9,6 +9,10 @@ from tools.connectors.gateway.merge import assemble_results, fill_remote_failure
+ 
+ 
+ def dispatch_connector_call(name, arguments, tool_call_id):
++    from tools.required_tool_gate import mandatory_block
++    blocked = mandatory_block(name)
++    if blocked is not None:
++        return tool_error(blocked)
+     from tools.connectors.gateway.bridge import run_remote
+ 
+     partition = partition_calls([{"name": name, "arguments": arguments}])
+@@ -20,6 +24,10 @@ def dispatch_connector_call(name, arguments, tool_call_id):
+ 
+ def dispatch_connector_batch(calls, ids, *, user_task, enabled_tools,
+                              middleware_trace, enabled_toolsets, disabled_toolsets):
++    from tools.required_tool_gate import mandatory_block
++    blocked = mandatory_block("tool_call")
++    if blocked is not None:
++        return tool_error(blocked)
+     from model_tools import handle_function_call
+     from tools.interrupt import is_interrupted
+ 
+diff --git a/tools/connectors/gateway/bridge.py b/tools/connectors/gateway/bridge.py
+index 459929e7..50a37835 100644
+--- a/tools/connectors/gateway/bridge.py
++++ b/tools/connectors/gateway/bridge.py
+@@ -54,6 +54,9 @@ def connector_search_hits(
+     availability: Optional[Callable[[], bool]] = None,
+     client_factory: Optional[Callable[[], Any]] = None,
+ ) -> ConnectorLeg:
++    from tools.required_tool_gate import mandatory_block
++    if mandatory_block("tool_search") is not None:
++        return ConnectorLeg(failure="required_tool_gate")
+     try:
+         available = (availability or connectors_available)()
+         if not available or not queries:
+@@ -74,6 +77,9 @@ def connector_describe(
+     availability: Optional[Callable[[], bool]] = None,
+     client_factory: Optional[Callable[[], Any]] = None,
+ ) -> ConnectorLeg:
++    from tools.required_tool_gate import mandatory_block
++    if mandatory_block("tool_describe") is not None:
++        return ConnectorLeg(failure="required_tool_gate")
+     try:
+         available = (availability or connectors_available)()
+         if not available:
+@@ -124,6 +130,10 @@ def run_remote(
+     availability: Optional[Callable[[], bool]],
+     client_factory: Optional[Callable[[], Any]],
+ ) -> list[dict[str, Any]]:
++    from tools.required_tool_gate import mandatory_block
++    blocked = next((reason for plan in planned if (reason := mandatory_block(plan.name))), None)
++    if blocked is not None:
++        return fill_remote_failure(planned, blocked, code="REQUIRED_TOOL_GATE")
+     try:
+         available = (availability or connectors_available)()
+     except Exception:
+diff --git a/tools/registry.py b/tools/registry.py
+index 57cffdc8..83c96252 100644
+--- a/tools/registry.py
++++ b/tools/registry.py
+@@ -898,15 +898,19 @@ class ToolRegistry:
+         if not entry:
+             return tool_error(f"Unknown tool: {name}")
+         try:
++            from tools.required_tool_gate import checked_handler
++            blocked, handler, is_async = checked_handler(name, entry, scope=scope)
++            if blocked:
++                return tool_error(blocked)
+             # Plugin contract (plugins/AGENTS.md): optional context kwargs (task_id, session_id, user_task,
+             # parent_agent, ...) are signature-inspected like hook payloads, so a narrow ``handle(args)``
+             # plugin handler is not broken by every field the dispatcher injects (#68318).
+-            kwargs = _kwargs_accepted_by(entry.handler, kwargs)
+-            if entry.is_async:
++            kwargs = _kwargs_accepted_by(handler, kwargs)
++            if is_async:
+                 from model_tools import _run_async
+-                result = _run_async(entry.handler(args, **kwargs))
++                result = _run_async(handler(args, **kwargs))
+             else:
+-                result = entry.handler(args, **kwargs)
++                result = handler(args, **kwargs)
+             return self._normalize_handler_result(name, result)
+         except Exception as e:
+             # exc_info already renders the exception, so keep the message copy bounded.
+diff --git a/tools/required_tool_gate.py b/tools/required_tool_gate.py
+new file mode 100644
+index 00000000..5e6ce9c0
+--- /dev/null
++++ b/tools/required_tool_gate.py
+@@ -0,0 +1,168 @@
++"""Opt-in, process-pinned tool mediation for a trusted local plugin host.
++
++This is a dispatch boundary, not a sandbox for arbitrary Python code. The
++operator arms before plugin discovery and seals the registered handlers after
++discovery. Live reload cannot expand this process's authority.
++"""
++
++from __future__ import annotations
++
++import threading
++from dataclasses import dataclass, field
++from typing import Any, Callable
++
++from hermes_constants import hermes_home_key
++
++
++class RequiredToolGateError(RuntimeError):
++    """Content-free startup failure safe for an operator-facing diagnostic."""
++
++
++@dataclass(frozen=True)
++class _Requirement:
++    plugin: str
++    tools: frozenset[str]
++
++
++@dataclass(frozen=True)
++class _Pin:
++    entry: Any
++    handler: Callable
++    is_async: bool
++    registration: Any
++
++
++@dataclass
++class _State:
++    requirement: _Requirement | None = None
++    manager: Any = None
++    plugin: Any = None
++    pins: dict[str, _Pin] = field(default_factory=dict)
++    sealed: bool = False
++
++
++_states: dict[str, _State] = {}
++_lock = threading.RLock()
++_MESSAGE = "Required tool gate denied execution; restart the approved profile after checking its configuration."
++
++
++def _requirements() -> _Requirement | None:
++    from hermes_cli.config import load_config_readonly, require_readable_config_before_write
++
++    # Unlike the ordinary config reader, this rejects malformed/unreadable YAML
++    # instead of collapsing it to defaults. It performs no writes or migration.
++    require_readable_config_before_write()
++    config = load_config_readonly() or {}
++    if "required_tool_gate" not in config:
++        return None
++    raw = config["required_tool_gate"]
++    if not isinstance(raw, dict) or set(raw) != {"plugin", "tools"}:
++        raise RequiredToolGateError(_MESSAGE)
++    plugin, names = raw["plugin"], raw["tools"]
++    if (not isinstance(plugin, str) or not plugin.strip() or plugin != plugin.strip()
++            or not isinstance(names, list) or not names
++            or any(not isinstance(name, str) or not name or name != name.strip() for name in names)
++            or len(set(names)) != len(names)):
++        raise RequiredToolGateError(_MESSAGE)
++    return _Requirement(plugin, frozenset(names))
++
++
++def arm_from_config() -> bool:
++    """Latch this home's requirement before discovery; never disarm/reconfigure it."""
++    home = hermes_home_key()
++    with _lock:
++        try:
++            requirement = _requirements()
++        except Exception:
++            _states.setdefault(home, _State())
++            raise RequiredToolGateError(_MESSAGE) from None
++        previous = _states.get(home)
++        if previous is not None:
++            if requirement != previous.requirement or requirement is None:
++                raise RequiredToolGateError(_MESSAGE)
++            return True
++        if requirement is None:
++            return False
++        _states[home] = _State(requirement=requirement)
++        return True
++
++
++def seal_required_gate() -> None:
++    """Pin actual host-owned plugin registrations after successful discovery."""
++    from hermes_cli.plugins import get_plugin_manager
++    from tools.registry import registry
++
++    home = hermes_home_key()
++    with _lock:
++        state = _states.get(home)
++        if state is None or state.requirement is None:
++            raise RequiredToolGateError(_MESSAGE)
++        if _requirements() != state.requirement:
++            raise RequiredToolGateError(_MESSAGE)
++        if state.sealed:
++            if any(mandatory_block(name) for name in state.pins):
++                raise RequiredToolGateError(_MESSAGE)
++            return
++        manager = get_plugin_manager()
++        plugin = manager._plugins.get(state.requirement.plugin)
++        if (not manager._discovered or plugin is None or not plugin.enabled
++                or plugin.error or plugin.deferred or plugin.module is None):
++            raise RequiredToolGateError(_MESSAGE)
++        owned = manager._ownership_ledger.get(state.requirement.plugin, ())
++        pins = {}
++        for name in state.requirement.tools:
++            entry = registry.get_entry(name, scope=home)
++            registration = next((item for item in owned if item.kind == "tool"
++                                 and item.key == name and item.active), None)
++            if (entry is None or registration is None or name not in plugin.tools_registered
++                    or not callable(entry.handler)
++                    or (not getattr(entry.handler, "__module__", "").startswith(plugin.module.__name__ + ".")
++                        and getattr(entry.handler, "__module__", "") != plugin.module.__name__)):
++                raise RequiredToolGateError(_MESSAGE)
++            pins[name] = _Pin(entry, entry.handler, entry.is_async, registration)
++        state.manager, state.plugin, state.pins, state.sealed = manager, plugin, pins, True
++
++
++def mandatory_block(name: str, entry=None, scope=None) -> str | None:
++    """Return a safe denial; errors, reloads, profile drift and unarmed config close."""
++    try:
++        home = hermes_home_key()
++        with _lock:
++            state = _states.get(home)
++            requirement = _requirements()
++            if state is None:
++                return _MESSAGE if requirement is not None or _states else None
++            if (not state.sealed or requirement != state.requirement
++                    or scope is not None and hermes_home_key(scope) != home):
++                return _MESSAGE
++            pin = state.pins.get(name)
++            if pin is None:
++                return _MESSAGE
++            from hermes_cli.plugins import get_plugin_manager
++            from tools.registry import registry
++
++            manager = get_plugin_manager()
++            live = registry.get_entry(name, scope=home)
++            if (manager is not state.manager or not manager._discovered
++                    or manager._plugins.get(requirement.plugin) is not state.plugin
++                    or not state.plugin.enabled or state.plugin.error or state.plugin.deferred
++                    or not pin.registration.active or live is not pin.entry
++                    or entry is not None and entry is not pin.entry
++                    or live.handler is not pin.handler or live.is_async != pin.is_async):
++                return _MESSAGE
++            return None
++    except Exception:
++        return _MESSAGE
++
++
++def checked_handler(name, entry, scope=None):
++    """Return the checked callable snapshot; never reread a mutable handler later."""
++    with _lock:
++        blocked = mandatory_block(name, entry=entry, scope=scope)
++        if blocked:
++            return blocked, None, False
++        state = _states.get(hermes_home_key())
++        if state is not None:
++            pin = state.pins[name]
++            return None, pin.handler, pin.is_async
++        return None, entry.handler, entry.is_async
+diff --git a/tools/tool_search.py b/tools/tool_search.py
+index 6466dc49..9297ac94 100644
+--- a/tools/tool_search.py
++++ b/tools/tool_search.py
+@@ -446,6 +446,10 @@ def _string_list_arg(args: Dict[str, Any], key: str, *, dedupe: bool, max_items:
+ def dispatch_tool_search(args: Dict[str, Any], *, current_tool_defs: List[Dict[str, Any]],
+                          config: Optional[ToolSearchConfig] = None,
+                          connector_search: Optional[Any] = None) -> str:
++    from tools.required_tool_gate import mandatory_block
++    blocked = mandatory_block("tool_search")
++    if blocked is not None:
++        return tool_error(blocked)
+     config = config or load_config()
+     queries, err = _string_list_arg(args, "queries", dedupe=False, max_items=_MAX_QUERIES_PER_CALL,
+                                     retry_hint="Retry with fewer, more targeted queries.")
+@@ -489,6 +493,10 @@ def dispatch_tool_search(args: Dict[str, Any], *, current_tool_defs: List[Dict[s
+ def dispatch_tool_describe(args: Dict[str, Any], *, current_tool_defs: List[Dict[str, Any]],
+                            config: Optional[ToolSearchConfig] = None,
+                            connector_describe: Optional[Any] = None) -> str:
++    from tools.required_tool_gate import mandatory_block
++    blocked = mandatory_block("tool_describe")
++    if blocked is not None:
++        return tool_error(blocked)
+     config = config or load_config_readonly()
+     names, err = _string_list_arg(
+         args, "names", dedupe=True, max_items=_MAX_DESCRIBE_NAMES_PER_CALL,

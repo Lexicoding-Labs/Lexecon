@@ -1,0 +1,440 @@
+{
+  "schema": 1,
+  "provenance": "Illustrative offline production-view capture; no API connection, authentication, evaluation, verification or export performed.",
+  "source_commit": "f36ff96d44a1968ce7fb9b4e550d6c9499466d7c",
+  "scale": 2,
+  "coordinate_origin": "top-left",
+  "cursor_targets_pixels": {
+    "runExample": [
+      2268,
+      618
+    ],
+    "verifyIntegrity": [
+      2040,
+      314
+    ],
+    "exportAudit": [
+      2330,
+      314
+    ],
+    "chainStatus": [
+      432,
+      430
+    ],
+    "denyOutcome": [
+      1900,
+      1203
+    ],
+    "permitOutcome": [
+      1900,
+      1340
+    ],
+    "readRow": [
+      940,
+      1330
+    ],
+    "detailDone": [
+      1844,
+      236
+    ],
+    "detailChain": [
+      900,
+      842
+    ],
+    "timelineTab": [
+      270,
+      784
+    ],
+    "analyticsTab": [
+      442,
+      784
+    ],
+    "exportsTab": [
+      612,
+      784
+    ]
+  },
+  "assets": [
+    {
+      "file": "01-empty.png",
+      "width": 2520,
+      "height": 1584,
+      "sha256": "ce4f401dccf5274b7c28c2584c6a94458ec50d1ef72ab6303e498cc94fead92d",
+      "capture": "Actual app-only screenshot of offline test host using unchanged production views",
+      "chain_status": "Not checked",
+      "window_points": [
+        1260,
+        792
+      ],
+      "targets_pixels": {
+        "runExample": [
+          2268,
+          618
+        ],
+        "verifyIntegrity": [
+          2040,
+          314
+        ],
+        "exportAudit": [
+          2330,
+          314
+        ],
+        "chainStatus": [
+          432,
+          430
+        ],
+        "denyOutcome": [
+          1900,
+          1203
+        ],
+        "permitOutcome": [
+          1900,
+          1340
+        ],
+        "readRow": [
+          940,
+          1330
+        ],
+        "detailDone": [
+          1844,
+          236
+        ],
+        "detailChain": [
+          900,
+          842
+        ],
+        "timelineTab": [
+          270,
+          784
+        ],
+        "analyticsTab": [
+          442,
+          784
+        ],
+        "exportsTab": [
+          612,
+          784
+        ]
+      }
+    },
+    {
+      "file": "02-outcomes.png",
+      "width": 2520,
+      "height": 1584,
+      "sha256": "a5932bcaf748bbce4814bf821fa938433424ed5e722803f65a0087bd4411ed4f",
+      "capture": "Actual app-only screenshot of offline test host using unchanged production views",
+      "chain_status": "Not checked",
+      "window_points": [
+        1260,
+        792
+      ],
+      "targets_pixels": {
+        "runExample": [
+          2268,
+          618
+        ],
+        "verifyIntegrity": [
+          2040,
+          314
+        ],
+        "exportAudit": [
+          2330,
+          314
+        ],
+        "chainStatus": [
+          432,
+          430
+        ],
+        "denyOutcome": [
+          1900,
+          1203
+        ],
+        "permitOutcome": [
+          1900,
+          1340
+        ],
+        "readRow": [
+          940,
+          1330
+        ],
+        "detailDone": [
+          1844,
+          236
+        ],
+        "detailChain": [
+          900,
+          842
+        ],
+        "timelineTab": [
+          270,
+          784
+        ],
+        "analyticsTab": [
+          442,
+          784
+        ],
+        "exportsTab": [
+          612,
+          784
+        ]
+      }
+    },
+    {
+      "file": "03-detail.png",
+      "width": 2520,
+      "height": 1584,
+      "sha256": "14a105d122f0de351c29568b94a28e520f603996825e409c6af5520898283ed0",
+      "capture": "Actual app-only screenshot of offline test host using unchanged production views",
+      "chain_status": "Not checked",
+      "window_points": [
+        1260,
+        792
+      ],
+      "targets_pixels": {
+        "runExample": [
+          2268,
+          618
+        ],
+        "verifyIntegrity": [
+          2040,
+          314
+        ],
+        "exportAudit": [
+          2330,
+          314
+        ],
+        "chainStatus": [
+          432,
+          430
+        ],
+        "denyOutcome": [
+          1900,
+          1203
+        ],
+        "permitOutcome": [
+          1900,
+          1340
+        ],
+        "readRow": [
+          940,
+          1330
+        ],
+        "detailDone": [
+          1844,
+          236
+        ],
+        "detailChain": [
+          900,
+          842
+        ],
+        "timelineTab": [
+          270,
+          784
+        ],
+        "analyticsTab": [
+          442,
+          784
+        ],
+        "exportsTab": [
+          612,
+          784
+        ]
+      }
+    },
+    {
+      "file": "04-timeline.png",
+      "width": 2520,
+      "height": 1584,
+      "sha256": "ee8002bdebbdc7338f38f25e09ee775d7ecbe9fe58bd854ca6ec08bff468848e",
+      "capture": "Actual app-only screenshot of offline test host using unchanged production views",
+      "chain_status": "Not checked",
+      "window_points": [
+        1260,
+        792
+      ],
+      "targets_pixels": {
+        "runExample": [
+          2268,
+          618
+        ],
+        "verifyIntegrity": [
+          2040,
+          314
+        ],
+        "exportAudit": [
+          2330,
+          314
+        ],
+        "chainStatus": [
+          432,
+          430
+        ],
+        "denyOutcome": [
+          1900,
+          1203
+        ],
+        "permitOutcome": [
+          1900,
+          1340
+        ],
+        "readRow": [
+          940,
+          1330
+        ],
+        "detailDone": [
+          1844,
+          236
+        ],
+        "detailChain": [
+          900,
+          842
+        ],
+        "timelineTab": [
+          270,
+          784
+        ],
+        "analyticsTab": [
+          442,
+          784
+        ],
+        "exportsTab": [
+          612,
+          784
+        ]
+      }
+    },
+    {
+      "file": "05-analytics.png",
+      "width": 2520,
+      "height": 1584,
+      "sha256": "42290a9f735265974b55f888f6975888cd1408cbc6a094be9e9a51c82fe1aa52",
+      "capture": "Actual app-only screenshot of offline test host using unchanged production views",
+      "chain_status": "Not checked",
+      "window_points": [
+        1260,
+        792
+      ],
+      "targets_pixels": {
+        "runExample": [
+          2268,
+          618
+        ],
+        "verifyIntegrity": [
+          2040,
+          314
+        ],
+        "exportAudit": [
+          2330,
+          314
+        ],
+        "chainStatus": [
+          432,
+          430
+        ],
+        "denyOutcome": [
+          1900,
+          1203
+        ],
+        "permitOutcome": [
+          1900,
+          1340
+        ],
+        "readRow": [
+          940,
+          1330
+        ],
+        "detailDone": [
+          1844,
+          236
+        ],
+        "detailChain": [
+          900,
+          842
+        ],
+        "timelineTab": [
+          270,
+          784
+        ],
+        "analyticsTab": [
+          442,
+          784
+        ],
+        "exportsTab": [
+          612,
+          784
+        ]
+      }
+    },
+    {
+      "file": "06-exports.png",
+      "width": 2520,
+      "height": 1584,
+      "sha256": "6de21e33a8458089f7a4735b5b1f484121f12e3884dfbc0a0cf27b93102ad7cc",
+      "capture": "Actual app-only screenshot of offline test host using unchanged production views",
+      "chain_status": "Not checked",
+      "window_points": [
+        1260,
+        792
+      ],
+      "targets_pixels": {
+        "runExample": [
+          2268,
+          618
+        ],
+        "verifyIntegrity": [
+          2040,
+          314
+        ],
+        "exportAudit": [
+          2330,
+          314
+        ],
+        "chainStatus": [
+          432,
+          430
+        ],
+        "denyOutcome": [
+          1900,
+          1203
+        ],
+        "permitOutcome": [
+          1900,
+          1340
+        ],
+        "readRow": [
+          940,
+          1330
+        ],
+        "detailDone": [
+          1844,
+          236
+        ],
+        "detailChain": [
+          900,
+          842
+        ],
+        "timelineTab": [
+          270,
+          784
+        ],
+        "analyticsTab": [
+          442,
+          784
+        ],
+        "exportsTab": [
+          612,
+          784
+        ]
+      }
+    }
+  ],
+  "geometry_note": "All final assets share2520x1584pixels; targets use top-left source pixel coordinates.",
+  "pixel_dimensions": [
+    2520,
+    1584
+  ],
+  "window_points": [
+    1260,
+    792
+  ]
+}

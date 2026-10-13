@@ -1,0 +1,30 @@
+name: lexecon-gate
+version: 0.1.0
+manifest_version: 2
+api_version: 1
+description: Fail-closed bounded workspace tools with argument-bound Lexecon grants.
+author: Jacob Porter
+license: MIT
+provides_hooks:
+  - pre_tool_call
+config_schema:
+  workspace_root:
+    type: str
+    required: true
+    description: Explicit absolute workspace directory, with no symlink ancestors.
+  username:
+    type: str
+    required: true
+    description: Authenticated Lexecon username; never supplied by the model.
+  session_file:
+    type: str
+    required: true
+    description: Owner-created 0600 session token file in a 0700 directory outside the workspace.
+  audit_file:
+    type: str
+    required: true
+    description: Absolute append-only audit path in a 0700 directory outside the workspace.
+  api_port:
+    type: int
+    default: 8000
+    description: Loopback API port, 8000 for the existing workspace or 8765 for the isolated audit service.

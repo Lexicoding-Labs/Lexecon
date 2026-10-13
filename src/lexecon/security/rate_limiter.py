@@ -1,0 +1,467 @@
+"""Rate Limiting Service with Token Bucket Algorithm.
+
+Provides in-memory rate limiting for Lexecon authentication and API endpoints.
+Supports per-IP, per-user, and per-endpoint rate limits.
+
+Security Features:
+- Token bucket algorithm for smooth rate limiting
+- Configurable limits per context
+- Thread-safe implementation
+- Automatic bucket cleanup to prevent memory leaks
+"""
+
+import math
+import threading
+import time
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Dict, Optional, Tuple
+
+
+@dataclass
+class RateLimitConfig:
+    """Configuration for rate limiting."""
+
+    requests_per_minute: int = 60
+    requests_per_hour: int = 1000
+    burst_size: int = 10
+
+
+class TokenBucket:
+    """Token bucket implementation for rate limiting.
+
+    The token bucket algorithm allows bursts while maintaining an average rate.
+    Tokens are added to the bucket at a constant rate up to a maximum capacity.
+    Each request consumes one token. If no tokens are available, the request is rate limited.
+    """
+
+    def __init__(self, capacity: int, refill_rate: float):
+        """Initialize token bucket.
+
+        Args:
+            capacity: Maximum number of tokens (burst size)
+            refill_rate: Tokens added per second
+        """
+        self.capacity = capacity
+        self.tokens = float(capacity)
+        self.refill_rate = refill_rate  # tokens per second
+        self.last_refill = time.time()
+        self.lock = threading.Lock()
+
+    def _refill(self) -> None:
+        """Refill tokens based on time elapsed."""
+        now = time.time()
+        elapsed = now - self.last_refill
+
+        # Add tokens based on elapsed time
+        tokens_to_add = elapsed * self.refill_rate
+        self.tokens = min(self.capacity, self.tokens + tokens_to_add)
+        self.last_refill = now
+
+    def consume(self, tokens: int = 1) -> bool:
+        """Try to consume tokens from bucket.
+
+        Args:
+            tokens: Number of tokens to consume
+
+        Returns:
+            True if tokens consumed successfully, False if rate limited
+        """
+        with self.lock:
+            self._refill()
+
+            if self.tokens >= tokens:
+                self.tokens -= tokens
+                return True
+
+            return False
+
+    def get_retry_after(self) -> int:
+        """Calculate seconds until next token is available.
+
+        Returns:
+            Seconds to wait before retry
+        """
+        with self.lock:
+            self._refill()
+
+            if self.tokens >= 1:
+                return 0
+
+            # Calculate time needed to refill 1 token
+            tokens_needed = 1 - self.tokens
+            seconds_needed = tokens_needed / self.refill_rate
+            return int(seconds_needed) + 1
+
+    def get_tokens(self) -> float:
+        """Get current number of tokens in bucket.
+
+        Returns:
+            Current token count
+        """
+        with self.lock:
+            self._refill()
+            return self.tokens
+
+
+class RateLimiter:
+    """In-memory rate limiter with token bucket algorithm.
+
+    Supports multiple rate limit configurations:
+    - Global per-IP limits
+    - Per-endpoint per-IP limits
+    - Per-user limits
+    - Custom limits by key
+
+    Thread-safe for concurrent requests.
+    """
+
+    def __init__(self, config: Optional[RateLimitConfig] = None, max_buckets: int = 100000):
+        """Initialize rate limiter with default configurations.
+
+        Args:
+            config: Rate limit configuration (optional)
+            max_buckets: Maximum number of buckets before LRU eviction (DoS protection)
+        """
+        self.config = config or RateLimitConfig()
+        self.buckets: Dict[str, TokenBucket] = {}
+        self.lock = threading.Lock()
+        self.max_buckets = max_buckets
+        self.access_order: Dict[str, float] = {}  # Track access times for LRU
+
+        # Rate limit configurations
+        # Format: (capacity, window_seconds)
+        self.limits = {
+            # Global limits
+            "global_per_ip": (100, 60),  # 100 requests per 60 seconds
+
+            # Auth endpoint limits (stricter)
+            "auth_login_per_ip": (5, 300),  # 5 attempts per 5 minutes
+            "auth_login_per_user": (5, 300),  # 5 attempts per username per 5 minutes
+            "auth_mfa_per_challenge": (3, 300),  # 3 MFA attempts per challenge
+            "auth_register_per_ip": (3, 3600),  # 3 registrations per hour
+
+            # API endpoint limits
+            "api_per_user": (1000, 3600),  # 1000 requests per hour per user
+            "api_export_per_user": (10, 86400),  # 10 exports per day per user
+            "api_create_user_per_ip": (3, 3600),  # 3 user creations per hour
+
+            # Password management
+            "password_change_per_user": (5, 3600),  # 5 password changes per hour
+            "password_reset_per_email": (3, 3600),  # 3 reset requests per hour
+        }
+
+        # Track bucket creation times for cleanup
+        self.bucket_created: Dict[str, datetime] = {}
+
+        # Start cleanup thread
+        self._start_cleanup_thread()
+
+    def _get_or_create_bucket(self, key: str, limit_type: str) -> TokenBucket:
+        """Get existing bucket or create new one with LRU eviction on max buckets.
+
+        Args:
+            key: Unique identifier (e.g., "ip:192.168.1.1")
+            limit_type: Type of limit (e.g., "global_per_ip")
+
+        Returns:
+            TokenBucket instance
+        """
+        bucket_key = f"{limit_type}:{key}"
+        now = time.time()
+
+        with self.lock:
+            if bucket_key not in self.buckets:
+                # Check if we need to evict (LRU)
+                if len(self.buckets) >= self.max_buckets:
+                    self._evict_lru_bucket()
+
+                capacity, window = self.limits.get(limit_type, (100, 60))
+                refill_rate = capacity / window
+
+                self.buckets[bucket_key] = TokenBucket(capacity, refill_rate)
+                self.bucket_created[bucket_key] = datetime.now()
+                self.access_order[bucket_key] = now
+            else:
+                # Update access time for LRU tracking
+                self.access_order[bucket_key] = now
+
+            return self.buckets[bucket_key]
+
+    def _evict_lru_bucket(self) -> None:
+        """Evict the least recently used bucket to prevent memory exhaustion.
+
+        This is called when max_buckets is reached.
+        """
+        if not self.access_order:
+            return
+
+        # Find least recently used
+        lru_key = min(self.access_order, key=self.access_order.get)
+
+        # Remove it
+        if lru_key in self.buckets:
+            del self.buckets[lru_key]
+        if lru_key in self.bucket_created:
+            del self.bucket_created[lru_key]
+        del self.access_order[lru_key]
+
+    def check_rate_limit(self, key: str, limit_type: str = None) -> tuple:
+        """Check rate limit for a key.
+
+        Supports two calling conventions:
+
+        1. Simple per-client API (1 arg):
+           ``check_rate_limit("client1")`` → ``(bool, dict)``
+           Uses ``RateLimitConfig`` to enforce minute + hour limits.
+           **Consumes** a token on each call.
+
+        2. Named limit-type API (2 args):
+           ``check_rate_limit("ip", "global_per_ip")`` → ``(bool, Optional[int])``
+           Check-only (does not consume).
+        """
+        if limit_type is not None:
+            return self._check_rate_limit_by_type(key, limit_type)
+        return self._check_rate_limit_simple(key)
+
+    # ── 2-arg (named limit-type) API ──
+
+    def _check_rate_limit_by_type(self, key: str, limit_type: str) -> Tuple[bool, Optional[int]]:
+        if limit_type not in self.limits:
+            return True, None
+
+        bucket = self._get_or_create_bucket(key, limit_type)
+
+        with bucket.lock:
+            bucket._refill()
+            if bucket.tokens >= 1:
+                return True, None
+            # Do not call get_retry_after() while holding the non-reentrant lock.
+            retry_after = max(1, math.ceil((1 - bucket.tokens) / bucket.refill_rate))
+            return False, retry_after
+
+    # ── 1-arg (simple per-client) API ──
+
+    def _get_or_create_client_buckets(self, key: str):
+        """Return (minute_bucket, hour_bucket) for a client key."""
+        minute_key = f"_client_minute:{key}"
+        hour_key = f"_client_hour:{key}"
+
+        with self.lock:
+            if minute_key not in self.buckets:
+                if len(self.buckets) >= self.max_buckets:
+                    self._evict_lru_bucket()
+                cap = self.config.burst_size
+                self.buckets[minute_key] = TokenBucket(cap, cap / 60.0 if cap else 0)
+                self.bucket_created[minute_key] = datetime.now()
+                self.access_order[minute_key] = time.time()
+
+            if hour_key not in self.buckets:
+                if len(self.buckets) >= self.max_buckets:
+                    self._evict_lru_bucket()
+                cap = self.config.requests_per_hour
+                self.buckets[hour_key] = TokenBucket(cap, cap / 3600.0 if cap else 0)
+                self.bucket_created[hour_key] = datetime.now()
+                self.access_order[hour_key] = time.time()
+
+            now = time.time()
+            self.access_order[minute_key] = now
+            self.access_order[hour_key] = now
+            return self.buckets[minute_key], self.buckets[hour_key]
+
+    def _check_rate_limit_simple(self, key: str) -> Tuple[bool, dict]:
+        minute_bucket, hour_bucket = self._get_or_create_client_buckets(key)
+
+        # Try to consume from both buckets
+        minute_ok = minute_bucket.consume(1)
+        hour_ok = hour_bucket.consume(1) if minute_ok else False
+
+        remaining_minute = int(minute_bucket.get_tokens())
+        remaining_hour = int(hour_bucket.get_tokens())
+
+        if minute_ok and hour_ok:
+            return True, {
+                "allowed": True,
+                "remaining_minute": remaining_minute,
+                "remaining_hour": remaining_hour,
+            }
+
+        retry_after = 3600 if minute_ok and not hour_ok else 60
+        return False, {
+            "allowed": False,
+            "remaining_minute": remaining_minute,
+            "remaining_hour": remaining_hour,
+            "retry_after_seconds": retry_after,
+        }
+
+    def consume(self, key: str, limit_type: str, tokens: int = 1) -> bool:
+        """Consume tokens from rate limit bucket.
+
+        Args:
+            key: Unique identifier for rate limit context
+            limit_type: Type of rate limit
+            tokens: Number of tokens to consume (default: 1)
+
+        Returns:
+            True if tokens consumed successfully, False if rate limited
+        """
+        if limit_type not in self.limits:
+            # Unknown limit type, allow by default
+            return True
+
+        bucket = self._get_or_create_bucket(key, limit_type)
+        return bucket.consume(tokens)
+
+    def get_retry_after(self, key: str, limit_type: str) -> int:
+        """Get seconds until rate limit resets.
+
+        Args:
+            key: Unique identifier for rate limit context
+            limit_type: Type of rate limit
+
+        Returns:
+            Seconds until next token is available
+        """
+        if limit_type not in self.limits:
+            return 0
+
+        bucket = self._get_or_create_bucket(key, limit_type)
+        return bucket.get_retry_after()
+
+    def reset(self, key: str, limit_type: str):
+        """Reset rate limit for a specific key.
+
+        Useful for administrative overrides or after successful login.
+
+        Args:
+            key: Unique identifier for rate limit context
+            limit_type: Type of rate limit
+        """
+        bucket_key = f"{limit_type}:{key}"
+
+        with self.lock:
+            if bucket_key in self.buckets:
+                capacity, window = self.limits[limit_type]
+                refill_rate = capacity / window
+                self.buckets[bucket_key] = TokenBucket(capacity, refill_rate)
+
+    def get_remaining(self, key: str, limit_type: str) -> int:
+        """Get remaining tokens for a key.
+
+        Args:
+            key: Unique identifier for rate limit context
+            limit_type: Type of rate limit
+
+        Returns:
+            Number of remaining tokens
+        """
+        if limit_type not in self.limits:
+            return -1  # Unlimited
+
+        bucket = self._get_or_create_bucket(key, limit_type)
+
+        with bucket.lock:
+            bucket._refill()
+            return int(bucket.tokens)
+
+    def cleanup_expired_buckets(self, max_age_hours: int = 1):
+        """Remove expired buckets to prevent memory leak.
+
+        Args:
+            max_age_hours: Remove buckets older than this many hours
+        """
+        now = datetime.now()
+        cutoff = now - timedelta(hours=max_age_hours)
+
+        with self.lock:
+            expired_keys = [
+                key for key, created in self.bucket_created.items()
+                if created < cutoff
+            ]
+
+            for key in expired_keys:
+                del self.buckets[key]
+                del self.bucket_created[key]
+                if key in self.access_order:
+                    del self.access_order[key]
+
+            if expired_keys:
+                # Log using get_logger if available
+                try:
+                    from lexecon.observability import get_logger
+                    logger = get_logger("rate_limiter")
+                    logger.debug(
+                        f"Rate limiter cleanup: removed {len(expired_keys)} buckets "
+                        f"({len(self.buckets)} remaining)"
+                    )
+                except (ImportError, Exception):
+                    # Fallback to print if logging unavailable
+                    print(
+                        f"Rate limiter: cleaned up {len(expired_keys)} expired buckets"
+                    )
+
+    def _start_cleanup_thread(self) -> None:
+        """Start background thread for aggressive bucket cleanup."""
+        def cleanup_loop() -> None:
+            while True:
+                time.sleep(300)  # Run every 5 minutes (was 1 hour)
+                self.cleanup_expired_buckets(max_age_hours=1)  # More aggressive (was 24 hours)
+
+        thread = threading.Thread(target=cleanup_loop, daemon=True)
+        thread.start()
+
+    def reset_client(self, key: str) -> None:
+        """Reset all rate limit buckets for a client key."""
+        minute_key = f"_client_minute:{key}"
+        hour_key = f"_client_hour:{key}"
+
+        with self.lock:
+            for bk in (minute_key, hour_key):
+                if bk in self.buckets:
+                    del self.buckets[bk]
+                if bk in self.bucket_created:
+                    del self.bucket_created[bk]
+                if bk in self.access_order:
+                    del self.access_order[bk]
+
+    def get_stats(self) -> Dict:
+        """Get rate limiter statistics.
+
+        Returns:
+            Dictionary with statistics
+        """
+        with self.lock:
+            # Count unique simple-API client keys
+            client_keys = {
+                k.split(":", 1)[1]
+                for k in self.buckets
+                if k.startswith("_client_minute:")
+            }
+            return {
+                "total_buckets": len(self.buckets),
+                "configured_limits": len(self.limits),
+                "tracked_clients": len(client_keys),
+                "config": {
+                    "requests_per_minute": self.config.requests_per_minute,
+                    "requests_per_hour": self.config.requests_per_hour,
+                    "burst_size": self.config.burst_size,
+                },
+            }
+
+
+# Global rate limiter instance
+_rate_limiter: Optional[RateLimiter] = None
+
+
+def get_rate_limiter() -> RateLimiter:
+    """Get global rate limiter instance.
+
+    Returns:
+        Global RateLimiter instance
+    """
+    global _rate_limiter
+
+    if _rate_limiter is None:
+        _rate_limiter = RateLimiter()
+
+    return _rate_limiter

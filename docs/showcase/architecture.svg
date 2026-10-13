@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1020" role="img" aria-labelledby="title desc">
+  <title id="title">Lexecon local architecture: policy, decision, reference enforcement, and evidence</title>
+  <desc id="desc">A dashboard or API client sends an authenticated request to FastAPI. The policy engine checks action and tool permission, then the decision service returns permit or deny. A permit may include a five-minute process-bound grant. A reference adapter checks that grant online before a harmless local text transform. The decision response is bound to a hash-linked ledger entry persisted in SQLite. Evidence can be exported as a ZIP; rehashing it alone does not establish signer identity or the entire source chain.</desc>
+  <defs>
+    <linearGradient id="paper" x2="1" y2="1"><stop stop-color="#F8F9F6"/><stop offset="1" stop-color="#EEF2ED"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="12" stdDeviation="17" flood-color="#192824" flood-opacity=".08"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M1 1 L11 6 L1 11" fill="none" stroke="#63766A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  </defs>
+  <rect width="1600" height="1020" fill="url(#paper)"/>
+  <path d="M80 88 H1520" stroke="#D8E0D8" stroke-width="2"/>
+  <text x="80" y="67" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="21" font-weight="700" fill="#235F4D" letter-spacing="2">LEXECON / SYSTEM VIEW</text>
+  <text x="80" y="158" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="58" font-weight="650" fill="#192824" letter-spacing="-2">From request to record.</text>
+  <text x="80" y="202" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="23" fill="#4B5E55">One local organization · explicit decision · inspectable evidence</text>
+
+  <text x="80" y="260" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#63766A" letter-spacing="2">01  REQUEST AND DECISION</text>
+  <g filter="url(#shadow)">
+    <rect x="80" y="290" width="310" height="208" rx="20" fill="#FFFFFF"/>
+    <rect x="444" y="290" width="310" height="208" rx="20" fill="#FFFFFF"/>
+    <rect x="808" y="290" width="310" height="208" rx="20" fill="#FFFFFF"/>
+    <rect x="1172" y="290" width="348" height="208" rx="20" fill="#192824"/>
+  </g>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+    <text x="108" y="336" font-size="16" font-weight="700" fill="#235F4D">CALLER</text>
+    <text x="108" y="385" font-size="29" font-weight="650" fill="#192824">Dashboard or API</text>
+    <text x="108" y="424" font-size="19" fill="#4B5E55">Requests action + tool</text>
+    <text x="108" y="453" font-size="19" fill="#4B5E55">with local session</text>
+
+    <text x="472" y="336" font-size="16" font-weight="700" fill="#235F4D">ENTRY</text>
+    <text x="472" y="385" font-size="29" font-weight="650" fill="#192824">FastAPI</text>
+    <text x="472" y="424" font-size="19" fill="#4B5E55">Session and role checks</text>
+    <text x="472" y="453" font-size="19" fill="#4B5E55">HTTP tenant: default</text>
+
+    <text x="836" y="336" font-size="16" font-weight="700" fill="#235F4D">POLICY</text>
+    <text x="836" y="385" font-size="29" font-weight="650" fill="#192824">Policy engine</text>
+    <text x="836" y="424" font-size="19" fill="#4B5E55">Action first</text>
+    <text x="836" y="453" font-size="19" fill="#4B5E55">then tool on permit</text>
+
+    <text x="1200" y="336" font-size="16" font-weight="700" fill="#A8DEB5">DECISION</text>
+    <text x="1200" y="385" font-size="29" font-weight="650" fill="#FFFFFF">Permit or deny</text>
+    <text x="1200" y="424" font-size="19" fill="#BDCDC0">Permit: scoped grant</text>
+    <text x="1200" y="453" font-size="19" fill="#BDCDC0">5 min · process-bound</text>
+  </g>
+  <g stroke="#63766A" stroke-width="2.5" fill="none" >
+    <path d="M399 394 H433"/><path d="M763 394 H797"/><path d="M1127 394 H1161"/>
+  </g>
+  <g fill="#63766A"><path d="M425 389 L435 394 L425 399 Z"/><path d="M789 389 L799 394 L789 399 Z"/><path d="M1153 389 L1163 394 L1153 399 Z"/><path d="M415 566 L420 576 L425 566 Z"/><path d="M1325 566 L1330 576 L1335 566 Z"/></g>
+  <text x="492" y="535" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" font-weight="700" fill="#4B5E55">EVERY DECISION</text>
+  <text x="1105" y="535" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" font-weight="700" fill="#4B5E55">PERMIT GRANT ONLY</text>
+  <path d="M1330 510 V544 H420 V574" fill="none" stroke="#829188" stroke-width="2.5" />
+  <path d="M1330 510 V574" fill="none" stroke="#829188" stroke-width="2.5" />
+
+  <text x="80" y="570" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#63766A" letter-spacing="2">02  RECORD AND INSPECT</text>
+  <text x="808" y="570" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="16" font-weight="700" fill="#63766A" letter-spacing="2">03  REFERENCE ENFORCEMENT</text>
+  <g filter="url(#shadow)">
+    <rect x="80" y="600" width="674" height="282" rx="20" fill="#FFFFFF"/>
+    <rect x="808" y="600" width="712" height="282" rx="20" fill="#FFFFFF"/>
+  </g>
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+    <text x="108" y="653" font-size="30" font-weight="650" fill="#192824">Response → ledger entry</text>
+    <text x="108" y="698" font-size="20" fill="#4B5E55">Response digest inside SHA-256-linked entry</text>
+    <text x="108" y="730" font-size="20" fill="#4B5E55">Previous-hash links · local SQLite persistence</text>
+    <path d="M108 754 H726" stroke="#D8E0D8" stroke-width="2"/>
+    <text x="108" y="792" font-size="20" font-weight="650" fill="#235F4D">Verify chain</text>
+    <text x="108" y="826" font-size="20" fill="#4B5E55">Export selected events + manifest in a ZIP</text>
+
+    <text x="836" y="653" font-size="30" font-weight="650" fill="#192824">Online grant check</text>
+    <text x="836" y="698" font-size="20" fill="#4B5E55">Subject · action/tool scope · expiry · policy version</text>
+    <text x="836" y="730" font-size="20" fill="#4B5E55">Authenticated /capability/verify</text>
+    <path d="M836 754 H1492" stroke="#D8E0D8" stroke-width="2"/>
+    <text x="836" y="792" font-size="20" font-weight="650" fill="#235F4D">Bundled adapter only</text>
+    <text x="836" y="826" font-size="20" fill="#4B5E55">Gates a harmless local text transformation</text>
+  </g>
+  <path d="M80 921 H1520" stroke="#D8E0D8" stroke-width="2"/>
+  <text x="80" y="958" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="18" fill="#4B5E55">LOCAL PROTOTYPE  ·  ZIP REHASH ≠ TRUSTED SIGNER OR FULL SOURCE-CHAIN PROOF  ·  OTHER TOOLS ARE NOT GATED</text>
+</svg>

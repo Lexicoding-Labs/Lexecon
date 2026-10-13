@@ -1,0 +1,178 @@
+/* Stipple's local workspace surfaces. System fonts and CSS variables only. */
+:root { --stipple-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
+
+.stipple-eyebrow {
+  color: var(--brand-text);
+  font: 700 0.69rem/1.4 var(--stipple-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.stipple-brand { color: var(--text-primary); font-weight: 760; letter-spacing: -0.055em; }
+.stipple-brand span { color: var(--brand-text); }
+.stipple-muted { color: var(--text-secondary); }
+.stipple-button {
+  appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.48rem;
+  min-height: 40px; padding: 0.55rem 0.9rem; border: 1px solid var(--border-strong);
+  border-radius: 8px; background: var(--bg-elevated); color: var(--text-primary);
+  font-family: inherit; font-size: 0.875rem; font-weight: 650; line-height: 1.3; cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.stipple-button:hover:not(:disabled) { background: var(--bg-secondary); border-color: var(--text-tertiary); transform: translateY(-1px); }
+.stipple-button:disabled { opacity: 0.55; cursor: not-allowed; }
+.stipple-button-primary { border-color: var(--brand-primary); background: var(--brand-primary); color: #fff; }
+.stipple-button-primary:hover:not(:disabled) { background: var(--brand-primary-hover); border-color: var(--brand-primary-hover); }
+.stipple-button-quiet { border-color: transparent; background: transparent; color: var(--text-secondary); }
+.stipple-button-quiet:hover:not(:disabled) { color: var(--text-primary); background: var(--bg-secondary); border-color: transparent; }
+.stipple-theme-toggle { min-height: 36px; padding: 0.45rem 0.7rem; border-color: var(--border); font-size: 0.78rem; }
+
+/* Sign in: a quiet product statement beside a clear local form. */
+.stipple-login { min-height: 100vh; display: grid; place-items: center; padding: clamp(20px, 4vw, 64px); background: var(--bg-primary); }
+.stipple-login-shell {
+  width: min(1080px, 100%); min-height: 620px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(350px, 0.95fr);
+  border: 1px solid var(--border); border-radius: 18px; background: var(--bg-elevated); overflow: hidden;
+  box-shadow: 0 20px 60px rgba(17, 40, 28, 0.07);
+}
+.stipple-login-story { padding: clamp(30px, 5vw, 72px); display: flex; flex-direction: column; background: var(--bg-secondary); border-right: 1px solid var(--border); }
+.stipple-login-story .stipple-brand { font-size: 1.45rem; }
+.stipple-login-story h1 { max-width: 11ch; margin: auto 0 22px; font-size: clamp(2.7rem, 4vw, 4.25rem); line-height: 1.04; letter-spacing: -0.065em; font-weight: 720; }
+.stipple-login-story p { max-width: 34ch; color: var(--text-secondary); font-size: 1rem; line-height: 1.65; }
+.stipple-login-story footer { margin-top: auto; padding-top: 56px; font: 600 0.71rem/1.5 var(--stipple-mono); color: var(--text-tertiary); letter-spacing: 0.025em; }
+.stipple-login-form-side { padding: clamp(28px, 4vw, 62px); display: flex; flex-direction: column; justify-content: center; }
+.stipple-login-top { display: flex; justify-content: flex-end; margin-bottom: 60px; }
+.stipple-login-form-side h2 { margin: 10px 0 8px; font-size: clamp(1.75rem, 2.6vw, 2.2rem); line-height: 1.18; letter-spacing: -0.045em; }
+.stipple-login-intro { max-width: 38ch; margin: 0 0 30px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+.stipple-field { display: grid; gap: 8px; margin-bottom: 20px; }
+.stipple-field > span, .stipple-field > label { font-size: 0.8rem; font-weight: 680; color: var(--text-secondary); }
+.stipple-field input, .stipple-field select, .stipple-filter input, .stipple-filter select {
+  width: 100%; min-height: 43px; padding: 0.65rem 0.75rem; border: 1px solid var(--border-strong); border-radius: 8px;
+  background: var(--bg-elevated); color: var(--text-primary); font-family: inherit; font-size: 0.875rem; font-weight: 500; line-height: 1.3;
+}
+.stipple-field input::placeholder, .stipple-filter input::placeholder { color: var(--text-placeholder); }
+.stipple-field input:hover, .stipple-filter input:hover, .stipple-filter select:hover { border-color: var(--text-tertiary); }
+.stipple-login-submit { width: 100%; min-height: 46px; margin-top: 5px; }
+.stipple-login-footnote { margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--text-tertiary); font-size: 0.75rem; line-height: 1.55; }
+.stipple-notice { margin: 0 0 18px; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font-size: 0.82rem; line-height: 1.5; }
+.stipple-notice-error { border-color: var(--error); background: var(--error-subtle); color: var(--error-text); }
+.stipple-notice-success { border-color: var(--success); background: var(--success-subtle); color: var(--success-text); }
+.stipple-notice button { appearance: none; border: 0; padding: 0; background: none; color: inherit; text-decoration: underline; font: inherit; cursor: pointer; }
+
+/* Workspace: status and decisions lead, with supporting controls kept compact. */
+.stipple-workspace { min-height: 100vh; background: var(--bg-primary); color: var(--text-primary); }
+.stipple-appbar { background: var(--bg-elevated); border-bottom: 1px solid var(--border); }
+.stipple-appbar-inner { width: min(1360px, 100%); min-height: 64px; margin: auto; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.stipple-appbar .stipple-brand { font-size: 1.43rem; }
+.stipple-appbar-left, .stipple-appbar-right { display: flex; align-items: center; gap: 18px; }
+.stipple-appbar-label { padding-left: 18px; border-left: 1px solid var(--border); color: var(--text-tertiary); font: 650 0.68rem/1.3 var(--stipple-mono); letter-spacing: 0.09em; text-transform: uppercase; }
+.stipple-workspace-main { width: min(1360px, 100%); margin: auto; padding: 36px 28px 70px; }
+.stipple-page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.stipple-page-head h1 { margin: 7px 0 4px; font-size: clamp(2rem, 3vw, 2.6rem); letter-spacing: -0.06em; line-height: 1.13; font-weight: 710; }
+.stipple-page-head p { color: var(--text-secondary); font-size: 0.9rem; }
+.stipple-page-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.stipple-verified { color: var(--success-text); font-weight: 700; font-size: 0.79rem; white-space: nowrap; }
+.stipple-verified::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 7px 1px 0; border-radius: 50%; background: var(--success); }
+.stipple-verified-failed { color: var(--error-text); }
+.stipple-verified-failed::before { background: var(--error); }
+.stipple-meta-line { display: flex; align-items: center; flex-wrap: wrap; gap: 0.65rem 1.1rem; padding: 11px 0; margin: 0 0 22px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: var(--text-secondary); font: 500 0.79rem/1.4 var(--stipple-mono); }
+.stipple-meta-line strong { color: var(--text-primary); font-weight: 700; }
+.stipple-meta-line .stipple-button { margin-left: auto; min-height: 30px; padding: 0.25rem 0.55rem; font-family: inherit; font-size: 0.75rem; font-weight: 600; line-height: 1.2; }
+.stipple-status-note { margin: -8px 0 18px; color: var(--success-text); font-size: 0.82rem; }
+.stipple-guided { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; margin: 0 0 24px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated); }
+.stipple-guided h2 { margin: 5px 0 4px; font-size: 1rem; letter-spacing: -0.025em; }
+.stipple-guided p { color: var(--text-secondary); font-size: 0.79rem; line-height: 1.5; }
+.stipple-guided-copy { flex: 1; min-width: 0; }
+.stipple-guided-result { margin-top: 9px; color: var(--text-primary) !important; font-size: 0.81rem !important; }
+.stipple-guided-result strong { color: var(--brand-text); }
+.stipple-guided .stipple-button { flex: 0 0 auto; }
+.stipple-guided .stipple-notice { margin: 10px 0 0; }
+.stipple-tabs { display: flex; gap: 24px; overflow-x: auto; border-bottom: 1px solid var(--border); margin: 0 0 18px; }
+.stipple-tab { appearance: none; white-space: nowrap; border: 0; border-bottom: 2px solid transparent; background: transparent; padding: 12px 1px 13px; color: var(--text-secondary); font-family: inherit; font-size: 0.85rem; font-weight: 650; line-height: 1.2; cursor: pointer; }
+.stipple-tab:hover { color: var(--text-primary); }
+.stipple-tab[aria-selected='true'] { color: var(--brand-text); border-bottom-color: var(--brand-primary); }
+.stipple-filterbar { display: grid; grid-template-columns: minmax(180px, 2fr) repeat(3, minmax(122px, 1fr)) auto; gap: 10px; align-items: end; padding: 0 0 16px; }
+.stipple-filter { display: grid; gap: 6px; color: var(--text-secondary); font-size: 0.72rem; font-weight: 700; }
+.stipple-filter input, .stipple-filter select { min-height: 37px; padding: 0.45rem 0.6rem; font-size: 0.79rem; }
+.stipple-filter-check { display: flex; gap: 7px; align-items: center; min-height: 37px; white-space: nowrap; font-size: 0.77rem; font-weight: 600; }
+.stipple-filter-check input { width: 16px; height: 16px; accent-color: var(--brand-primary); }
+.stipple-table-count { margin: 0 0 10px; color: var(--text-tertiary); font: 500 0.74rem/1.4 var(--stipple-mono); }
+.stipple-ledger-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg-elevated); }
+.stipple-ledger-table > div:last-child { overflow-x: auto !important; }
+.stipple-ledger-table table { min-width: 900px; }
+.stipple-decision-id { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; font: 600 0.76rem/1.4 var(--stipple-mono); color: var(--brand-text); }
+.stipple-outcome { display: inline-flex; align-items: center; gap: 7px; font-size: 0.77rem; font-weight: 720; text-transform: capitalize; }
+.stipple-outcome::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); }
+.stipple-outcome--approved { color: var(--success-text); }
+.stipple-outcome--approved::before { background: var(--success); }
+.stipple-outcome--denied { color: var(--error-text); }
+.stipple-outcome--denied::before { background: var(--error); }
+.stipple-risk { color: var(--text-secondary); font: 600 0.75rem/1.3 var(--stipple-mono); text-transform: capitalize; }
+.stipple-mobile-row-meta { display: none; }
+.stipple-usage { margin: 18px 0 0; color: var(--text-tertiary); font: 500 0.73rem/1.5 var(--stipple-mono); }
+.stipple-usage strong { color: var(--text-secondary); }
+
+/* Decision drawer: outcome first, provenance and raw data progressively disclosed. */
+.stipple-modal { position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: flex-end; }
+.stipple-scrim { position: absolute; inset: 0; background: rgba(17, 32, 23, 0.45); }
+.stipple-detail-panel { width: min(570px, 94vw) !important; background: var(--bg-elevated) !important; }
+.stipple-detail-panel { position: relative; height: 100%; display: flex; flex-direction: column; box-shadow: -18px 0 55px rgba(7, 25, 14, 0.16); }
+.stipple-detail-panel-header { padding: 18px 24px !important; }
+.stipple-detail-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--border); font-size: 0.84rem; font-weight: 700; }
+.stipple-detail-panel-content { padding: 24px !important; }
+.stipple-detail-panel-content { flex: 1; overflow: auto; }
+.stipple-detail h2 { font-size: 1.45rem; letter-spacing: -0.04em; margin: 3px 0 6px; }
+.stipple-detail h2 .stipple-outcome { margin-left: 10px; vertical-align: middle; }
+.stipple-detail-lead { color: var(--text-secondary); font-size: 0.81rem; line-height: 1.55; margin-bottom: 22px; }
+.stipple-detail-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 16px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+.stipple-detail-summary dt, .stipple-detail-field dt { color: var(--text-tertiary); font: 650 0.68rem/1.4 var(--stipple-mono); letter-spacing: 0.05em; text-transform: uppercase; }
+.stipple-detail-summary dd { margin-top: 5px; font-size: 0.86rem; font-weight: 720; }
+.stipple-detail-section { margin: 0 0 22px; }
+.stipple-detail-section h3 { margin-bottom: 12px; font-size: 0.84rem; letter-spacing: -0.01em; }
+.stipple-detail-field { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.stipple-detail-field dd { min-width: 0; margin: 0; display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--text-primary); font: 500 0.77rem/1.5 var(--stipple-mono); overflow-wrap: anywhere; text-align: right; }
+.stipple-detail-copy { padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-secondary); color: var(--text-secondary); font-family: inherit; font-size: 0.67rem; font-weight: 600; line-height: 1.2; cursor: pointer; }
+.stipple-detail-check { padding: 14px 16px; border-left: 3px solid var(--success); background: var(--success-subtle); color: var(--success-text); font-size: 0.79rem; line-height: 1.55; }
+.stipple-detail-check--unchecked { border-left-color: var(--border-strong); background: var(--bg-secondary); color: var(--text-secondary); }
+.stipple-detail-check--failed { border-left-color: var(--error); background: var(--error-subtle); color: var(--error-text); }
+.stipple-detail details { border-top: 1px solid var(--border); padding: 14px 0; }
+.stipple-detail summary { color: var(--text-secondary); font-size: 0.8rem; font-weight: 650; cursor: pointer; }
+.stipple-detail pre { max-height: 260px; overflow: auto; margin-top: 12px; padding: 14px; border-radius: 8px; background: var(--bg-secondary); color: var(--text-primary); font: 0.72rem/1.55 var(--stipple-mono); }
+
+@media (max-width: 850px) {
+  .stipple-login-shell { grid-template-columns: 1fr; min-height: 0; }
+  .stipple-login-story { min-height: 230px; border-right: 0; border-bottom: 1px solid var(--border); padding: 28px; }
+  .stipple-login-story h1 { margin: 34px 0 10px; font-size: 2.4rem; }
+  .stipple-login-story footer { display: none; }
+  .stipple-login-form-side { padding: 30px; }
+  .stipple-login-top { margin-bottom: 24px; }
+  .stipple-page-head { align-items: flex-start; flex-direction: column; }
+  .stipple-page-actions { justify-content: flex-start; }
+  .stipple-filterbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .stipple-login { padding: 0; }
+  .stipple-login-shell { border-radius: 0; border-left: 0; border-right: 0; min-height: 100vh; }
+  .stipple-login-story { min-height: 0; padding: 24px; }
+  .stipple-login-story h1 { font-size: 2rem; max-width: none; }
+  .stipple-login-story p { font-size: 0.88rem; }
+  .stipple-login-form-side { padding: 24px; }
+  .stipple-appbar-inner { padding: 0 18px; }
+  .stipple-appbar-label { display: none; }
+  .stipple-workspace-main { padding: 25px 18px 54px; }
+  .stipple-page-head h1 { font-size: 2rem; }
+  .stipple-page-actions .stipple-button { flex: 1; }
+  .stipple-guided { align-items: stretch; flex-direction: column; padding: 16px; }
+  .stipple-guided .stipple-button { width: 100%; }
+  .stipple-filterbar { grid-template-columns: 1fr 1fr; }
+  .stipple-filter:first-child { grid-column: 1 / -1; }
+  .stipple-filter-check { grid-column: 1 / -1; }
+  .stipple-ledger-table table { min-width: 0; }
+  .stipple-mobile-row-meta { display: block; margin-top: 7px; color: var(--text-tertiary); font-size: 0.68rem; line-height: 1.45; }
+  .stipple-ledger-table th:nth-child(1), .stipple-ledger-table td:nth-child(1),
+  .stipple-ledger-table th:nth-child(2), .stipple-ledger-table td:nth-child(2),
+  .stipple-ledger-table th:nth-child(4), .stipple-ledger-table td:nth-child(4),
+  .stipple-ledger-table th:nth-child(6), .stipple-ledger-table td:nth-child(6),
+  .stipple-ledger-table th:nth-child(7), .stipple-ledger-table td:nth-child(7) { display: none; }
+  .stipple-detail-summary { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stipple-button { transition: none; }
+}

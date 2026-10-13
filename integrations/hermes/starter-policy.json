@@ -1,0 +1,8 @@
+{
+  "relations": [
+    {"type": "permits", "subject": "actor:lexecon_hermes", "action": "action:list"},
+    {"type": "permits", "subject": "actor:lexecon_hermes", "action": "action:read"},
+    {"type": "permits", "subject": "actor:lexecon_hermes", "action": "tool:lexecon_list_files"},
+    {"type": "permits", "subject": "actor:lexecon_hermes", "action": "tool:lexecon_read_file"}
+  ]
+}

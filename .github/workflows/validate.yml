@@ -1,0 +1,94 @@
+name: Manual source validation
+
+# Deliberate manual opt-in: publishing or pushing does not start a hosted run.
+"on":
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Account-free Python and source checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out selected branch history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # A positive depth fetches only this ref, not unrelated legacy branches.
+          # The history guard fails closed if this limit ever leaves it shallow.
+          fetch-depth: 1000000
+          persist-credentials: false
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@d0d8abe699bfb85fec6de9f7adb5ae17292296ff # v6
+        with:
+          version: "0.12.22"
+          python-version: "3.12"
+          enable-cache: false
+      - name: Install locked Python dependencies
+        run: uv sync --locked --extra dev
+      - name: Check local history, index, and eligible source files for PEM private keys
+        run: uv run --no-sync python scripts/check-key-history.py .
+      - name: Run account-free regressions
+        run: >-
+          uv run --no-sync python -m pytest -q -o addopts=''
+          tests/test_local_launcher.py
+          tests/test_macos_build_requirements.py
+          tests/test_key_history_guard.py
+          tests/test_compliance_status_claims.py
+          tests/test_source_package.py
+          tests/test_policy.py
+          tests/test_ledger.py
+      - name: Check focused fatal Python lint
+        run: >-
+          uv run --no-sync ruff check --select E4,E7,E9,F
+          scripts/start-local.py scripts/check-key-history.py scripts/package-source.py
+          src/lexecon/api/routers/decisions.py
+          src/lexecon/api/routers/eu_compliance.py
+          src/lexecon/evidence_export/service.py
+          tests/test_local_launcher.py tests/test_macos_build_requirements.py
+          tests/test_key_history_guard.py tests/test_compliance_status_claims.py tests/test_source_package.py
+      - name: Build wheel
+        run: uv build --wheel --out-dir "$RUNNER_TEMP/lexecon-dist"
+      - name: Verify installed wheel CLI entrypoint
+        # Replace the editable install only inside this disposable runner environment.
+        # --help never invokes initialization, decision, or server commands.
+        run: |
+          uv pip install --no-deps --reinstall "$RUNNER_TEMP"/lexecon-dist/*.whl
+          .venv/bin/lexecon --help
+
+  frontend:
+    name: Browser tests, types, and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    env:
+      CI: "true"
+      TZ: America/New_York
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # A positive depth fetches only this ref, not unrelated legacy branches.
+          # The history guard fails closed if this limit ever leaves it shallow.
+          fetch-depth: 1000000
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "26.8.1"
+      - name: Install locked browser dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Check TypeScript
+        run: ./node_modules/.bin/tsc --noEmit
+      - name: Run browser unit tests
+        run: npm test -- --watch=false --silent
+      - name: Build browser app
+        run: npm run build

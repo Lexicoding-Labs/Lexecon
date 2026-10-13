@@ -1,0 +1,30 @@
+{
+  "name": "lexecon-macos-walkthrough",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "compositions": "remotion compositions src/index.ts",
+    "still": "remotion still src/index.ts LexeconWalkthrough ../lexecon-macos-preview-35.png --frame 450",
+    "render": "remotion render src/index.ts LexeconWalkthrough ../lexecon-macos-walkthrough-35.mp4 --codec h264 --crf 18 --pixel-format yuv420p --concurrency 3",
+    "studio": "remotion studio src/index.ts --no-open",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "@remotion/cli": "4.0.530",
+    "@remotion/transitions": "4.0.530",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "remotion": "4.0.530"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.28",
+    "@types/react-dom": "18.3.7",
+    "typescript": "5.9.3"
+  },
+  "private": true
+}
