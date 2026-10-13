@@ -32,6 +32,12 @@ The generated profile exposes only `lexecon_workspace`, disables dynamic tool se
 
 Use a separate clean Hermes checkout for the required host guard. [The patch](required-tool-gate.patch) and [base/commit manifest](required-tool-gate.json) reproduce its changes against upstream `84f87a18c0ad9f1a6d646df839110103f3204346`. Check the exact base and run `git apply --check /absolute/path/to/required-tool-gate.patch` before applying it. Do not apply it to an active Hermes installation.
 
+## Optional pinned source audit
+
+The `audit_snapshot.py`, `package_audit_input.py`, `start_audit_service.py`, `collect_audit.py`, and `run_free_audit.py` helpers provide a separate, bounded source-audit workflow. They prepare a code-only projection from an exact Git commit, use the protected read tool to collect selected source with decision and local audit records, and can run a model review through a restricted transport. The `free_route.py` transport is pinned to one Nous endpoint and model; it is not a general model router. The companion tests use synthetic inputs and do not make live model calls.
+
+This workflow uses a newly prepared profile on port `8765`, separate from the ordinary port-`8000` workspace. `audit_snapshot.py` and `package_audit_input.py` prepare local files without starting an API or model. `start_audit_service.py` requires interactive owner confirmation before creating isolated local state. `collect_audit.py` requires an authenticated dedicated viewer and a reviewed manifest hash. `run_free_audit.py` checks the manifest without resolving credentials or contacting a model unless `--run` is supplied. That flag makes external model requests and shares the selected source; use it only with the source owner's authorization. Review findings independently. None of these helpers establishes a completed live audit, a billing guarantee, or production readiness.
+
 ## Prepare without changing your existing setup
 
 From the Lexecon checkout, choose a new physical directory outside `~/.hermes`. On macOS `/tmp` and `/var` may be symlinks; prefer the checkout's absolute path. Preparation refuses an existing destination and creates no account or session:

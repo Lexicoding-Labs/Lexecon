@@ -71,7 +71,7 @@ def test_committed_runtime_files_are_rejected(repo, tmp_path, name):
 
 @pytest.mark.parametrize("name", [
     "docs/showcase/README.md", "docs/release-validation-2026-10-07.md", "walkthrough.mp4",
-    "workspace-notes.md", "integrations/hermes/audit_snapshot.py",
+    "workspace-notes.md",
 ])
 def test_non_product_docs_and_media_are_rejected(repo, tmp_path, name):
     path = repo / name
@@ -79,7 +79,7 @@ def test_non_product_docs_and_media_are_rejected(repo, tmp_path, name):
     path.write_text("fixture only")
     git(repo, "add", "-f", name)
     git(repo, "commit", "-qm", "non-product fixture")
-    with pytest.raises(ValueError, match="Non-product documentation or media|Non-product top-level path|Non-product integration tooling"):
+    with pytest.raises(ValueError, match="Non-product documentation or media|Non-product top-level path"):
         PACKAGER.package(repo, "HEAD", tmp_path / "out")
     assert not (tmp_path / "out").exists()
 

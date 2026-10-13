@@ -34,14 +34,6 @@ def package(repo, revision, output):
         "tests", "uv.lock",
     }
     product_docs = {"docs/architecture.md", "docs/architecture.svg", "docs/walkthrough.md"}
-    non_product_paths = {
-        "integrations/hermes/audit_snapshot.py", "integrations/hermes/collect_audit.py",
-        "integrations/hermes/free_route.py", "integrations/hermes/package_audit_input.py",
-        "integrations/hermes/run_free_audit.py", "integrations/hermes/start_audit_service.py",
-        "integrations/hermes/tests/test_audit_workflow.py",
-        "integrations/hermes/tests/test_free_audit_hermes.py",
-        "integrations/hermes/tests/test_free_route.py",
-    }
     # SQLite write-ahead logs can contain the same private records as the database.
     sqlite_suffixes = tuple(
         extension + sidecar
@@ -69,8 +61,6 @@ def package(repo, revision, output):
             raise ValueError(f"Non-product documentation or media in committed tree: {name}")
         if path.parts[0] not in product_roots:
             raise ValueError(f"Non-product top-level path in committed tree: {name}")
-        if name in non_product_paths:
-            raise ValueError(f"Non-product integration tooling in committed tree: {name}")
         data = git(root, "cat-file", "blob", oid.decode())
         if guard.contains_key(data):
             raise ValueError(f"PEM private key detected in committed tree: {name}")
