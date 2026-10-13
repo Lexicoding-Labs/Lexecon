@@ -69,16 +69,34 @@ def test_committed_runtime_files_are_rejected(repo, tmp_path, name):
     assert not (tmp_path / "out").exists()
 
 
+@pytest.mark.parametrize("name", [
+    "docs/showcase/README.md", "docs/release-validation-2026-10-07.md", "walkthrough.mp4",
+    "workspace-notes.md", "integrations/hermes/audit_snapshot.py",
+])
+def test_non_product_docs_and_media_are_rejected(repo, tmp_path, name):
+    path = repo / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("fixture only")
+    git(repo, "add", "-f", name)
+    git(repo, "commit", "-qm", "non-product fixture")
+    with pytest.raises(ValueError, match="Non-product documentation or media|Non-product top-level path|Non-product integration tooling"):
+        PACKAGER.package(repo, "HEAD", tmp_path / "out")
+    assert not (tmp_path / "out").exists()
+
+
 def test_binary_bytes_executable_modes_and_manifest_match_commit(repo, tmp_path):
-    executable = repo / "run.sh"
+    executable = repo / "scripts/run.sh"
+    executable.parent.mkdir()
     executable.write_bytes(b"#!/bin/sh\nexit 0\n")
     executable.chmod(0o755)
     binary = b"\x00\xff\x80\r\n\x00"
-    (repo / "asset.bin").write_bytes(binary)
+    binary_path = repo / "examples/asset.bin"
+    binary_path.parent.mkdir()
+    binary_path.write_bytes(binary)
     git(repo, "add", ".")
-    git(repo, "update-index", "--chmod=+x", "run.sh")
+    git(repo, "update-index", "--chmod=+x", "scripts/run.sh")
     git(repo, "commit", "-qm", "binary and executable fixtures")
-    committed_modes = {"README.md": 0o644, "run.sh": 0o755, "asset.bin": 0o644}
+    committed_modes = {"README.md": 0o644, "scripts/run.sh": 0o755, "examples/asset.bin": 0o644}
     archive, manifest, result = PACKAGER.package(repo, "HEAD", tmp_path / "out")
     listed = {item["path"]: item for item in json.loads(manifest.read_text())["files"]}
     assert set(listed) == set(committed_modes)
@@ -105,7 +123,9 @@ def test_symbolic_links_are_rejected(repo, tmp_path):
 
 def test_embedded_pem_is_rejected_without_echoing_material(repo, tmp_path):
     fixture = "-----BEGIN PRIVATE KEY-----\n" + "A" * 64 + "\n-----END PRIVATE KEY-----"
-    (repo / "example.txt").write_text(fixture)
+    path = repo / "examples/example.txt"
+    path.parent.mkdir()
+    path.write_text(fixture)
     git(repo, "add", ".")
     git(repo, "commit", "-qm", "synthetic PEM fixture")
     with pytest.raises(ValueError, match="PEM private key") as caught:

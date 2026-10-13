@@ -2,7 +2,7 @@
 
 This optional plugin connects Hermes tool dispatch to Lexecon. The Mac app is the policy/evidence workspace; it does not automatically attach to an agent. The plugin offers **two protected tools**: `lexecon_list_files` and `lexecon_read_file`. Each handler authenticates the dedicated user, requests a decision for the final arguments, consumes the argument-bound grant, then accesses one configured workspace. A local audit correlates requests, authorization and completion with Lexecon decision IDs.
 
-It is a bounded local integration, not a general Hermes sandbox or a production deployment. No live agent credentials or profiles are included. The required-gate candidate is based on Hermes 0.21.5, source `84f87a18c0ad9f1a6d646df839110103f3204346`; revalidate when Hermes changes. The ordinary installed Hermes checkout does not contain this host guard.
+It is a bounded local integration, not a general Hermes sandbox or a production deployment. No live agent credentials or profiles are included. The required host patch is based on Hermes 0.21.5, source `84f87a18c0ad9f1a6d646df839110103f3204346`; revalidate when Hermes changes. An unpatched Hermes installation does not contain this host guard.
 
 ## Scope and flow
 
@@ -28,11 +28,9 @@ The starter policy permits only the dedicated actor's `list`/`read` actions and 
 
 The generated profile exposes only `lexecon_workspace`, disables dynamic tool search, and requires the two registered Lexecon handlers. The required launcher arms the isolated host before plugin discovery and then pins the loaded plugin and actual handlers. Mandatory checks cover the registry, ordinary model dispatch, direct and managed agent invocation, catalog and connector paths. They reject other tool names, missing or substituted handlers, changed requirements and foreign scopes independently of optional hooks. The original outer hook alone can fail open; ordinary installed Hermes is not equivalent to this candidate. Protected handlers still own final-argument authorization and consumption. Arbitrary trusted Python can bypass dispatch; there is no OS sandbox or universal interception claim.
 
-For the first code-audit milestone, use the [isolated service and pinned audit workflow](../../docs/lexecon-audit-milestone-2026-10-09.md). It avoids changing the existing service or policy and remains pending explicit activation approval.
+## Required host patch
 
-## Required host candidate
-
-The reviewed local candidate is a separate tracked-source copy, not a modified installed Hermes. [The patch](required-tool-gate.patch) and [base/commit manifest](required-tool-gate.json) reproduce its changes against upstream `84f87a18c0ad9f1a6d646df839110103f3204346`. Apply only to a separate clean checkout of that exact base; first run `git apply --check /absolute/path/to/required-tool-gate.patch`. Applying the patch or starting that checkout is an owner action. Do not apply it to your active Hermes installation. The candidate reuses an existing compatible test interpreter without modifying that environment.
+Use a separate clean Hermes checkout for the required host guard. [The patch](required-tool-gate.patch) and [base/commit manifest](required-tool-gate.json) reproduce its changes against upstream `84f87a18c0ad9f1a6d646df839110103f3204346`. Check the exact base and run `git apply --check /absolute/path/to/required-tool-gate.patch` before applying it. Do not apply it to an active Hermes installation.
 
 ## Prepare without changing your existing setup
 
@@ -52,7 +50,7 @@ These steps deliberately require your participation. Policy setup temporarily ch
 
 1. Review the generated policy and dedicated workspace.
 2. Run `provision` below. Enter the existing admin password privately, then explicitly confirm creation of the dedicated viewer and choose its password twice. An existing viewer is reused without resetting its password. Admin logout is attempted on exit; an outage can prevent confirmed revocation.
-3. Run `load-policy`. By default it refuses a nonempty or non-strict policy. A separately approved `--allow-policy-replacement` override is available outside the isolated audit milestone. It exports and hash-checks the prior policy, writes an immutable private recovery snapshot, then conditionally loads the strict starter policy. Save the printed snapshot path. A concurrent version change is refused. A lost response triggers read-back, never an automatic second mutation; retain the snapshot if the result remains unknown.
+3. Run `load-policy`. By default it refuses a nonempty or non-strict policy. The `--allow-policy-replacement` override is available when replacing an existing policy is intended. It exports and hash-checks the prior policy, writes an immutable private recovery snapshot, then conditionally loads the strict starter policy. Save the printed snapshot path. A concurrent version change is refused. A lost response triggers read-back, never an automatic second mutation; retain the snapshot if the result remains unknown.
 4. Run `login`. Enter the dedicated viewer password, not the admin password. No token is printed. Password-expiry or login failure stops setup.
 
 ```sh
@@ -64,13 +62,13 @@ python3 integrations/hermes/owner_setup.py login --home "$LEXECON_HERMES_HOME"
 After those owner-operated steps, verify the running API and actual Hermes dispatcher without a paid model call:
 
 ```sh
-HERMES_CHECKOUT="/absolute/path/to/hermes-dispatch-candidate-2026-10-09"
+HERMES_CHECKOUT="/absolute/path/to/clean-hermes-checkout"
 HERMES_PYTHON="/absolute/path/to/existing/hermes/venv/bin/python"
 "$HERMES_PYTHON" integrations/hermes/verify_live.py \
   --home "$LEXECON_HERMES_HOME" --hermes-checkout "$HERMES_CHECKOUT"
 ```
 
-The proof uses the existing session, lists and reads the unchanged welcome fixture, rejects traversal, requests a denied delete action without executing a delete, and correlates local audit records. It prints decision IDs and status, not tokens or file contents. It makes real local API requests and writes decision/audit events. This live command has not been run for your account; its orchestration has automated coverage. It does not create an account, load policy or prove that initial login worked independently of the prior owner setup.
+The proof uses the existing session, lists and reads the unchanged welcome fixture, rejects traversal, requests a denied delete action without executing a delete, and correlates local audit records. It prints decision IDs and status, not tokens or file contents. It makes real local API requests and writes decision/audit events. It does not create an account or load policy.
 
 Launching Hermes with this isolated home is a separate owner action:
 
@@ -97,7 +95,7 @@ Real Hermes loader/dispatcher tests use Hermes's canonical runner. Supply your c
 
 ```sh
 LEXECON_CHECKOUT="$PWD"
-HERMES_CHECKOUT="/absolute/path/to/hermes-dispatch-candidate-2026-10-09"
+HERMES_CHECKOUT="/absolute/path/to/clean-hermes-checkout"
 HERMES_PYTHON="/absolute/path/to/existing/hermes/venv/bin/python" \
   "$HERMES_CHECKOUT/scripts/run_tests.sh" \
   "$HERMES_CHECKOUT/tests/tools/test_required_tool_gate.py" \
@@ -144,4 +142,4 @@ Restarting Lexecon invalidates process-bound grants and starts with an empty str
 - Capability digests bind canonical final arguments and workspace device/inode. A grant is single-use within the issuing process, expires after five minutes, and is rejected when the current policy hash differs or the service restarts. Reverting to an identical policy hash can make an unconsumed, unexpired grant valid again; policy changes are not irreversible revocation. Consumption authorizes an attempt, not successful execution. There is no distributed consumption store; do not run multiple workers as a shared authority.
 - Policy verification is point-in-time, not a transaction spanning the filesystem read. Arguments bind the requested location, not an immutable content snapshot. Normal file updates between verification and reading are possible; a detected change during reading is refused.
 - The local audit is append-and-sync evidence, not tamper-proof storage. Authorized local users can alter it. Lexecon's hash linkage detects changes only relative to a trusted chain head; neither log proves a tool ran successfully outside this handler.
-- Historical signing-key exposure, hosted deployment, signed/notarized Mac distribution and third-party cloud scan review are separate release concerns. This integration does not resolve them or justify a blanket production-readiness claim.
+- This integration does not establish hosted or production readiness. See the repository's [security scope](../../SECURITY.md).

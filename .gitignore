@@ -65,7 +65,12 @@ venv.bak/
 # Lexecon specific
 .lexecon/
 /macos/dist/
-/docs/showcase/macos/.capture-*
+/docs/showcase/
+/docs/*-20??-??-??.md
+*.mp4
+*.mov
+*.webm
+*.log
 *.ledger
 *.key
 *.pub

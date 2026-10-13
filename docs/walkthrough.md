@@ -1,6 +1,6 @@
 # Local walkthrough
 
-This is the workflow shown in the [short silent demo](stipple-demo.mp4). The frames are from a local run with disposable data under the earlier Stipple name; the current name is Lexecon. The UI example produces real policy evaluations; it does not execute a tool.
+This is the local browser workflow. The UI example produces real policy evaluations; it does not execute a tool.
 
 ## 1. Start and sign in
 
@@ -22,4 +22,4 @@ Select **Export Audit** to save an evidence ZIP. Run `.venv/bin/python scripts/v
 
 Run `.venv/bin/python scripts/demo-proof.py`. Its disposable TestClient session obtains a permitted grant, verifies it online through the bundled reference adapter, and applies one harmless uppercase text transformation. It rejects a forged grant and an unapproved tool. That is the only executable adapter demonstrated in this repository.
 
-See [architecture and trust boundaries](architecture.md) and the [verification record](../portfolio-verification.md) for exact scope and results.
+See [architecture and trust boundaries](architecture.md) for the scope of these checks.

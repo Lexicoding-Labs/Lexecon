@@ -17,4 +17,4 @@ npm ci
 HOST=127.0.0.1 BROWSER=none npm start
 ```
 
-The API must be available at `http://127.0.0.1:8000`, or configured with `REACT_APP_API_BASE_URL`. The frontend expects the `default` organization. Check the frontend with `npx tsc --noEmit`, `CI=true npm test -- --watch=false --silent`, and `npm run build`. See the [repository README](../README.md) and [portfolio verification notes](../docs/portfolio-verification.md) for scope and evidence.
+The API must be available at `http://127.0.0.1:8000`, or configured with `REACT_APP_API_BASE_URL`. The frontend expects the `default` organization. Check the frontend with `npx tsc --noEmit`, `CI=true npm test -- --watch=false --silent`, and `npm run build`. See the [repository README](../README.md) for the supported scope.

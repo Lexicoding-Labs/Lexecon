@@ -14,10 +14,10 @@ The dashboard's **Run policy example** loads a small in-memory policy, calls the
 
 ## Enforcement boundary
 
-`POST /capability/verify` checks the grant against the authenticated subject, action and tool scope, expiry, and current policy version. [`scripts/reference_tool_adapter.py`](../../scripts/reference_tool_adapter.py) performs this online check before a harmless uppercase transformation. An external tool would need its own adapter at the execution boundary. Lexecon does not intercept arbitrary tool calls.
+`POST /capability/verify` checks the grant against the authenticated subject, action and tool scope, expiry, and current policy version. [`scripts/reference_tool_adapter.py`](../scripts/reference_tool_adapter.py) performs this online check before a harmless uppercase transformation. An external tool would need its own adapter at the execution boundary. Lexecon does not intercept arbitrary tool calls.
 
 ## Evidence boundary
 
 `/decide` writes a server-generated `evaluation_source: policy_engine` event containing a digest of the decision response, then returns the entry hash. `/decide/verify` compares the response with that entry. The ledger links entries with SHA-256 hashes and persists them in SQLite in local mode. The dashboard's **Verify Integrity** checks the chain.
 
-The evidence ZIP contains selected events, a verification report, a policy-hash list, a summary, and a file manifest. [`scripts/verify-evidence-zip.py`](../../scripts/verify-evidence-zip.py) can rehash a saved ZIP. Rehashing is an integrity check of the exported material; a trusted signer key is needed to establish signer authenticity, and the original ledger is needed to independently establish full source-chain continuity. See [candidate verification](../portfolio-verification.md) for the measured results and limits.
+The evidence ZIP contains selected events, a verification report, a policy-hash list, a summary, and a file manifest. [`scripts/verify-evidence-zip.py`](../scripts/verify-evidence-zip.py) can rehash a saved ZIP. Rehashing is an integrity check of the exported material; a trusted signer key is needed to establish signer authenticity, and the original ledger is needed to independently establish full source-chain continuity.

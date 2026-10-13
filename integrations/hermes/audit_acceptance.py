@@ -1,11 +1,17 @@
 """Disposable owner-run enforcement validation, separate from source audit collection."""
 
 import json
+import os
 from pathlib import Path
 from uuid import uuid4
 
-from collect_audit import append_journal
 from verify_live import parsed, require
+
+def append_journal(path, row):
+    with path.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(row, sort_keys=True) + "\n")
+        stream.flush()
+        os.fsync(stream.fileno())
 
 
 def replay_probe(client, settings):
