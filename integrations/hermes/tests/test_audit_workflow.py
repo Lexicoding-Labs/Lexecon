@@ -267,16 +267,29 @@ def test_only_matching_gated_bytes_revision_and_lines_support_report(tmp_path):
         collection.validate_findings(report, evidence)
 
 
+def interruption_evidence():
+    from lexecon.ledger.chain import LedgerEntry
+
+    digest = "a" * 64
+    after = [{"request_id": "r", "decision_id": decision, "arguments_digest": digest,
+              "tool": "lexecon_read_file", "action": "read", "outcome": outcome, "reason": reason}
+             for outcome, reason, decision in (("requested", "policy_check", None),
+                                               ("authorized", "grant_consumed", "d"),
+                                               ("completed", "success", "d"))]
+    data = {"decision_id": "d", "request_id": "r", "arguments_digest": digest,
+            "decision": "permit", "actor": "audit-viewer", "action": "read",
+            "tool": "lexecon_read_file", "evaluation_source": "policy_engine"}
+    entry = LedgerEntry(entry_id="entry_1", event_type="decision", timestamp="fixture",
+                        previous_hash="0" * 64, data=data).to_dict()
+    return after, {"entries": [entry]}
+
+
 @pytest.mark.parametrize("failure", ["no_audit", "no_ledger", "wrong_digest", "wrong_probe",
                                      "multiple_reads"])
 def test_reconciliation_needs_fresh_agreement(failure):
-    after = [{"request_id": "r", "decision_id": "d", "arguments_digest": "a" * 64,
-              "tool": "lexecon_read_file", "action": "read", "outcome": outcome}
-             for outcome in ("authorized", "completed")]
-    after.insert(0, {**after[0], "outcome": "requested", "decision_id": None})
-    ledger = {"entries": [{"event_type": "decision", "data": {
-        "decision_id": "d", "request_id": "r", "arguments_digest": "a" * 64, "decision": "permit"}}]}
-    assert acceptance.reconcile_interruption([], after, ledger, "a" * 64)["state"] == "ObservedCompletedRead"
+    after, ledger = interruption_evidence()
+    assert acceptance.reconcile_interruption([], after, ledger, "a" * 64,
+                                             "audit-viewer")["state"] == "ObservedCompletedRead"
     if failure == "no_audit":
         after = []
     elif failure == "no_ledger":
@@ -284,15 +297,78 @@ def test_reconciliation_needs_fresh_agreement(failure):
     elif failure == "wrong_digest":
         ledger["entries"][0]["data"]["arguments_digest"] = "b" * 64
     elif failure == "wrong_probe":
-        assert acceptance.reconcile_interruption([], after, ledger, "b" * 64) == {"state": "Unknown"}
+        assert acceptance.reconcile_interruption([], after, ledger, "b" * 64,
+                                                 "audit-viewer") == {"state": "Unknown"}
         return
     else:
         after.append(dict(after[-1]))
-    assert acceptance.reconcile_interruption([], after, ledger, "a" * 64) == {"state": "Unknown"}
+    assert acceptance.reconcile_interruption([], after, ledger, "a" * 64,
+                                             "audit-viewer") == {"state": "Unknown"}
 
 
-@pytest.mark.parametrize("same_probe", [True, False])
-def test_interruption_probe_links_unique_fixture_and_removes_it(tmp_path, same_probe):
+@pytest.mark.parametrize("failure", ["requested_reason", "authorized_reason", "completed_reason",
+                                     "wrong_action", "blocked_same_request", "extra_requested",
+                                     "out_of_order", "altered_prior_audit", "reused_request_id"])
+def test_reconciliation_rejects_inconsistent_lifecycle(failure):
+    after, ledger = interruption_evidence()
+    before = []
+    if failure == "requested_reason":
+        after[0]["reason"] = "unexpected"
+    elif failure == "authorized_reason":
+        after[1]["reason"] = "unexpected"
+    elif failure == "completed_reason":
+        after[2]["reason"] = "unexpected"
+    elif failure == "wrong_action":
+        after[1]["action"] = "list"
+    elif failure == "blocked_same_request":
+        after.insert(2, {**after[1], "outcome": "blocked", "reason": "verification_denied"})
+    elif failure == "extra_requested":
+        after.insert(1, dict(after[0]))
+    elif failure == "out_of_order":
+        after[1], after[2] = after[2], after[1]
+    elif failure == "altered_prior_audit":
+        before = [{"request_id": "old", "outcome": "blocked"}]
+        after.insert(0, {"request_id": "old", "outcome": "completed"})
+    else:
+        before = [{"request_id": "r", "outcome": "blocked"}]
+        after.insert(0, dict(before[0]))
+    assert acceptance.reconcile_interruption(before, after, ledger, "a" * 64,
+                                             "audit-viewer") == {"state": "Unknown"}
+
+
+@pytest.mark.parametrize("failure", ["wrong_actor", "wrong_action", "wrong_tool",
+                                     "wrong_source", "second_same_request_decision", "bad_hash"])
+def test_reconciliation_rejects_inconsistent_ledger(failure):
+    from lexecon.ledger.chain import LedgerEntry
+
+    after, ledger = interruption_evidence()
+    data = dict(ledger["entries"][0]["data"])
+    if failure == "wrong_actor":
+        data["actor"] = "someone-else"
+    elif failure == "wrong_action":
+        data["action"] = "list"
+    elif failure == "wrong_tool":
+        data["tool"] = "lexecon_list_files"
+    elif failure == "wrong_source":
+        data["evaluation_source"] = "fallback"
+    elif failure == "second_same_request_decision":
+        data["decision_id"] = "other"
+        ledger["entries"].append(LedgerEntry(entry_id="entry_2", event_type="decision",
+                                             timestamp="fixture", previous_hash="0" * 64,
+                                             data=data).to_dict())
+    else:
+        ledger["entries"][0]["entry_hash"] = "0" * 64
+    if failure not in {"second_same_request_decision", "bad_hash"}:
+        ledger["entries"] = [LedgerEntry(entry_id="entry_1", event_type="decision",
+                                         timestamp="fixture", previous_hash="0" * 64,
+                                         data=data).to_dict()]
+    assert acceptance.reconcile_interruption([], after, ledger, "a" * 64,
+                                             "audit-viewer") == {"state": "Unknown"}
+
+
+@pytest.mark.parametrize("mode", ["matching", "wrong_digest", "blocked_same_request"])
+def test_interruption_probe_links_unique_fixture_and_removes_it(tmp_path, mode):
+    from lexecon.ledger.chain import LedgerEntry
     from lexecon_gate import runtime
     from verify_live import ProofError
 
@@ -308,22 +384,28 @@ def test_interruption_probe_links_unique_fixture_and_removes_it(tmp_path, same_p
         info = root.stat()
         digest = runtime.arguments_digest({"workspace_root": str(root), "workspace_device": info.st_dev,
                                            "workspace_inode": info.st_ino, "path": arguments["path"]})
-        if not same_probe:
+        if mode == "wrong_digest":
             digest = "b" * 64
-        for outcome, decision in (("requested", None), ("authorized", "dec_1"),
-                                  ("completed", "dec_1")):
+        for outcome, reason, decision in (("requested", "policy_check", None),
+                                          ("authorized", "grant_consumed", "dec_1"),
+                                          ("completed", "success", "dec_1")):
             rows.append({"request_id": "req_1", "decision_id": decision,
-                         "arguments_digest": digest, "tool": tool, "action": "read", "outcome": outcome})
-        ledger["entries"].append({"event_type": "decision", "data": {
+                         "arguments_digest": digest, "tool": tool, "action": "read",
+                         "outcome": outcome, "reason": reason})
+        if mode == "blocked_same_request":
+            rows.append({**rows[-1], "outcome": "blocked", "reason": "gate_unavailable"})
+        ledger["entries"].append(LedgerEntry(entry_id="entry_1", event_type="decision",
+                                              timestamp="fixture", previous_hash="0" * 64, data={
             "request_id": "req_1", "decision_id": "dec_1", "arguments_digest": digest,
-            "decision": "permit"}})
+            "decision": "permit", "actor": settings["username"], "action": "read",
+            "tool": tool, "evaluation_source": "policy_engine"}).to_dict())
         return {"ok": True, "decision_id": "dec_1", "content": "discarded response"}
 
     host = SimpleNamespace(home=home, settings=settings,
                            plugin=importlib.import_module("lexecon_gate"),
                            model_tools=SimpleNamespace(handle_function_call=dispatch))
     client = SimpleNamespace(ledger_entries=lambda: ledger)
-    if same_probe:
+    if mode == "matching":
         result = acceptance.interruption_probe(host, client, lambda: list(rows))
         assert result["state"] == "ObservedCompletedRead" and result["initial"] == "Unknown"
     else:
@@ -332,7 +414,8 @@ def test_interruption_probe_links_unique_fixture_and_removes_it(tmp_path, same_p
     assert not list((home / "workspace").glob("validation-*.txt"))
     journal = next((home / "private").glob("validation-interruption-*.jsonl"))
     states = [json.loads(line)["state"] for line in journal.read_text().splitlines()]
-    assert states == (["Unknown", "ObservedCompletedRead"] if same_probe else ["Unknown", "Unknown"])
+    assert states == (["Unknown", "ObservedCompletedRead"] if mode == "matching"
+                      else ["Unknown", "Unknown"])
 
 
 def test_isolated_service_environment_excludes_inherited_credentials(monkeypatch, tmp_path):

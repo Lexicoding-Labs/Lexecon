@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
-from collect_audit import append_journal
+from collect_audit import append_journal, correlate_read
 from verify_live import parsed, require
 
 
@@ -55,43 +55,40 @@ def zero_effect_probe(host):
         registry.restore_registration(name, registered, None, scope=scope)
 
 
-def reconcile_interruption(before, after, ledger, expected_digest):
+def reconcile_interruption(before, after, ledger, expected_digest, expected_actor):
     """Resolve only the fresh request bound to this probe's unique arguments."""
-    old_requests = {row.get("request_id") for row in before}
-    fresh = [row for row in after if row.get("request_id") not in old_requests]
-    # The controlled probe is serialized. Any competing or incomplete request makes correlation ambiguous.
-    request_ids = {row.get("request_id") for row in fresh}
-    requested = [row for row in fresh if row.get("outcome") == "requested"]
-    if len(request_ids) != 1 or len(requested) != 1:
-        return {"state": "Unknown"}
-    if (requested[0].get("tool") != "lexecon_read_file"
-            or requested[0].get("action") != "read"
-            or requested[0].get("arguments_digest") != expected_digest):
-        return {"state": "Unknown"}
-    completed = [row for row in fresh if row.get("outcome") == "completed"
-                 and row.get("tool") == "lexecon_read_file"]
-    if len(completed) != 1:
-        return {"state": "Unknown"}
-    done = completed[0]
-    if (not isinstance(done.get("request_id"), str) or not done["request_id"]
-            or not isinstance(done.get("arguments_digest"), str) or len(done["arguments_digest"]) != 64
-            or not isinstance(done.get("decision_id"), str) or not done["decision_id"]):
-        return {"state": "Unknown"}
-    matching = [row for row in fresh if row.get("decision_id") == done.get("decision_id")]
-    if ([row.get("outcome") for row in matching] != ["authorized", "completed"]
-            or any(row.get("request_id") != done["request_id"]
-                   or row.get("arguments_digest") != expected_digest
-                   or row.get("tool") != "lexecon_read_file" for row in matching)):
-        return {"state": "Unknown"}
+    unknown = {"state": "Unknown"}
+    if (not isinstance(before, list) or not isinstance(after, list)
+            or any(not isinstance(row, dict) for row in before + after)
+            or after[:len(before)] != before):
+        return unknown
+    fresh = after[len(before):]
+    # The audit is append-only and this controlled probe is serialized. Require the entire
+    # fresh lifecycle, including failures, to belong to one previously unseen request.
+    if len(fresh) != 3:
+        return unknown
+    request_id = fresh[0].get("request_id")
+    if (not isinstance(request_id, str) or not request_id
+            or any(row.get("request_id") == request_id for row in before)
+            or any(row.get("request_id") != request_id for row in fresh)):
+        return unknown
+    decision_id = fresh[-1].get("decision_id")
+    if not isinstance(decision_id, str) or not decision_id:
+        return unknown
     entries = ledger.get("entries") if isinstance(ledger, dict) else None
     if not isinstance(entries, list):
-        return {"state": "Unknown"}
-    decisions = [entry.get("data", {}) for entry in entries if entry.get("event_type") == "decision"]
-    if not any(row.get("decision_id") == done.get("decision_id") and row.get("decision") == "permit"
-               and row.get("request_id") == done.get("request_id")
-               and row.get("arguments_digest") == expected_digest for row in decisions):
-        return {"state": "Unknown"}
-    return {"state": "ObservedCompletedRead", "decision_id": done["decision_id"],
+        return unknown
+    related = [entry for entry in entries if isinstance(entry, dict)
+               and isinstance(entry.get("data"), dict)
+               and entry["data"].get("request_id") == request_id]
+    if (len(related) != 1 or related[0].get("event_type") != "decision"
+            or related[0]["data"].get("decision_id") != decision_id):
+        return unknown
+    try:
+        correlate_read(decision_id, fresh, ledger, expected_digest, expected_actor)
+    except (RuntimeError, TypeError, ValueError):
+        return unknown
+    return {"state": "ObservedCompletedRead", "decision_id": decision_id,
             "basis": "fresh gate audit plus authenticated service ledger; no lost-response inference"}
 
 
@@ -119,7 +116,8 @@ def interruption_probe(host, client, read_audit):
                                      "arguments_digest": digest})
             # The returned content is deliberately discarded; the resolver cannot use it.
             host.model_tools.handle_function_call("lexecon_read_file", {"path": name})
-            resolution = reconcile_interruption(before, read_audit(), client.ledger_entries(), digest)
+            resolution = reconcile_interruption(before, read_audit(), client.ledger_entries(),
+                                                digest, host.settings["username"])
         finally:
             os.unlink(name, dir_fd=root_fd)
     append_journal(journal, resolution)

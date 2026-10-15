@@ -106,7 +106,7 @@ HERMES_PYTHON="/absolute/path/to/existing/hermes/venv/bin/python"
   --home "$LEXECON_HERMES_HOME" --hermes-checkout "$HERMES_CHECKOUT"
 ```
 
-The proof uses the existing session, lists and reads the unchanged welcome fixture, rejects traversal, requests a denied delete action without executing a delete, and correlates local audit records. Its lost-response check creates and removes one harmless, uniquely named file inside the dedicated workspace so only evidence bound to that attempt can resolve `Unknown`. It prints decision IDs and status, not tokens or file contents. It makes real local API requests and writes decision/audit events. It does not create an account or load policy.
+The proof uses the existing session, lists and reads the unchanged welcome fixture, rejects traversal, requests a denied delete action without executing a delete, and correlates local audit records. Its lost-response check creates and removes one harmless, uniquely named file inside the dedicated workspace so only evidence bound to that attempt can resolve `Unknown`. Resolution requires exactly one fresh `requested` (`policy_check`), `authorized` (`grant_consumed`), `completed` (`success`) read sequence and a matching hash-checked service decision; contradictory or extra records leave the attempt `Unknown`. It prints decision IDs and status, not tokens or file contents. It makes real local API requests and writes decision/audit events. It does not create an account or load policy.
 
 Launching Hermes with this isolated home is a separate owner action:
 
