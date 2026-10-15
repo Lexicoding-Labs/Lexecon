@@ -6,6 +6,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -138,6 +139,117 @@ def test_interrupted_collection_remains_unknown_and_cannot_back_findings(tmp_pat
     report = {"findings": [{"claim": "Unverified", "references": [{"read_id": rows[0]["read_id"]}]}]}
     with pytest.raises(ValueError):
         collection.validate_findings(report, {"commit": "pinned", "reads": rows})
+
+
+def test_failed_corroboration_keeps_returned_bytes_unknown(tmp_path):
+    content = "sample\n"
+    record = {"snapshot_path": "code/00000.txt", "source_path": "src/lexecon/core.py",
+              "line_start": 1, "line_end": 1, "sha256": hashlib.sha256(content.encode()).hexdigest()}
+    destination = tmp_path / "evidence"
+
+    def unavailable(*args):
+        raise RuntimeError("Decision ledger unavailable; attempt remains Unknown")
+
+    with pytest.raises(RuntimeError, match="Unknown"):
+        collection.collect_reads(lambda *args: {"ok": True, "decision_id": "dec_1", "content": content},
+                                 [record], destination, unavailable)
+    rows = [json.loads(row) for row in (destination / "attempts.jsonl").read_text().splitlines()]
+    assert [row["state"] for row in rows] == ["Unknown"]
+    assert list((destination / "reads").iterdir()) == []
+
+
+def test_collected_read_requires_gate_and_matching_service_decision():
+    from lexecon.ledger.chain import LedgerEntry
+
+    digest = "a" * 64
+    request_id, decision_id = "request-1", "dec_1"
+    gate = [{"request_id": request_id, "decision_id": None, "tool": "lexecon_read_file",
+             "action": "read", "arguments_digest": digest, "outcome": "requested", "reason": "policy_check"},
+            {"request_id": request_id, "decision_id": decision_id, "tool": "lexecon_read_file",
+             "action": "read", "arguments_digest": digest, "outcome": "authorized", "reason": "grant_consumed"},
+            {"request_id": request_id, "decision_id": decision_id, "tool": "lexecon_read_file",
+             "action": "read", "arguments_digest": digest, "outcome": "completed", "reason": "success"}]
+    entry = LedgerEntry(entry_id="entry_1", event_type="decision", timestamp="fixture",
+                        previous_hash="0" * 64, data={"decision_id": decision_id,
+                        "request_id": request_id, "decision": "permit", "actor": "audit-viewer",
+                        "action": "read", "tool": "lexecon_read_file", "arguments_digest": digest,
+                        "evaluation_source": "policy_engine"}).to_dict()
+    ledger = {"entries": [entry]}
+    proof = collection.correlate_read(decision_id, gate, ledger, digest, "audit-viewer")
+    assert proof == {"gate_records": gate, "ledger_entry": entry}
+    for bad_gate, bad_ledger, bad_digest, bad_actor in (
+        (gate[:2], ledger, digest, "audit-viewer"),
+        ([*gate, gate[-1]], ledger, digest, "audit-viewer"),
+        (gate, {"entries": []}, digest, "audit-viewer"),
+        (gate, ledger, "b" * 64, "audit-viewer"),
+        (gate, ledger, digest, "other-viewer"),
+        (gate, {"entries": [{**entry, "entry_hash": "0" * 64}]}, digest, "audit-viewer"),
+    ):
+        with pytest.raises(RuntimeError, match="Unknown"):
+            collection.correlate_read(decision_id, bad_gate, bad_ledger, bad_digest, bad_actor)
+
+
+@pytest.mark.parametrize("matching_ledger", [True, False])
+def test_collection_entrypoint_requires_correlated_ledger_before_observed_read(
+        tmp_path, monkeypatch, matching_ledger):
+    from lexecon.ledger.chain import LedgerEntry
+    from lexecon_gate import runtime
+
+    home = owner.prepare(tmp_path / "pilot", api_port=8765)
+    settings = owner.settings_for(home)[1]
+    content = "sample\n"
+    record = {"snapshot_path": "code/00000.txt", "source_path": "src/lexecon/core.py",
+              "line_start": 1, "line_end": 1, "sha256": hashlib.sha256(content.encode()).hexdigest()}
+    manifest = json.dumps({"records": [record], "commit": "pinned", "tree": "tree"})
+    owner.private_file(home / "private/snapshot.json", manifest)
+    audit_path = Path(settings["audit_file"])
+    owner.private_file(audit_path, "")
+    root = Path(settings["workspace_root"])
+    info = root.stat()
+    digest = runtime.arguments_digest({"workspace_root": str(root), "workspace_device": info.st_dev,
+                                       "workspace_inode": info.st_ino, "path": record["snapshot_path"]})
+    entry = LedgerEntry(entry_id="entry_1", event_type="decision", timestamp="fixture",
+                        previous_hash="0" * 64, data={"decision_id": "dec_1", "request_id": "req_1",
+                        "decision": "permit", "actor": settings["username"], "action": "read",
+                        "tool": "lexecon_read_file", "arguments_digest": digest if matching_ledger else "b" * 64,
+                        "evaluation_source": "policy_engine"}).to_dict()
+    client = SimpleNamespace(whoami=lambda: {"user": {"username": settings["username"], "role": "viewer"}},
+                             ledger_entries=lambda: {"entries": [entry]})
+    monkeypatch.setattr(runtime.LoopbackClient, "for_call", lambda self: client)
+
+    def dispatch(tool, arguments):
+        assert tool == "lexecon_read_file" and arguments == {"path": record["snapshot_path"]}
+        for outcome, reason, decision in (("requested", "policy_check", None),
+                                          ("authorized", "grant_consumed", "dec_1"),
+                                          ("completed", "success", "dec_1")):
+            collection.append_journal(audit_path, {"request_id": "req_1", "decision_id": decision,
+                                                   "tool": tool, "action": "read", "arguments_digest": digest,
+                                                   "outcome": outcome, "reason": reason})
+        return {"ok": True, "decision_id": "dec_1", "content": content}
+
+    host = SimpleNamespace(plugin=importlib.import_module("lexecon_gate"),
+                           model_tools=SimpleNamespace(handle_function_call=dispatch))
+    monkeypatch.setattr(collection, "initialize_required_runtime", lambda *args: host)
+    args = ["--home", str(home), "--hermes-checkout", str(tmp_path / "unused-host"),
+            "--source", record["source_path"],
+            "--manifest-sha256", hashlib.sha256(manifest.encode()).hexdigest()]
+    if matching_ledger:
+        assert collection.main(args) == 0
+    else:
+        with pytest.raises(RuntimeError, match="Unknown"):
+            collection.main(args)
+    output = next((home / "private").glob("audit-run-*"))
+    rows = [json.loads(row) for row in (output / "attempts.jsonl").read_text().splitlines()]
+    assert [row["state"] for row in rows] == (["Unknown", "ObservedRead"] if matching_ledger
+                                               else ["Unknown"])
+    if matching_ledger:
+        evidence = json.loads((output / "evidence.json").read_text())
+        assert evidence["version"] == 2
+        assert evidence["reads"][0]["ledger_entry"] == entry
+        assert len(evidence["reads"][0]["gate_records"]) == 3
+    else:
+        assert not (output / "evidence.json").exists()
+        assert list((output / "reads").iterdir()) == []
 
 
 def test_only_matching_gated_bytes_revision_and_lines_support_report(tmp_path):
