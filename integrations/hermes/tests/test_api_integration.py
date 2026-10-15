@@ -161,7 +161,8 @@ def test_owner_acceptance_replay_dispatch_and_interruption(integration, monkeypa
     from audit_acceptance import interruption_probe, replay_probe, zero_effect_probe
 
     i = integration
-    host = SimpleNamespace(home=i.h.home, model_tools=i.h.model_tools)
+    host = SimpleNamespace(home=i.h.home, settings=i.h.settings, plugin=i.h.module,
+                           model_tools=i.h.model_tools)
     client = i.runtime.LoopbackClient(Path(i.h.settings["session_file"]))
     assert zero_effect_probe(host)["effects"] == 0
     assert replay_probe(client, i.h.settings)["replay_rejected"] is True

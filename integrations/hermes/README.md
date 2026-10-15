@@ -30,7 +30,7 @@ The generated profile exposes only `lexecon_workspace`, disables dynamic tool se
 
 ## Required host patch
 
-Use a separate clean Hermes checkout for the required host guard. [The patch](required-tool-gate.patch) and [base/commit manifest](required-tool-gate.json) reproduce its changes against upstream `84f87a18c0ad9f1a6d646df839110103f3204346`. Check the exact base and run `git apply --check /absolute/path/to/required-tool-gate.patch` before applying it. Do not apply it to an active Hermes installation.
+Use a separate clean Hermes checkout for the required host guard. [The patch](required-tool-gate.patch) applies against upstream `84f87a18c0ad9f1a6d646df839110103f3204346`; the [manifest](required-tool-gate.json) records its SHA-256 and the earlier isolated development commits. The patch includes a later test-path portability fix. Check the exact base and run `git apply --check /absolute/path/to/required-tool-gate.patch` before applying it. Do not apply it to an active Hermes installation.
 
 ## Optional pinned source audit
 
@@ -39,6 +39,36 @@ The `audit_snapshot.py`, `package_audit_input.py`, `start_audit_service.py`, `co
 This workflow uses a newly prepared profile on port `8765`, separate from the ordinary port-`8000` workspace. `audit_snapshot.py` and `package_audit_input.py` prepare local files without starting an API or model. `start_audit_service.py` requires interactive owner confirmation before creating isolated local state. `collect_audit.py` requires an authenticated dedicated viewer and a reviewed manifest hash. `run_free_audit.py` checks the manifest without resolving credentials or contacting a model unless `--run` is supplied. That flag makes external model requests and shares the selected source; use it only with the source owner's authorization. Review findings independently. None of these helpers establishes a completed live audit, a billing guarantee, or production readiness.
 
 For each collected source chunk, `collect_audit.py` verifies the returned bytes against the pinned manifest, then correlates the handler's requested, grant-consumed and completed records with the matching authenticated Lexecon permit entry. The private evidence file retains those records and the entry for review. A missing or inconsistent record leaves the attempt `Unknown` in the journal, with no completed evidence file. The recent-ledger query is bounded; heavy concurrent decision traffic can make an otherwise completed read remain `Unknown`. The entry hash check establishes internal consistency of that entry, not independent trust in the service or full ledger-chain continuity.
+
+To prepare a first source audit without an account or model call, start from the Lexecon checkout with a new ignored profile:
+
+```sh
+AUDIT_HOME="$PWD/.lexecon/hermes-source-audit"
+AUDIT_REV="$(git rev-parse HEAD)"
+mkdir -p "$PWD/.lexecon"
+uv sync --locked --extra dev
+.venv/bin/python integrations/hermes/owner_setup.py prepare --home "$AUDIT_HOME" --api-port 8765
+.venv/bin/python integrations/hermes/audit_snapshot.py --repo "$PWD" --revision "$AUDIT_REV" --home "$AUDIT_HOME"
+shasum -a 256 "$AUDIT_HOME/private/snapshot.json"
+.venv/bin/python integrations/hermes/package_audit_input.py --home "$AUDIT_HOME" --output "$PWD/.lexecon/hermes-source-package"
+```
+
+Review the exact commit, manifest, included paths and digest before activation. The package is prepared input marked `NotRun`; it contains no session or audit result. On Linux, `sha256sum` can replace `shasum -a 256`. Keep the reviewed 64-character manifest digest for the collection command. Use a new profile name if this one already exists.
+
+Owner activation is interactive. In one terminal, run `.venv/bin/python integrations/hermes/start_audit_service.py --home "$AUDIT_HOME"` and keep it running. It asks before creating isolated local state and an `audit_admin` password. In a second terminal, set `AUDIT_HOME` to the same absolute path, then run `.venv/bin/python integrations/hermes/owner_setup.py provision --home "$AUDIT_HOME"`, followed by `load-policy` and `login` with the same command and home. Enter `audit_admin` at the administrator username prompt. These commands create a dedicated non-admin viewer and load the reviewed strict policy only on port `8765`. Then use an isolated patched Hermes checkout and its interpreter. The isolated interpreter needs PyYAML for the Lexecon setup reader; install the pinned `PyYAML==6.0.3` into that isolated environment if it is absent:
+
+```sh
+HERMES_CHECKOUT="/absolute/path/to/clean-patched-hermes-checkout"
+HERMES_PYTHON="/absolute/path/to/isolated/hermes/venv/bin/python"
+uv pip install --python "$HERMES_PYTHON" 'PyYAML==6.0.3'
+REVIEWED_SHA256="paste-the-reviewed-manifest-digest-here"
+"$HERMES_PYTHON" integrations/hermes/verify_live.py --home "$AUDIT_HOME" --hermes-checkout "$HERMES_CHECKOUT"
+"$HERMES_PYTHON" integrations/hermes/collect_audit.py --home "$AUDIT_HOME" \
+  --hermes-checkout "$HERMES_CHECKOUT" --manifest-sha256 "$REVIEWED_SHA256" \
+  --source src/lexecon/decision/service.py
+```
+
+The verification runs the actual local dispatcher without a model turn. Collection saves the selected read evidence under the printed private directory; `findings.json` begins empty and `AwaitingReview`. Review any proposed finding against the collected revision, path, line range, and decision evidence. The audit workflow leaves evaluation and held-out material outside its source projection.
 
 ## Prepare without changing your existing setup
 
@@ -76,7 +106,7 @@ HERMES_PYTHON="/absolute/path/to/existing/hermes/venv/bin/python"
   --home "$LEXECON_HERMES_HOME" --hermes-checkout "$HERMES_CHECKOUT"
 ```
 
-The proof uses the existing session, lists and reads the unchanged welcome fixture, rejects traversal, requests a denied delete action without executing a delete, and correlates local audit records. It prints decision IDs and status, not tokens or file contents. It makes real local API requests and writes decision/audit events. It does not create an account or load policy.
+The proof uses the existing session, lists and reads the unchanged welcome fixture, rejects traversal, requests a denied delete action without executing a delete, and correlates local audit records. Its lost-response check creates and removes one harmless, uniquely named file inside the dedicated workspace so only evidence bound to that attempt can resolve `Unknown`. It prints decision IDs and status, not tokens or file contents. It makes real local API requests and writes decision/audit events. It does not create an account or load policy.
 
 Launching Hermes with this isolated home is a separate owner action:
 

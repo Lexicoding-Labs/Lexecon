@@ -2,7 +2,8 @@
   "upstream_commit": "84f87a18c0ad9f1a6d646df839110103f3204346",
   "isolated_import_commit": "ac8fa0dc9b2a5c67133975be9cd84c19e12d0f8f",
   "isolated_gate_commit": "c95d6b9edecf10381ff2a429e397d8009ae57e56",
-  "patch_sha256": "0627763005fd74b7bb433eaee9e48636a5757e648c8bb7a0309b32f78203f77e",
+  "patch_sha256": "9e0f3e88fb5afffa442b740c44fa4da9ab63b89db437d646307d1a99812df23c",
+  "portability_revision": "Host tests now use the explicit LEXECON_CHECKOUT test path; the patch extends the recorded isolated gate commit for this fixture-path change.",
   "scope": "Trusted local two-tool pilot; not universal interception or an OS sandbox",
   "live_activation": "not performed"
 }

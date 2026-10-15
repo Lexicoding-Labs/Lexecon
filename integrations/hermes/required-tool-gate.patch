@@ -65,6 +65,19 @@ index 9a068d5a..0ed22dc7 100644
      ids = _CallIds(task_id, session_id, tool_call_id, turn_id, api_request_id)
      start = time.monotonic()
  
+diff --git a/scripts/run_tests.sh b/scripts/run_tests.sh
+index 143b1bce..4e572035 100755
+--- a/scripts/run_tests.sh
++++ b/scripts/run_tests.sh
+@@ -154,7 +154,7 @@ _pf86="$(env | sed -n 's/^ProgramFiles(x86)=//p' | head -n1)"
+ # Keep this an explicit allowlist (no HERMES_TEST_* glob) so the "no
+ # credential can leak" property stays auditable at a glance.
+ TEST_ENV=()
+-for _test_var in HERMES_TEST_IMAGE HERMES_TEST_WORKERS HERMES_TEST_PATHS \
++for _test_var in LEXECON_CHECKOUT HERMES_TEST_IMAGE HERMES_TEST_WORKERS HERMES_TEST_PATHS \
+   HERMES_TEST_FILE_TIMEOUT HERMES_TEST_FILE_RETRIES HERMES_TEST_SLICE \
+   SSL_CERT_FILE SSL_CERT_DIR HERMES_GATEWAY_LOCK_DIR HERMES_E2E_REQUIRE_TUI CI GITHUB_ACTIONS; do
+   if [ -n "${!_test_var:-}" ]; then
 diff --git a/tests/hermes_cli/test_real_home_tripwire.py b/tests/hermes_cli/test_real_home_tripwire.py
 index de1ae67d..97721e03 100644
 --- a/tests/hermes_cli/test_real_home_tripwire.py
@@ -130,18 +143,19 @@ index a047815a..ce5ca0f2 100644
 +        monkeypatch.setattr(os, "dup", guarded_dup)
 diff --git a/tests/tools/test_required_tool_gate.py b/tests/tools/test_required_tool_gate.py
 new file mode 100644
-index 00000000..f8b2d780
+index 00000000..327af4a2
 --- /dev/null
 +++ b/tests/tools/test_required_tool_gate.py
-@@ -0,0 +1,290 @@
+@@ -0,0 +1,292 @@
 +"""Local pilot integration: real Lexecon plugin, host dispatch, fixture-only API.
 +
-+Run with scripts/run_tests.sh. The sibling Lexecon release checkout is the
-+explicit integration fixture; no live profile, account, model or socket is used.
++Run with scripts/run_tests.sh and LEXECON_CHECKOUT set to the product checkout.
++No live profile, account, model or socket is used.
 +"""
 +
 +import importlib
 +import json
++import os
 +import shutil
 +import socket
 +import sys
@@ -151,7 +165,6 @@ index 00000000..f8b2d780
 +
 +import pytest
 +
-+PLUGIN = Path(__file__).resolve().parents[3] / "lexecon-release-review-2026-10-07/integrations/hermes/lexecon_gate"
 +ALLOWED = ["lexecon_list_files", "lexecon_read_file"]
 +
 +
@@ -171,8 +184,10 @@ index 00000000..f8b2d780
 +    home.mkdir(parents=True, mode=0o700)
 +    for name in ("workspace", "private", "plugins"):
 +        (home / name).mkdir(mode=0o700)
-+    assert PLUGIN.is_dir(), "The Lexecon sibling checkout is required for this local integration suite"
-+    shutil.copytree(PLUGIN, home / "plugins/lexecon-gate", ignore=shutil.ignore_patterns("__pycache__"))
++    checkout = Path(os.environ.get("LEXECON_CHECKOUT", ""))
++    plugin = checkout / "integrations/hermes/lexecon_gate"
++    assert checkout.is_absolute() and plugin.is_dir(), "Set LEXECON_CHECKOUT to the Lexecon checkout"
++    shutil.copytree(plugin, home / "plugins/lexecon-gate", ignore=shutil.ignore_patterns("__pycache__"))
 +    (home / "workspace/hello.txt").write_text("bounded workspace content")
 +    settings = {"workspace_root": str(home / "workspace"), "username": "hermes-test",
 +                "session_file": str(home / "private/session"), "audit_file": str(home / "private/audit.jsonl")}

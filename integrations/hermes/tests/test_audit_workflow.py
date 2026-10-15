@@ -267,23 +267,72 @@ def test_only_matching_gated_bytes_revision_and_lines_support_report(tmp_path):
         collection.validate_findings(report, evidence)
 
 
-@pytest.mark.parametrize("failure", ["no_audit", "no_ledger", "wrong_digest", "multiple_reads"])
+@pytest.mark.parametrize("failure", ["no_audit", "no_ledger", "wrong_digest", "wrong_probe",
+                                     "multiple_reads"])
 def test_reconciliation_needs_fresh_agreement(failure):
     after = [{"request_id": "r", "decision_id": "d", "arguments_digest": "a" * 64,
-              "tool": "lexecon_read_file", "outcome": outcome} for outcome in ("authorized", "completed")]
+              "tool": "lexecon_read_file", "action": "read", "outcome": outcome}
+             for outcome in ("authorized", "completed")]
     after.insert(0, {**after[0], "outcome": "requested", "decision_id": None})
     ledger = {"entries": [{"event_type": "decision", "data": {
         "decision_id": "d", "request_id": "r", "arguments_digest": "a" * 64, "decision": "permit"}}]}
-    assert acceptance.reconcile_interruption([], after, ledger)["state"] == "ObservedCompletedRead"
+    assert acceptance.reconcile_interruption([], after, ledger, "a" * 64)["state"] == "ObservedCompletedRead"
     if failure == "no_audit":
         after = []
     elif failure == "no_ledger":
         ledger = {"entries": []}
     elif failure == "wrong_digest":
         ledger["entries"][0]["data"]["arguments_digest"] = "b" * 64
+    elif failure == "wrong_probe":
+        assert acceptance.reconcile_interruption([], after, ledger, "b" * 64) == {"state": "Unknown"}
+        return
     else:
         after.append(dict(after[-1]))
-    assert acceptance.reconcile_interruption([], after, ledger) == {"state": "Unknown"}
+    assert acceptance.reconcile_interruption([], after, ledger, "a" * 64) == {"state": "Unknown"}
+
+
+@pytest.mark.parametrize("same_probe", [True, False])
+def test_interruption_probe_links_unique_fixture_and_removes_it(tmp_path, same_probe):
+    from lexecon_gate import runtime
+    from verify_live import ProofError
+
+    home = owner.prepare(tmp_path / "pilot", api_port=8765)
+    settings = owner.settings_for(home)[1]
+    rows, ledger = [], {"entries": []}
+
+    def dispatch(tool, arguments):
+        assert tool == "lexecon_read_file"
+        assert arguments["path"].startswith("validation-") and arguments["path"].endswith(".txt")
+        root = Path(settings["workspace_root"])
+        assert (root / arguments["path"]).is_file()
+        info = root.stat()
+        digest = runtime.arguments_digest({"workspace_root": str(root), "workspace_device": info.st_dev,
+                                           "workspace_inode": info.st_ino, "path": arguments["path"]})
+        if not same_probe:
+            digest = "b" * 64
+        for outcome, decision in (("requested", None), ("authorized", "dec_1"),
+                                  ("completed", "dec_1")):
+            rows.append({"request_id": "req_1", "decision_id": decision,
+                         "arguments_digest": digest, "tool": tool, "action": "read", "outcome": outcome})
+        ledger["entries"].append({"event_type": "decision", "data": {
+            "request_id": "req_1", "decision_id": "dec_1", "arguments_digest": digest,
+            "decision": "permit"}})
+        return {"ok": True, "decision_id": "dec_1", "content": "discarded response"}
+
+    host = SimpleNamespace(home=home, settings=settings,
+                           plugin=importlib.import_module("lexecon_gate"),
+                           model_tools=SimpleNamespace(handle_function_call=dispatch))
+    client = SimpleNamespace(ledger_entries=lambda: ledger)
+    if same_probe:
+        result = acceptance.interruption_probe(host, client, lambda: list(rows))
+        assert result["state"] == "ObservedCompletedRead" and result["initial"] == "Unknown"
+    else:
+        with pytest.raises(ProofError, match="interruption_remains_unknown"):
+            acceptance.interruption_probe(host, client, lambda: list(rows))
+    assert not list((home / "workspace").glob("validation-*.txt"))
+    journal = next((home / "private").glob("validation-interruption-*.jsonl"))
+    states = [json.loads(line)["state"] for line in journal.read_text().splitlines()]
+    assert states == (["Unknown", "ObservedCompletedRead"] if same_probe else ["Unknown", "Unknown"])
 
 
 def test_isolated_service_environment_excludes_inherited_credentials(monkeypatch, tmp_path):
